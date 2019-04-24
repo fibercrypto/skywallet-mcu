@@ -11,8 +11,10 @@
 
 #include <check.h>
 
+#include "test_timer.h"
 #include "test_droplet.h"
 #include "test_fsm.h"
+#include "test_protect.h"
 
 // define test suite and cases
 Suite *test_suite(void)
@@ -21,6 +23,8 @@ Suite *test_suite(void)
 
 	suite_add_tcase(s, add_fsm_tests(tcase_create("fsm")));
 	suite_add_tcase(s, add_droplet_tests(tcase_create("droplet")));
+	suite_add_tcase(s, add_timer_tests(tcase_create("timer")));
+	suite_add_tcase(s, add_protect_tests(tcase_create("protect")));
 	return s;
 }
 

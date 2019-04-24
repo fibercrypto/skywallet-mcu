@@ -54,6 +54,9 @@ CFLAGS += -DCONFIDENTIAL='__attribute__((section("confidential")))'
 
 endif
 
+CFLAGS += -DDISABLE_GETENTROPY_CONFIRM=$(DISABLE_GETENTROPY_CONFIRM)
+CFLAGS += -DENABLE_GETENTROPY=$(ENABLE_GETENTROPY)
+
 CFLAGS   += $(OPTFLAGS) \
             $(DBGFLAGS) \
             -std=gnu99 \
@@ -90,8 +93,7 @@ CFLAGS   += $(OPTFLAGS) \
             -I$(TOP_DIR)gen \
             -I$(TOP_DIR)vendor/skycoin-crypto \
             -I$(TOP_DIR)vendor/skycoin-crypto/tools \
-            -I$(TOP_DIR)vendor/skycoin-crypto/trezor-tools \
-            -I$(TOP_DIR)vendor/skycoin-crypto/trezor-tools/aes
+            -I$(TOP_DIR)vendor/skycoin-crypto/tools/aes
 
 LDFLAGS  += -L$(TOP_DIR) \
             $(DBGFLAGS) \

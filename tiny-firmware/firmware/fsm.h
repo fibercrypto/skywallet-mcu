@@ -1,5 +1,5 @@
 /*
- * This file is part of the Skycoin project, https://skycoin.net/ 
+ * This file is part of the Skycoin project, https://skycoin.net/
  *
  * Copyright (C) 2014 Pavol Rusnak <stick@satoshilabs.com>
  * Copyright (C) 2018-2019 Skycoin Project
@@ -32,7 +32,6 @@ void fsm_sendFailure(FailureType code, const char *text);
 void fsm_msgInitialize(Initialize *msg);
 void fsm_msgGetFeatures(GetFeatures *msg);
 void fsm_msgApplySettings(ApplySettings *msg);
-int fsm_getKeyPairAtIndex(uint32_t nbAddress, uint8_t* pubkey, uint8_t* seckey, ResponseSkycoinAddress* respSkycoinAddress, uint32_t start_index);
 void fsm_msgSkycoinCheckMessageSignature(SkycoinCheckMessageSignature* msg);
 void fsm_msgSkycoinSignMessage(SkycoinSignMessage* msg);
 void fsm_msgSkycoinAddress(SkycoinAddress* msg);
@@ -41,7 +40,8 @@ void fsm_msgSetMnemonic(SetMnemonic* msg);
 void fsm_msgPing(Ping *msg);
 void fsm_msgChangePin(ChangePin *msg);
 void fsm_msgWipeDevice(WipeDevice *msg);
-void fsm_msgGetEntropy(GetEntropy *msg);
+void fsm_msgGetRawEntropy(GetRawEntropy *msg);
+void fsm_msgGetMixedEntropy(GetMixedEntropy *msg);
 void fsm_msgEntropyAck(EntropyAck *msg);
 void fsm_msgLoadDevice(LoadDevice *msg);
 void fsm_msgResetDevice(ResetDevice *msg);

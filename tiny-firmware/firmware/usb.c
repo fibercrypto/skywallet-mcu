@@ -21,7 +21,7 @@
 #include <libopencm3/usb/usbd.h>
 #include <libopencm3/usb/hid.h>
 
-#include "trezor.h"
+#include "skywallet.h"
 #include "usb.h"
 #include "messages.h"
 #include "storage.h"
@@ -35,7 +35,7 @@
 
 #define USB_STRINGS \
 	X(MANUFACTURER, "SkycoinFoundation") \
-	X(PRODUCT, "SKYCOIN") \
+	X(PRODUCT, "SKYWALLET") \
 	X(SERIAL_NUMBER, storage_uuid_str) \
 	X(INTERFACE_MAIN,  "SKYCOIN Interface") 
 

@@ -1,8 +1,10 @@
 APPVER = 1.0.0
 
-SDL_INCLUDE ?= /usr/include/SDL2
+SDL_CFLAGS ?= $(shell sdl2-config --cflags | sed 's/-D_THREAD_SAFE//g')
+ENABLE_GETENTROPY ?= 0
+DISABLE_GETENTROPY_CONFIRM ?= 0
 
-#libtrezor.a
+#libskywallet.a
 ifneq ($(EMULATOR),1)
 CFLAGS += -DAPPVER=$(APPVER)
 OBJS += startup.o
@@ -25,12 +27,15 @@ OBJS += memory.o
 OBJS += gen/bitmaps.o
 endif
 OBJS += gen/fonts.o
-#end libtrezor.a
+#end libskywallet.a
 
 #test_skyhw
+TEST_OBJS += firmware/test_timer.o
 TEST_OBJS += firmware/test_fsm.o
 TEST_OBJS += firmware/test_droplet.o
 TEST_OBJS += firmware/test_main.o
+TEST_OBJS += firmware/test_many_address_golden.o
+TEST_OBJS += firmware/test_protect.o
 #end test_skyhw
 
 ifneq ($(EMULATOR),1)
@@ -58,7 +63,7 @@ OBJS += firmware/usb.o
 else
 OBJS += firmware/udp.o
 endif
-OBJS += firmware/trezor.o
+OBJS += firmware/skywallet.o
 OBJS += firmware/layout2.o
 OBJS += firmware/storage.o
 OBJS += firmware/messages.o
@@ -71,6 +76,7 @@ OBJS += firmware/reset.o
 OBJS += firmware/recovery.o
 OBJS += firmware/factory_test.o
 OBJS += firmware/entropy.o
+OBJS += firmware/swtimer.o
 
 OBJS += protob/c/messages.pb.o
 OBJS += protob/c/types.pb.o
@@ -117,7 +123,7 @@ CFLAGS   += -DHEADLESS=1
 else
 CFLAGS   += -DHEADLESS=0
 
-CFLAGS   += -I$(SDL_INCLUDE) -D_REENTRANT
+CFLAGS   += $(SDL_CFLAGS) -D_REENTRANT
 LDLIBS   += -lSDL2
 endif
 endif
