@@ -40,7 +40,8 @@ install-linters-Darwin:
 
 install-linters-Linux:
 	$(PIP) install $(PIPARGS) yamllint
-	sudo apt-get install $(PKG_CLANG_LINTER)
+	sudo apt update
+	sudo apt-get install -y $(PKG_CLANG_LINTER)
 
 install-linters: install-linters-$(UNAME_S) ## Install code quality checking tools
 
