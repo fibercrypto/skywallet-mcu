@@ -2,8 +2,6 @@
 
 set -x
 
-sudo apt-get update
-
 # Install libcheck check C testing framework
 wget https://github.com/libcheck/check/releases/download/0.12.0/check-0.12.0.tar.gz
 tar xvf check-0.12.0.tar.gz
