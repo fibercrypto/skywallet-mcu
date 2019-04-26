@@ -38,7 +38,6 @@ endif
 install-linters-Darwin:
 	brew install yamllint
 	brew install $(CLANG_FORMAT)
-	# ln -s "/usr/local/opt/llvm/bin/clang-format" "/usr/local/bin/clang-format"
 
 install-linters-Linux:
 	$(PIP) install $(PIPARGS) yamllint
