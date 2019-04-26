@@ -2,6 +2,8 @@
 
 set -x
 
+
+sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test && sudo apt-get update -qq
 # Install libcheck check C testing framework
 wget https://github.com/libcheck/check/releases/download/0.12.0/check-0.12.0.tar.gz
 tar xvf check-0.12.0.tar.gz
