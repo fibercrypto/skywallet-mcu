@@ -31,6 +31,10 @@ script:
   - find tiny-firmware/protob/nanopb/vendor/nanopb
   - make verify-protob-hash
   - make lint
+  - make lint-firmware
+  - make lint-bootloader
+  - make lint-emulator
+  - make lint-skypi
   - make -C tiny-firmware/protob install-deps-nanopb
   - make -C tiny-firmware/protob install-protoc
   - make -C tiny-firmware/protob/nanopb/vendor/nanopb/generator/proto
