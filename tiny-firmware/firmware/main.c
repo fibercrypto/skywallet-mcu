@@ -11,6 +11,8 @@
 
 #include <libopencm3/stm32/desig.h>
 
+#include "skywallet.h"
+#include "oled.h"
 #include "bitmaps.h"
 #include "util.h"
 #include "usb.h"
