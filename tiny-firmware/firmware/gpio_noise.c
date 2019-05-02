@@ -9,47 +9,45 @@
  *
  */
 
-#include "gpio_noise.h"
 #include <libopencm3/stm32/gpio.h>
+#include "gpio_noise.h"
 
 #ifdef EMULATOR
-uint16_t read_gpio_noise(uint8_t port, uint8_t pin)
-{
-    return (((uint16_t)port) << 8) | pin;
+uint16_t read_gpio_noise(uint8_t port, uint8_t pin) {
+	return (( (uint16_t) port ) << 8) | pin;
 }
 #else
-uint16_t read_gpio_noise(uint8_t port, uint8_t pin)
-{
-    uint32_t ports[] = {
-        0, GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG, GPIOH, GPIOI};
-    uint32_t pins[] = {
-        0, GPIO1, GPIO2, GPIO3, GPIO4, GPIO5, GPIO6, GPIO7, GPIO8};
+uint16_t read_gpio_noise(uint8_t port, uint8_t pin) {
 
-    uint32_t currentPin;
-    uint32_t currentPort;
+	uint32_t ports[] = { 0, GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG, GPIOH, GPIOI };
+	uint32_t pins[] = { 0, GPIO1, GPIO2, GPIO3, GPIO4, GPIO5, GPIO6, GPIO7, GPIO8 };
 
-    static uint16_t salt = 0;
-    static uint8_t shift = 3;
+	uint32_t currentPin;
+	uint32_t currentPort;
 
-    ++salt;
-    shift = ((shift + 1) & 0x3) + 4;
+	static uint16_t salt = 0;
+	static uint8_t shift = 3;
 
-    if (1 <= pin && pin <= 8) {
-        currentPin = pins[pin];
-    } else {
-        currentPin = GPIO_ALL;
-    }
+	++salt;
+	shift = ((shift + 1) & 0x3) + 4;
 
-    if (1 <= port && port <= 9) {
-        currentPort = ports[port];
-    } else {
-        currentPort = (GPIOC);
-    }
+	if ( 1 <= pin && pin <= 8 ) {
+		currentPin = pins[pin];
+	} else {
+		currentPin = GPIO_ALL;
+	}
 
-    gpio_mode_setup(currentPort, GPIO_MODE_INPUT, GPIO_PUPD_NONE, currentPin);
+	if ( 1 <= port && port <= 9 ) {
+		currentPort = ports[port];
+	} else {
+		currentPort = (GPIOC);
+	}
 
-    uint16_t ret = gpio_port_read(currentPort);
+	gpio_mode_setup(currentPort, GPIO_MODE_INPUT, GPIO_PUPD_NONE, currentPin);
 
-    return ret ^ (ret << shift) ^ salt;
+	uint16_t ret = gpio_port_read(currentPort);
+
+	return ret ^ ( ret << shift ) ^ salt;
+
 }
 #endif
