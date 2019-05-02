@@ -763,7 +763,7 @@ uint32_t storage_getFlags(void)
 void storage_wipe(void)
 {
 	session_clear(true);
-        reset_entropy_mix_256();
+	reset_entropy_mix_256();
 
 	svc_flash_unlock();
 	storage_commit_locked(false);
