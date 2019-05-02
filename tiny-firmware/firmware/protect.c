@@ -76,8 +76,7 @@ bool protectButton(ButtonRequestType type, bool confirm_only)
         }
 
         // check for Cancel / Initialize
-        if (msg_tiny_id == MessageType_MessageType_Cancel ||
-            msg_tiny_id == MessageType_MessageType_Initialize) {
+        if (msg_tiny_id == MessageType_MessageType_Cancel || msg_tiny_id == MessageType_MessageType_Initialize) {
             if (msg_tiny_id == MessageType_MessageType_Initialize) {
                 protectAbortedByInitialize = true;
             }
@@ -95,7 +94,9 @@ bool protectButton(ButtonRequestType type, bool confirm_only)
             debug_decided = true;
         }
 
-        if (acked && debug_decided) { break; }
+        if (acked && debug_decided) {
+            break;
+        }
 
         if (msg_tiny_id == MessageType_MessageType_DebugLinkGetState) {
             msg_tiny_id = 0xFFFF;
@@ -129,8 +130,7 @@ const char* requestPin(PinMatrixRequestType type, const char* text)
             usbTiny(0);
             return pma->pin;
         }
-        if (msg_tiny_id == MessageType_MessageType_Cancel ||
-            msg_tiny_id == MessageType_MessageType_Initialize) {
+        if (msg_tiny_id == MessageType_MessageType_Cancel || msg_tiny_id == MessageType_MessageType_Initialize) {
             pinmatrix_done(0);
             if (msg_tiny_id == MessageType_MessageType_Initialize) {
                 protectAbortedByInitialize = true;
@@ -150,13 +150,13 @@ const char* requestPin(PinMatrixRequestType type, const char* text)
 
 static void protectCheckMaxTry(uint32_t wait)
 {
-    if (wait < (1 << MAX_WRONG_PINS)) return;
+    if (wait < (1 << MAX_WRONG_PINS))
+        return;
 
     storage_wipe();
-    layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Too many wrong PIN"),
-        _("attempts. Storage has"), _("been wiped."), NULL, _("Please unplug"),
-        _("the device."));
-    for (;;) {} // loop forever
+    layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Too many wrong PIN"), _("attempts. Storage has"), _("been wiped."), NULL, _("Please unplug"), _("the device."));
+    for (;;) {
+    } // loop forever
 }
 
 bool protectPin(bool use_cached)
@@ -179,9 +179,10 @@ bool protectPin(bool use_cached)
             *secstr = (secs % 10) + '0';
             secs /= 10;
         }
-        if (wait == 1) { secstrbuf[16] = 0; }
-        layoutDialog(&bmp_icon_info, NULL, NULL, NULL, _("Wrong PIN entered"),
-            NULL, _("Please wait"), secstr, _("to continue ..."), NULL);
+        if (wait == 1) {
+            secstrbuf[16] = 0;
+        }
+        layoutDialog(&bmp_icon_info, NULL, NULL, NULL, _("Wrong PIN entered"), NULL, _("Please wait"), secstr, _("to continue ..."), NULL);
         // wait one second
         usbSleep(1000);
         if (msg_tiny_id == MessageType_MessageType_Initialize) {
@@ -195,8 +196,7 @@ bool protectPin(bool use_cached)
     }
     usbTiny(0);
     const char* pin;
-    pin = requestPin(PinMatrixRequestType_PinMatrixRequestType_Current,
-        _("Please enter current PIN:"));
+    pin = requestPin(PinMatrixRequestType_PinMatrixRequestType_Current, _("Please enter current PIN:"));
     if (!pin) {
         fsm_sendFailure(FailureType_Failure_PinCancelled, NULL);
         return false;
@@ -216,27 +216,29 @@ bool protectPin(bool use_cached)
     }
 }
 
-bool protectChangePin() { return protectChangePinEx(NULL); }
+bool protectChangePin()
+{
+    return protectChangePinEx(NULL);
+}
 
-bool protectChangePinEx(
-    const char* (*funcRequestPin)(PinMatrixRequestType, const char*))
+bool protectChangePinEx(const char* (*funcRequestPin)(PinMatrixRequestType, const char*))
 {
     static CONFIDENTIAL char pin_compare[17];
-    if (funcRequestPin == NULL) { funcRequestPin = requestPin; }
+    if (funcRequestPin == NULL) {
+        funcRequestPin = requestPin;
+    }
 
-    const char* pin =
-        funcRequestPin(PinMatrixRequestType_PinMatrixRequestType_NewFirst,
-            _("Please enter new PIN:"));
+    const char* pin = funcRequestPin(PinMatrixRequestType_PinMatrixRequestType_NewFirst, _("Please enter new PIN:"));
 
-    if (!pin) { return false; }
+    if (!pin) {
+        return false;
+    }
 
     strlcpy(pin_compare, pin, sizeof(pin_compare));
 
-    pin = funcRequestPin(PinMatrixRequestType_PinMatrixRequestType_NewSecond,
-        _("Please re-enter new PIN:"));
+    pin = funcRequestPin(PinMatrixRequestType_PinMatrixRequestType_NewSecond, _("Please re-enter new PIN:"));
 
-    const bool result =
-        pin && *pin && (strncmp(pin_compare, pin, sizeof(pin_compare)) == 0);
+    const bool result = pin && *pin && (strncmp(pin_compare, pin, sizeof(pin_compare)) == 0);
 
     if (result) {
         storage_setPin(pin_compare);
@@ -259,14 +261,12 @@ bool protectPassphrase(void)
     usbTiny(1);
     msg_write(MessageType_MessageType_PassphraseRequest, &resp);
 
-    layoutDialogSwipe(&bmp_icon_info, NULL, NULL, NULL, _("Please enter your"),
-        _("passphrase using"), _("the computer's"), _("keyboard."), NULL, NULL);
+    layoutDialogSwipe(&bmp_icon_info, NULL, NULL, NULL, _("Please enter your"), _("passphrase using"), _("the computer's"), _("keyboard."), NULL, NULL);
 
     bool result;
     for (;;) {
         usbPoll();
-        // TODO: correctly process PassphraseAck with state field set (mismatch
-        // => Failure)
+        // TODO: correctly process PassphraseAck with state field set (mismatch => Failure)
         if (msg_tiny_id == MessageType_MessageType_PassphraseAck) {
             msg_tiny_id = 0xFFFF;
             PassphraseAck* ppa = (PassphraseAck*)msg_tiny;
@@ -274,8 +274,7 @@ bool protectPassphrase(void)
             result = true;
             break;
         }
-        if (msg_tiny_id == MessageType_MessageType_Cancel ||
-            msg_tiny_id == MessageType_MessageType_Initialize) {
+        if (msg_tiny_id == MessageType_MessageType_Cancel || msg_tiny_id == MessageType_MessageType_Initialize) {
             if (msg_tiny_id == MessageType_MessageType_Initialize) {
                 protectAbortedByInitialize = true;
             }

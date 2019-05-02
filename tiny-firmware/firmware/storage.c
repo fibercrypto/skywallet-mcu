@@ -1,5 +1,5 @@
 /*
- * This file is part of the Skycoin project, https://skycoin.net/
+ * This file is part of the Skycoin project, https://skycoin.net/ 
  *
  * Copyright (C) 2014 Pavol Rusnak <stick@satoshilabs.com>
  * Copyright (C) 2018-2019 Skycoin Project
@@ -46,15 +46,13 @@
 /* magic constant to check validity of storage block */
 static const uint32_t storage_magic = 0x726f7473; // 'stor' as uint32_t
 
-uint32_t storage_uuid[STM32_UUID_LEN / sizeof(uint32_t)] = {0};
-_Static_assert(sizeof(storage_uuid) == STM32_UUID_LEN,
-    "storage_uuid has wrong size");
+uint32_t storage_uuid[STM32_UUID_LEN/sizeof(uint32_t)] = {0};
+_Static_assert(sizeof(storage_uuid) == STM32_UUID_LEN, "storage_uuid has wrong size");
 
 Storage CONFIDENTIAL storageUpdate __attribute__((aligned(4)));
 _Static_assert((sizeof(storageUpdate) & 3) == 0, "storage unaligned");
 
-#define FLASH_STORAGE \
-    (FLASH_STORAGE_START + sizeof(storage_magic) + sizeof(storage_uuid))
+#define FLASH_STORAGE (FLASH_STORAGE_START + sizeof(storage_magic) + sizeof(storage_uuid))
 #define storageRom ((const Storage*)FLASH_PTR(FLASH_STORAGE))
 
 // size *2 due to the hex formad and +1 because of the trailing NUL char
@@ -77,7 +75,7 @@ The area for pin failures looks like this:
 0 ... 0 pinfail 0xffffffff .. 0xffffffff
 The pinfail is a binary number of the form 1...10...0,
 the number of zeros is the number of pin failures.
-This layout is used because we can only clear bits without
+This layout is used because we can only clear bits without 
 erasing the flash.
 
 The area for u2f counter updates is just a sequence of zero-bits
@@ -89,17 +87,13 @@ be added to the storage u2f_counter to get the real counter value.
 
 #define FLASH_STORAGE_PINAREA (FLASH_META_START + 0x4000)
 #define FLASH_STORAGE_PINAREA_LEN (0x1000)
-#define FLASH_STORAGE_U2FAREA \
-    (FLASH_STORAGE_PINAREA + FLASH_STORAGE_PINAREA_LEN)
+#define FLASH_STORAGE_U2FAREA (FLASH_STORAGE_PINAREA + FLASH_STORAGE_PINAREA_LEN)
 #define FLASH_STORAGE_U2FAREA_LEN (0x100)
-#define FLASH_STORAGE_REALLEN \
-    (sizeof(storage_magic) + sizeof(storage_uuid) + sizeof(Storage))
+#define FLASH_STORAGE_REALLEN (sizeof(storage_magic) + sizeof(storage_uuid) + sizeof(Storage))
 
 #if !EMULATOR
 // TODO: Fix this for emulator
-_Static_assert(
-    FLASH_STORAGE_START + FLASH_STORAGE_REALLEN <= FLASH_STORAGE_PINAREA,
-    "Storage struct is too large for TREZOR flash");
+_Static_assert(FLASH_STORAGE_START + FLASH_STORAGE_REALLEN <= FLASH_STORAGE_PINAREA, "Storage struct is too large for TREZOR flash");
 #endif
 
 /* Current u2f offset, i.e. u2f counter is
@@ -121,32 +115,22 @@ static char CONFIDENTIAL sessionPassphrase[51];
 
 void __attribute__((noreturn)) storage_show_error(void)
 {
-    layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Storage failure"),
-        _("detected."), NULL, _("Please unplug"), _("the device."), NULL);
+    layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Storage failure"), _("detected."), NULL, _("Please unplug"), _("the device."), NULL);
     shutdown();
 }
 
 void storage_check_flash_errors(uint32_t status)
 {
     // flash operation failed
-    if (status & (FLASH_SR_PGAERR | FLASH_SR_PGPERR | FLASH_SR_PGSERR |
-                     FLASH_SR_WRPERR)) {
+    if (status & (FLASH_SR_PGAERR | FLASH_SR_PGPERR | FLASH_SR_PGSERR | FLASH_SR_WRPERR)) {
         if (status & FLASH_SR_PGAERR) {
-            layoutDialog(&bmp_icon_error, NULL, NULL, NULL,
-                _("Storage failure"), _("FLASH_SR_PGAERR."), NULL,
-                _("Please unplug"), _("the device."), NULL);
+            layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Storage failure"), _("FLASH_SR_PGAERR."), NULL, _("Please unplug"), _("the device."), NULL);
         } else if (status & FLASH_SR_PGPERR) {
-            layoutDialog(&bmp_icon_error, NULL, NULL, NULL,
-                _("Storage failure"), _("FLASH_SR_PGPERR."), NULL,
-                _("Please unplug"), _("the device."), NULL);
+            layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Storage failure"), _("FLASH_SR_PGPERR."), NULL, _("Please unplug"), _("the device."), NULL);
         } else if (status & FLASH_SR_PGSERR) {
-            layoutDialog(&bmp_icon_error, NULL, NULL, NULL,
-                _("Storage failure"), _("FLASH_SR_PGSERR."), NULL,
-                _("Please unplug"), _("the device."), NULL);
+            layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Storage failure"), _("FLASH_SR_PGSERR."), NULL, _("Please unplug"), _("the device."), NULL);
         } else if (status & FLASH_SR_WRPERR) {
-            layoutDialog(&bmp_icon_error, NULL, NULL, NULL,
-                _("Storage failure"), _("FLASH_SR_WRPERR."), NULL,
-                _("Please unplug"), _("the device."), NULL);
+            layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Storage failure"), _("FLASH_SR_WRPERR."), NULL, _("Please unplug"), _("the device."), NULL);
         } else {
             storage_show_error();
         }
@@ -157,8 +141,7 @@ void storage_check_flash_errors(uint32_t status)
 bool storage_from_flash(void)
 {
     storage_clear_update();
-    if (memcmp(FLASH_PTR(FLASH_STORAGE_START), &storage_magic,
-            sizeof(storage_magic)) != 0) {
+    if (memcmp(FLASH_PTR(FLASH_STORAGE_START), &storage_magic, sizeof(storage_magic)) != 0) {
         // wrong magic
         storage_wipe();
         return storage_from_flash();
@@ -180,14 +163,10 @@ bool storage_from_flash(void)
     }
 
     // load uuid
-    memcpy(storage_uuid, FLASH_PTR(FLASH_STORAGE_START + sizeof(storage_magic)),
-        sizeof(storage_uuid));
+    memcpy(storage_uuid, FLASH_PTR(FLASH_STORAGE_START + sizeof(storage_magic)), sizeof(storage_uuid));
     data2hex(storage_uuid, sizeof(storage_uuid), storage_uuid_str);
 
-#define OLD_STORAGE_SIZE(last_member)                                          \
-    (((offsetof(Storage, last_member) + pb_membersize(Storage, last_member)) + \
-         3) &                                                                  \
-        ~3)
+#define OLD_STORAGE_SIZE(last_member) (((offsetof(Storage, last_member) + pb_membersize(Storage, last_member)) + 3) & ~3)
 
     // copy storage
     size_t old_storage_size = 0;
@@ -213,21 +192,18 @@ bool storage_from_flash(void)
     if (old_storage_size != sizeof(Storage)) {
         svc_flash_unlock();
         svc_flash_program(FLASH_CR_PROGRAM_X32);
-        for (uint32_t offset = old_storage_size; offset < sizeof(Storage);
-             offset += sizeof(uint32_t)) {
-            flash_write32(FLASH_STORAGE_START + sizeof(storage_magic) +
-                              sizeof(storage_uuid) + offset,
-                0);
+        for (uint32_t offset = old_storage_size; offset < sizeof(Storage); offset += sizeof(uint32_t)) {
+            flash_write32(FLASH_STORAGE_START + sizeof(storage_magic) + sizeof(storage_uuid) + offset, 0);
         }
         storage_check_flash_errors(svc_flash_lock());
     }
 
     if (version <= 5) {
         // convert PIN failure counter from version 5 format
-        uint32_t pinctr = storageRom->has_pin_failed_attempts ?
-                              storageRom->pin_failed_attempts :
-                              0;
-        if (pinctr > 31) { pinctr = 31; }
+        uint32_t pinctr = storageRom->has_pin_failed_attempts ? storageRom->pin_failed_attempts : 0;
+        if (pinctr > 31) {
+            pinctr = 31;
+        }
         svc_flash_unlock();
         // erase extra storage sector
         svc_flash_erase_sector(FLASH_META_SECTOR_LAST);
@@ -241,8 +217,7 @@ bool storage_from_flash(void)
     while (*u2fptr == 0) {
         u2fptr++;
     }
-    storage_u2f_offset =
-        32 * (u2fptr - (const uint32_t*)FLASH_PTR(FLASH_STORAGE_U2FAREA));
+    storage_u2f_offset = 32 * (u2fptr - (const uint32_t*)FLASH_PTR(FLASH_STORAGE_U2FAREA));
     uint32_t u2fword = *u2fptr;
     while ((u2fword & 1) == 0) {
         storage_u2f_offset++;
@@ -252,17 +227,18 @@ bool storage_from_flash(void)
     // this is done by re-setting the mnemonic, which triggers the computation
 
     storageUpdate.has_mnemonic = storageRom->has_mnemonic;
-    strlcpy(storageUpdate.mnemonic, storageRom->mnemonic,
-        sizeof(storageUpdate.mnemonic));
+    strlcpy(storageUpdate.mnemonic, storageRom->mnemonic, sizeof(storageUpdate.mnemonic));
     // update storage version on flash
-    if (version != STORAGE_VERSION) { storage_update(); }
+    if (version != STORAGE_VERSION) {
+        storage_update();
+    }
     return true;
 }
 
 void storage_init(void)
 {
-    // NOTE(denisacostaq@gmail.com): storage_uuid is loaded from main function
-    data2hex(storage_uuid, sizeof(storage_uuid), storage_uuid_str);
+	// NOTE(denisacostaq@gmail.com): storage_uuid is loaded from main function
+	data2hex(storage_uuid, sizeof(storage_uuid), storage_uuid_str);
     if (!storage_from_flash()) {
         storage_wipe();
         storage_show_error();
@@ -277,12 +253,12 @@ void session_clear(bool clear_pin)
     memzero(&sessionSeed, sizeof(sessionSeed));
     sessionPassphraseCached = false;
     memzero(&sessionPassphrase, sizeof(sessionPassphrase));
-    if (clear_pin) { sessionPinCached = false; }
+    if (clear_pin) {
+        sessionPinCached = false;
+    }
 }
 
-static uint32_t storage_flash_words(uint32_t addr,
-    const uint32_t* src,
-    int nwords)
+static uint32_t storage_flash_words(uint32_t addr, const uint32_t* src, int nwords)
 {
     for (int i = 0; i < nwords; i++) {
         flash_write32(addr, *src++);
@@ -300,42 +276,36 @@ static void storage_commit_locked(bool update)
             sessionSeedCached = false;
             sessionPassphraseCached = false;
         }
-        if (storageUpdate.has_pin) { sessionPinCached = false; }
+        if (storageUpdate.has_pin) {
+            sessionPinCached = false;
+        }
 
         storageUpdate.version = STORAGE_VERSION;
         if (!storageUpdate.has_node && !storageUpdate.has_mnemonic) {
             storageUpdate.has_node = storageRom->has_node;
-            memcpy(
-                &storageUpdate.node, &storageRom->node, sizeof(StorageHDNode));
+            memcpy(&storageUpdate.node, &storageRom->node, sizeof(StorageHDNode));
             storageUpdate.has_mnemonic = storageRom->has_mnemonic;
-            strlcpy(storageUpdate.mnemonic, storageRom->mnemonic,
-                sizeof(storageUpdate.mnemonic));
+            strlcpy(storageUpdate.mnemonic, storageRom->mnemonic, sizeof(storageUpdate.mnemonic));
             storageUpdate.has_u2froot = storageRom->has_u2froot;
-            memcpy(&storageUpdate.u2froot, &storageRom->u2froot,
-                sizeof(StorageHDNode));
+            memcpy(&storageUpdate.u2froot, &storageRom->u2froot, sizeof(StorageHDNode));
         }
         if (!storageUpdate.has_passphrase_protection) {
-            storageUpdate.has_passphrase_protection =
-                storageRom->has_passphrase_protection;
-            storageUpdate.passphrase_protection =
-                storageRom->passphrase_protection;
+            storageUpdate.has_passphrase_protection = storageRom->has_passphrase_protection;
+            storageUpdate.passphrase_protection = storageRom->passphrase_protection;
         }
         if (!storageUpdate.has_pin) {
             storageUpdate.has_pin = storageRom->has_pin;
-            strlcpy(
-                storageUpdate.pin, storageRom->pin, sizeof(storageUpdate.pin));
+            strlcpy(storageUpdate.pin, storageRom->pin, sizeof(storageUpdate.pin));
         } else if (!storageUpdate.pin[0]) {
             storageUpdate.has_pin = false;
         }
         if (!storageUpdate.has_language) {
             storageUpdate.has_language = storageRom->has_language;
-            strlcpy(storageUpdate.language, storageRom->language,
-                sizeof(storageUpdate.language));
+            strlcpy(storageUpdate.language, storageRom->language, sizeof(storageUpdate.language));
         }
         if (!storageUpdate.has_label) {
             storageUpdate.has_label = storageRom->has_label;
-            strlcpy(storageUpdate.label, storageRom->label,
-                sizeof(storageUpdate.label));
+            strlcpy(storageUpdate.label, storageRom->label, sizeof(storageUpdate.label));
         } else if (!storageUpdate.label[0]) {
             storageUpdate.has_label = false;
         }
@@ -345,8 +315,7 @@ static void storage_commit_locked(bool update)
         }
         if (!storageUpdate.has_homescreen) {
             storageUpdate.has_homescreen = storageRom->has_homescreen;
-            memcpy(&storageUpdate.homescreen, &storageRom->homescreen,
-                sizeof(storageUpdate.homescreen));
+            memcpy(&storageUpdate.homescreen, &storageRom->homescreen, sizeof(storageUpdate.homescreen));
         } else if (storageUpdate.homescreen.size == 0) {
             storageUpdate.has_homescreen = false;
         }
@@ -374,21 +343,15 @@ static void storage_commit_locked(bool update)
 
     // copy meta back
     uint32_t flash = FLASH_META_START;
-    flash = storage_flash_words(
-        flash, meta_backup, FLASH_META_DESC_LEN / sizeof(uint32_t));
+    flash = storage_flash_words(flash, meta_backup, FLASH_META_DESC_LEN / sizeof(uint32_t));
 
-    _Static_assert(
-        FLASH_META_START + FLASH_META_DESC_LEN == FLASH_STORAGE_START,
-        "magic is written at a wrong address");
+    _Static_assert(FLASH_META_START + FLASH_META_DESC_LEN == FLASH_STORAGE_START, "magic is written at a wrong address");
     // copy storage
-    flash = storage_flash_words(
-        flash, &storage_magic, sizeof(storage_magic) / sizeof(uint32_t));
-    flash = storage_flash_words(
-        flash, storage_uuid, sizeof(storage_uuid) / sizeof(uint32_t));
+    flash = storage_flash_words(flash, &storage_magic, sizeof(storage_magic) / sizeof(uint32_t));
+    flash = storage_flash_words(flash, storage_uuid, sizeof(storage_uuid) / sizeof(uint32_t));
 
     if (update) {
-        flash = storage_flash_words(flash, (const uint32_t*)&storageUpdate,
-            sizeof(storageUpdate) / sizeof(uint32_t));
+        flash = storage_flash_words(flash, (const uint32_t*)&storageUpdate, sizeof(storageUpdate) / sizeof(uint32_t));
     }
     storage_clear_update();
 
@@ -423,8 +386,7 @@ static void storage_setNode(const HDNodeType* node)
     if (node->has_private_key) {
         storageUpdate.node.has_private_key = true;
         storageUpdate.node.private_key.size = 32;
-        memcpy(
-            storageUpdate.node.private_key.bytes, node->private_key.bytes, 32);
+        memcpy(storageUpdate.node.private_key.bytes, node->private_key.bytes, 32);
     }
 }
 
@@ -436,8 +398,7 @@ void storage_loadDevice(LoadDevice* msg)
     storageUpdate.imported = true;
 
     storage_setPin(msg->has_pin ? msg->pin : "");
-    storage_setPassphraseProtection(
-        msg->has_passphrase_protection && msg->passphrase_protection);
+    storage_setPassphraseProtection(msg->has_passphrase_protection && msg->passphrase_protection);
 
     if (msg->has_node) {
         storageUpdate.has_node = true;
@@ -448,16 +409,14 @@ void storage_loadDevice(LoadDevice* msg)
     } else if (msg->has_mnemonic) {
         storageUpdate.has_mnemonic = true;
         storageUpdate.has_node = false;
-        strlcpy(storageUpdate.mnemonic, msg->mnemonic,
-            sizeof(storageUpdate.mnemonic));
+        strlcpy(storageUpdate.mnemonic, msg->mnemonic, sizeof(storageUpdate.mnemonic));
         sessionSeedCached = false;
         memset(&sessionSeed, 0, sizeof(sessionSeed));
     }
 
     if (msg->has_language) {
         storageUpdate.has_language = true;
-        strlcpy(storageUpdate.language, msg->language,
-            sizeof(storageUpdate.language));
+        strlcpy(storageUpdate.language, msg->language, sizeof(storageUpdate.language));
     }
 
     storage_setLabel(msg->has_label ? msg->label : "");
@@ -498,8 +457,7 @@ void storage_setPassphraseProtection(bool passphrase_protection)
 
 bool storage_hasPassphraseProtection(void)
 {
-    return storageRom->has_passphrase_protection &&
-           storageRom->passphrase_protection;
+    return storageRom->has_passphrase_protection && storageRom->passphrase_protection;
 }
 
 void storage_setHomescreen(const uint8_t* data, uint32_t size)
@@ -509,13 +467,15 @@ void storage_setHomescreen(const uint8_t* data, uint32_t size)
         memcpy(storageUpdate.homescreen.bytes, data, size);
         storageUpdate.homescreen.size = size;
     } else {
-        memset(storageUpdate.homescreen.bytes, 0,
-            sizeof(storageUpdate.homescreen.bytes));
+        memset(storageUpdate.homescreen.bytes, 0, sizeof(storageUpdate.homescreen.bytes));
         storageUpdate.homescreen.size = 0;
     }
 }
 
-bool storage_hasLabel(void) { return storageRom->has_label; }
+bool storage_hasLabel(void)
+{
+    return storageRom->has_label;
+}
 
 const char* storage_getLabel(void)
 {
@@ -534,9 +494,7 @@ const char* storage_getLanguage(void)
 
 const uint8_t* storage_getHomescreen(void)
 {
-    return (storageRom->has_homescreen && storageRom->homescreen.size == 1024) ?
-               storageRom->homescreen.bytes :
-               0;
+    return (storageRom->has_homescreen && storageRom->homescreen.size == 1024) ? storageRom->homescreen.bytes : 0;
 }
 
 void storage_setMnemonic(const char* mnemonic)
@@ -545,13 +503,21 @@ void storage_setMnemonic(const char* mnemonic)
     strlcpy(storageUpdate.mnemonic, mnemonic, sizeof(storageUpdate.mnemonic));
 }
 
-bool storage_hasNode(void) { return storageRom->has_node; }
+bool storage_hasNode(void)
+{
+    return storageRom->has_node;
+}
 
-bool storage_hasMnemonic(void) { return storageRom->has_mnemonic; }
+bool storage_hasMnemonic(void)
+{
+    return storageRom->has_mnemonic;
+}
 
 const char* storage_getFullSeed(void)
 {
-    if (!storage_hasPassphraseProtection()) { return storage_getMnemonic(); }
+    if (!storage_hasPassphraseProtection()) {
+        return storage_getMnemonic();
+    }
     if (sessionPassphraseCached || protectPassphrase()) {
         sprintf(sessionSeed, "%s %s", storage_getMnemonic(), sessionPassphrase);
         return sessionSeed;
@@ -561,9 +527,7 @@ const char* storage_getFullSeed(void)
 
 const char* storage_getMnemonic(void)
 {
-    return storageUpdate.has_mnemonic ?
-               storageUpdate.mnemonic :
-               storageRom->has_mnemonic ? storageRom->mnemonic : 0;
+    return storageUpdate.has_mnemonic ? storageUpdate.mnemonic : storageRom->has_mnemonic ? storageRom->mnemonic : 0;
 }
 
 /* Check whether mnemonic matches storage. The mnemonic must be
@@ -572,8 +536,8 @@ const char* storage_getMnemonic(void)
 bool storage_containsMnemonic(const char* mnemonic)
 {
     /* The execution time of the following code only depends on the
-     * (public) input.  This avoids timing attacks.
-     */
+	 * (public) input.  This avoids timing attacks.
+	 */
     char diff = 0;
     uint32_t i = 0;
     for (; mnemonic[i]; i++) {
@@ -589,8 +553,8 @@ bool storage_containsMnemonic(const char* mnemonic)
 bool storage_containsPin(const char* pin)
 {
     /* The execution time of the following code only depends on the
-     * (public) input.  This avoids timing attacks.
-     */
+	 * (public) input.  This avoids timing attacks.
+	 */
     char diff = 0;
     uint32_t i = 0;
     while (pin[i]) {
@@ -624,11 +588,12 @@ void session_cachePassphrase(const char* passphrase)
     sessionPassphraseCached = true;
 }
 
-bool session_isPassphraseCached(void) { return sessionPassphraseCached; }
+bool session_isPassphraseCached(void)
+{
+    return sessionPassphraseCached;
+}
 
-bool session_getState(const uint8_t* salt,
-    uint8_t* state,
-    const char* passphrase)
+bool session_getState(const uint8_t* salt, uint8_t* state, const char* passphrase)
 {
     if (!passphrase && !sessionPassphraseCached) {
         return false;
@@ -636,8 +601,7 @@ bool session_getState(const uint8_t* salt,
         passphrase = sessionPassphrase;
     }
     if (!salt) {
-        // if salt is not provided fill the first half of the state with random
-        // data
+        // if salt is not provided fill the first half of the state with random data
         random_buffer(state, 32);
     } else {
         // if salt is provided fill the first half of the state with salt
@@ -648,8 +612,7 @@ bool session_getState(const uint8_t* salt,
     HMAC_SHA256_CTX ctx;
     hmac_sha256_Init(&ctx, (const uint8_t*)passphrase, strlen(passphrase));
     hmac_sha256_Update(&ctx, state, 32);
-    hmac_sha256_Update(
-        &ctx, (const uint8_t*)storage_uuid, sizeof(storage_uuid));
+    hmac_sha256_Update(&ctx, (const uint8_t*)storage_uuid, sizeof(storage_uuid));
     hmac_sha256_Final(&ctx, state + 32);
 
     memzero(&ctx, sizeof(ctx));
@@ -657,9 +620,15 @@ bool session_getState(const uint8_t* salt,
     return true;
 }
 
-void session_cachePin(void) { sessionPinCached = true; }
+void session_cachePin(void)
+{
+    sessionPinCached = true;
+}
 
-bool session_isPinCached(void) { return sessionPinCached; }
+bool session_isPinCached(void)
+{
+    return sessionPinCached;
+}
 
 void storage_clearPinArea(void)
 {
@@ -683,8 +652,7 @@ static void storage_area_recycle(uint32_t new_pinfails)
     // erase pinarea/u2f sector
     svc_flash_erase_sector(FLASH_META_SECTOR_LAST);
     flash_write32(FLASH_STORAGE_PINAREA, new_pinfails);
-    if (*(const volatile uint32_t*)FLASH_PTR(FLASH_STORAGE_PINAREA) !=
-        new_pinfails) {
+    if (*(const volatile uint32_t*)FLASH_PTR(FLASH_STORAGE_PINAREA) != new_pinfails) {
         storage_show_error();
     }
 
@@ -698,8 +666,7 @@ static void storage_area_recycle(uint32_t new_pinfails)
 void storage_resetPinFails(uint32_t flash_pinfails)
 {
     svc_flash_unlock();
-    if (flash_pinfails + sizeof(uint32_t) >=
-        FLASH_STORAGE_PINAREA + FLASH_STORAGE_PINAREA_LEN) {
+    if (flash_pinfails + sizeof(uint32_t) >= FLASH_STORAGE_PINAREA + FLASH_STORAGE_PINAREA_LEN) {
         // recycle extra storage sector
         storage_area_recycle(0xffffffff);
     } else {
@@ -714,7 +681,8 @@ bool storage_increasePinFails(uint32_t flash_pinfails)
     uint32_t newctr = *(const uint32_t*)FLASH_PTR(flash_pinfails) << 1;
     // counter already at maximum, we do not increase it any more
     // return success so that a good pin is accepted
-    if (!newctr) return true;
+    if (!newctr)
+        return true;
 
     svc_flash_unlock();
     svc_flash_program(FLASH_CR_PROGRAM_X32);
@@ -757,17 +725,12 @@ void storage_setImported(bool imported)
 
 bool storage_needsBackup(void)
 {
-    return storageUpdate.has_needs_backup ?
-               storageUpdate.needs_backup :
-               storageRom->has_needs_backup && storageRom->needs_backup;
+    return storageUpdate.has_needs_backup ? storageUpdate.needs_backup : storageRom->has_needs_backup && storageRom->needs_backup;
 }
 
 bool storage_unfinishedBackup(void)
 {
-    return storageUpdate.has_unfinished_backup ?
-               storageUpdate.unfinished_backup :
-               storageRom->has_unfinished_backup &&
-                   storageRom->unfinished_backup;
+    return storageUpdate.has_unfinished_backup ? storageUpdate.unfinished_backup : storageRom->has_unfinished_backup && storageRom->unfinished_backup;
 }
 
 void storage_setUnfinishedBackup(bool unfinished_backup)

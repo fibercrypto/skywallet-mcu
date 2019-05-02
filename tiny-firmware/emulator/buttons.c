@@ -29,8 +29,12 @@ uint16_t buttonRead(void)
 
 #if !HEADLESS
     const uint8_t* scancodes = SDL_GetKeyboardState(NULL);
-    if (scancodes[SDL_SCANCODE_LEFT]) { state |= BTN_PIN_NO; }
-    if (scancodes[SDL_SCANCODE_RIGHT]) { state |= BTN_PIN_YES; }
+    if (scancodes[SDL_SCANCODE_LEFT]) {
+        state |= BTN_PIN_NO;
+    }
+    if (scancodes[SDL_SCANCODE_RIGHT]) {
+        state |= BTN_PIN_YES;
+    }
     if (simulateButtonPress) {
         if (buttonPressType == BTN_LEFT) {
             state |= BTN_PIN_NO;

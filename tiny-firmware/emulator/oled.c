@@ -1,5 +1,5 @@
 /*
- * This file is part of the Skycoin project, https://skycoin.net/
+ * This file is part of the Skycoin project, https://skycoin.net/ 
  *
  * Copyright (C) 2017 Saleem Rashid <trezor@saleemrashid.com>
  * Copyright (C) 2018-2019 Skycoin Project
@@ -38,9 +38,13 @@ static SDL_Texture* texture = NULL;
 static int emulatorScale(void)
 {
     const char* variable = getenv(ENV_OLED_SCALE);
-    if (!variable) { return 1; }
+    if (!variable) {
+        return 1;
+    }
     int scale = atoi(variable);
-    if (scale >= 1 && scale <= 16) { return scale; }
+    if (scale >= 1 && scale <= 16) {
+        return scale;
+    }
     return 1;
 }
 
@@ -54,8 +58,12 @@ void oledInit(void)
 
     int scale = emulatorScale();
 
-    SDL_Window* window = SDL_CreateWindow("SKYWALLET", SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED, OLED_WIDTH * scale, OLED_HEIGHT * scale, 0);
+    SDL_Window* window = SDL_CreateWindow("SKYWALLET",
+        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_UNDEFINED,
+        OLED_WIDTH * scale,
+        OLED_HEIGHT * scale,
+        0);
 
     if (window == NULL) {
         fprintf(stderr, "Failed to create window: %s\n", SDL_GetError());
@@ -71,8 +79,7 @@ void oledInit(void)
     /* Use unscaled coordinate system */
     SDL_RenderSetLogicalSize(renderer, OLED_WIDTH, OLED_HEIGHT);
 
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
-        SDL_TEXTUREACCESS_STREAMING, OLED_WIDTH, OLED_HEIGHT);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, OLED_WIDTH, OLED_HEIGHT);
 
     oledClear();
     oledRefresh();
@@ -110,7 +117,9 @@ void emulatorPoll(void)
     SDL_Event event;
 
     if (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT) { exit(0); }
+        if (event.type == SDL_QUIT) {
+            exit(0);
+        }
     }
 }
 

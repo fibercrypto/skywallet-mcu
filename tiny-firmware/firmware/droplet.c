@@ -19,19 +19,19 @@ char* sprint_coins(uint64_t coins, uint32_t precision_exp, size_t sz, char* msg)
         return NULL;
     }
     // Skip least significant decimal digits
-    for (--ptr, div = coins, mod = 0; mod == 0 && precision_exp > 0;
-         --precision_exp) {
+    for (--ptr, div = coins, mod = 0; mod == 0 && precision_exp > 0; --precision_exp) {
         mod = div % 10;
         div = div / 10;
     }
     if (precision_exp > 0 || mod > 0) {
         *ptr = '0' + mod;
         --ptr;
-        if ((--sz) <= 0) { return NULL; }
+        if ((--sz) <= 0) {
+            return NULL;
+        }
     }
     // Print decimal digits
-    for (; div > 0 && precision_exp > 0 && sz > 0;
-         --precision_exp, --sz, --ptr) {
+    for (; div > 0 && precision_exp > 0 && sz > 0; --precision_exp, --sz, --ptr) {
         mod = div % 10;
         div = div / 10;
         *ptr = '0' + mod;
@@ -46,7 +46,9 @@ char* sprint_coins(uint64_t coins, uint32_t precision_exp, size_t sz, char* msg)
     if (*(ptr + 1) != 0) {
         // Not an integer value
         *ptr = '.';
-        if ((--sz) <= 0) { return NULL; }
+        if ((--sz) <= 0) {
+            return NULL;
+        }
         --ptr;
     }
     // A fraction of 1 SKY

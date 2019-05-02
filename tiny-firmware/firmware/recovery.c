@@ -144,10 +144,7 @@ static void recovery_request(void)
     WordRequest resp;
     memset(&resp, 0, sizeof(WordRequest));
     resp.has_type = true;
-    resp.type = awaiting_word == 1 ? WordRequestType_WordRequestType_Plain :
-                                     (word_index % 4 == 3) ?
-                                     WordRequestType_WordRequestType_Matrix6 :
-                                     WordRequestType_WordRequestType_Matrix9;
+    resp.type = awaiting_word == 1 ? WordRequestType_WordRequestType_Plain : (word_index % 4 == 3) ? WordRequestType_WordRequestType_Matrix6 : WordRequestType_WordRequestType_Matrix9;
     msg_write(MessageType_MessageType_WordRequest, &resp);
 }
 
@@ -172,26 +169,24 @@ static void recovery_done(void)
             storage_update();
             fsm_sendSuccess(_("Device recovered"));
         } else {
-            // Inform the user about new mnemonic correctness (as well as
-            // whether it is the same as the current one).
-            bool match = (storage_isInitialized() &&
-                          storage_containsMnemonic(new_mnemonic));
+            // Inform the user about new mnemonic correctness (as well as whether it is the same as the current one).
+            bool match = (storage_isInitialized() && storage_containsMnemonic(new_mnemonic));
             memzero(new_mnemonic, sizeof(new_mnemonic));
             if (match) {
                 layoutDialog(&bmp_icon_ok, NULL, _("Confirm"), NULL,
-                    _("The seed is valid"), _("and MATCHES"),
+                    _("The seed is valid"),
+                    _("and MATCHES"),
                     _("the one in the device."), NULL, NULL, NULL);
                 protectButton(ButtonRequestType_ButtonRequest_Other, true);
-                fsm_sendSuccess(
-                    _("The seed is valid and matches the one in the device"));
+                fsm_sendSuccess(_("The seed is valid and matches the one in the device"));
             } else {
                 layoutDialog(&bmp_icon_error, NULL, _("Confirm"), NULL,
-                    _("The seed is valid"), _("but does NOT MATCH"),
+                    _("The seed is valid"),
+                    _("but does NOT MATCH"),
                     _("the one in the device."), NULL, NULL, NULL);
                 protectButton(ButtonRequestType_ButtonRequest_Other, true);
                 fsm_sendFailure(FailureType_Failure_DataError,
-                    _("The seed is valid but does not match the one in the "
-                      "device"));
+                    _("The seed is valid but does not match the one in the device"));
             }
         }
     } else {
@@ -204,8 +199,7 @@ static void recovery_done(void)
                 _("The seed is"), _("INVALID!"), NULL, NULL, NULL, NULL);
             protectButton(ButtonRequestType_ButtonRequest_Other, true);
         }
-        fsm_sendFailure(FailureType_Failure_DataError,
-            _("Invalid seed, are words in correct order?"));
+        fsm_sendFailure(FailureType_Failure_DataError, _("Invalid seed, are words in correct order?"));
     }
     awaiting_word = 0;
     layoutHome();
@@ -222,10 +216,7 @@ static void recovery_done(void)
  *  memcmp(last, "last + 1", prefixlen) != 0
  *  first[prefixlen-2] == last[prefixlen-2]  except for range WI-Z.
  */
-static void add_choice(char choice[12],
-    int prefixlen,
-    const char* first,
-    const char* last)
+static void add_choice(char choice[12], int prefixlen, const char* first, const char* last)
 {
     // assert 1 <= prefixlen <= 4
     char* dest = choice;
@@ -277,9 +268,7 @@ static void display_choices(bool twoColumn, char choices[9][12], int num)
         char desc[] = "##th word";
         int nr = (word_index / 4) + 1;
         format_number(desc, nr);
-        layoutDialogSwipe(&bmp_icon_info, NULL, NULL, NULL,
-            _("Please enter the"), (nr < 10 ? desc + 1 : desc),
-            _("of your mnemonic"), NULL, NULL, NULL);
+        layoutDialogSwipe(&bmp_icon_info, NULL, NULL, NULL, _("Please enter the"), (nr < 10 ? desc + 1 : desc), _("of your mnemonic"), NULL, NULL, NULL);
     } else {
         oledBox(0, 27, 127, 63, false);
     }
@@ -290,8 +279,7 @@ static void display_choices(bool twoColumn, char choices[9][12], int num)
             int x = twoColumn ? 64 * col + 32 : 42 * col + 22;
             int choice = word_matrix[nColumns * row + col];
             const char* text = choice < num ? choices[choice] : "-";
-            oledDrawString(x - oledStringWidth(text, FONT_STANDARD) / 2, y,
-                text, FONT_STANDARD);
+            oledDrawString(x - oledStringWidth(text, FONT_STANDARD) / 2, y, text, FONT_STANDARD);
             if (twoColumn) {
                 oledInvert(x - 32 + 1, y - 1, x - 32 + 63 - 1, y + 8);
             } else {
@@ -303,7 +291,8 @@ static void display_choices(bool twoColumn, char choices[9][12], int num)
 
     /* avoid picking out of range numbers */
     for (int i = 0; i < displayedChoices; i++) {
-        if (word_matrix[i] > num) word_matrix[i] = 0;
+        if (word_matrix[i] > num)
+            word_matrix[i] = 0;
     }
     /* two column layout: middle column = right column */
     if (twoColumn) {
@@ -325,9 +314,9 @@ static void next_matrix(void)
     bool last = (word_index % 4) == 3;
 
     /* Build the matrix:
-     * num: number of choices
-     * word_choices[][]: the strings containing the choices
-     */
+	 * num: number of choices
+	 * word_choices[][]: the strings containing the choices
+	 */
     switch (word_index % 4) {
     case 3:
         /* last level: show up to six words */
@@ -350,7 +339,8 @@ static void next_matrix(void)
         num = TABLE1(word_pincode + 1) - idx;
         for (uint32_t i = 0; i < num; i++) {
             add_choice(word_choices[i], (word_table2[idx + i] >> 12),
-                wl[TABLE2(idx + i)], wl[TABLE2(idx + i + 1) - 1]);
+                wl[TABLE2(idx + i)],
+                wl[TABLE2(idx + i + 1) - 1]);
         }
         break;
 
@@ -372,7 +362,8 @@ static void next_matrix(void)
         /* num: the number of choices. */
         num = 9;
         for (uint32_t i = 0; i < num; i++) {
-            add_choice(word_choices[i], 1, wl[TABLE2(TABLE1(9 * i))],
+            add_choice(word_choices[i], 1,
+                wl[TABLE2(TABLE1(9 * i))],
                 wl[TABLE2(TABLE1(9 * (i + 1))) - 1]);
         }
         break;
@@ -392,7 +383,8 @@ static void recovery_digit(const char digit)
         /* backspace: undo */
         if ((word_index % 4) == 0) {
             /* undo complete word */
-            if (word_index > 0) word_index -= 4;
+            if (word_index > 0)
+                word_index -= 4;
         } else {
             word_index--;
             word_pincode /= 9;
@@ -418,8 +410,7 @@ static void recovery_digit(const char digit)
         usbSleep(250);
 
         /* index of the chosen word */
-        int idx =
-            TABLE2(TABLE1(word_pincode / 9) + (word_pincode % 9)) + choice;
+        int idx = TABLE2(TABLE1(word_pincode / 9) + (word_pincode % 9)) + choice;
         uint32_t widx = word_index / 4;
 
         word_pincode = 0;
@@ -445,26 +436,17 @@ void next_word(void)
     if (word_pos == 0) {
         const char* const* wl = mnemonic_wordlist();
         strlcpy(fake_word, wl[random_uniform(2048)], sizeof(fake_word));
-        layoutDialogSwipe(&bmp_icon_info, NULL, NULL, NULL,
-            _("Please enter the word"), NULL, fake_word, NULL,
-            _("on your computer"), NULL);
+        layoutDialogSwipe(&bmp_icon_info, NULL, NULL, NULL, _("Please enter the word"), NULL, fake_word, NULL, _("on your computer"), NULL);
     } else {
         fake_word[0] = 0;
         char desc[] = "##th word";
         format_number(desc, word_pos);
-        layoutDialogSwipe(&bmp_icon_info, NULL, NULL, NULL,
-            _("Please enter the"), NULL, (word_pos < 10 ? desc + 1 : desc),
-            NULL, _("of your mnemonic"), NULL);
+        layoutDialogSwipe(&bmp_icon_info, NULL, NULL, NULL, _("Please enter the"), NULL, (word_pos < 10 ? desc + 1 : desc), NULL, _("of your mnemonic"), NULL);
     }
     recovery_request();
 }
 
-void recovery_init(uint32_t _word_count,
-    bool passphrase_protection,
-    bool pin_protection,
-    const char* language,
-    const char* label,
-    bool _dry_run)
+void recovery_init(uint32_t _word_count, bool passphrase_protection, bool pin_protection, const char* language, const char* label, bool _dry_run)
 {
     if (_word_count != 12 && _word_count != 24) return;
 
@@ -498,9 +480,10 @@ static void recovery_scrambledword(const char* word)
 {
     if (word_pos == 0) { // fake word
         if (strcmp(word, fake_word) != 0) {
-            if (!dry_run) { session_clear(true); }
-            fsm_sendFailure(
-                FailureType_Failure_ProcessError, _("Wrong word retyped"));
+            if (!dry_run) {
+                session_clear(true);
+            }
+            fsm_sendFailure(FailureType_Failure_ProcessError, _("Wrong word retyped"));
             layoutHome();
             return;
         }
@@ -515,9 +498,10 @@ static void recovery_scrambledword(const char* word)
             wl++;
         }
         if (!found) {
-            if (!dry_run) { session_clear(true); }
-            fsm_sendFailure(FailureType_Failure_DataError,
-                _("Word not found in a wordlist"));
+            if (!dry_run) {
+                session_clear(true);
+            }
+            fsm_sendFailure(FailureType_Failure_DataError, _("Word not found in a wordlist"));
             layoutHome();
             return;
         }
@@ -544,8 +528,7 @@ void recovery_word(const char* word)
         recovery_scrambledword(word);
         break;
     default:
-        fsm_sendFailure(
-            FailureType_Failure_UnexpectedMessage, _("Not in Recovery mode"));
+        fsm_sendFailure(FailureType_Failure_UnexpectedMessage, _("Not in Recovery mode"));
         break;
     }
 }
@@ -562,8 +545,14 @@ void recovery_abort(void)
 
 #if DEBUG_LINK
 
-const char* recovery_get_fake_word(void) { return fake_word; }
+const char* recovery_get_fake_word(void)
+{
+    return fake_word;
+}
 
-uint32_t recovery_get_word_pos(void) { return word_pos; }
+uint32_t recovery_get_word_pos(void)
+{
+    return word_pos;
+}
 
 #endif

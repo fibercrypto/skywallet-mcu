@@ -32,7 +32,10 @@ void flash_clear_status_flags(void) {}
 void flash_lock_option_bytes(void) {}
 void flash_unlock_option_bytes(void) {}
 
-void flash_program_option_bytes(uint32_t data) { (void)data; }
+void flash_program_option_bytes(uint32_t data)
+{
+    (void)data;
+}
 
 static ssize_t sector_to_offset(uint8_t sector)
 {
@@ -63,7 +66,9 @@ static ssize_t sector_to_offset(uint8_t sector)
 static void* sector_to_address(uint8_t sector)
 {
     ssize_t offset = sector_to_offset(sector);
-    if (offset < 0) { return NULL; }
+    if (offset < 0) {
+        return NULL;
+    }
 
     return (void*)FLASH_PTR(FLASH_ORIGIN + offset);
 }
@@ -71,10 +76,14 @@ static void* sector_to_address(uint8_t sector)
 static ssize_t sector_to_size(uint8_t sector)
 {
     ssize_t start = sector_to_offset(sector);
-    if (start < 0) { return -1; }
+    if (start < 0) {
+        return -1;
+    }
 
     ssize_t end = sector_to_offset(sector + 1);
-    if (end < 0) { return -1; }
+    if (end < 0) {
+        return -1;
+    }
 
     return end - start;
 }
@@ -84,10 +93,14 @@ void flash_erase_sector(uint8_t sector, uint32_t program_size)
     (void)program_size;
 
     void* address = sector_to_address(sector);
-    if (address == NULL) { return; }
+    if (address == NULL) {
+        return;
+    }
 
     ssize_t size = sector_to_size(sector);
-    if (size < 0) { return; }
+    if (size < 0) {
+        return;
+    }
 
     memset(address, 0xFF, size);
 }
@@ -123,8 +136,8 @@ void svc_flash_program(uint32_t size)
 void svc_flash_erase_sector(uint16_t sector)
 {
     assert(!flash_locked);
-    assert(
-        sector >= FLASH_META_SECTOR_FIRST && sector <= FLASH_META_SECTOR_LAST);
+    assert(sector >= FLASH_META_SECTOR_FIRST &&
+           sector <= FLASH_META_SECTOR_LAST);
     flash_erase_sector(sector, 3);
 }
 uint32_t svc_flash_lock(void)

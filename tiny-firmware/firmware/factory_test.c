@@ -1,5 +1,5 @@
 /*
- * This file is part of the Skycoin project, https://skycoin.net/
+ * This file is part of the Skycoin project, https://skycoin.net/ 
  *
  * Copyright (C) 2018-2019 Skycoin Project
  *
@@ -37,9 +37,7 @@ void wait_ms(uint32_t millis)
 
 void factoryTest(void)
 {
-    layoutDialog(&bmp_icon_question, ("Cancel"), ("Test Device"), NULL,
-        ("Do you really want to"), ("test your Wallet?"), NULL, NULL, NULL,
-        NULL);
+    layoutDialog(&bmp_icon_question, ("Cancel"), ("Test Device"), NULL, ("Do you really want to"), ("test your Wallet?"), NULL, NULL, NULL, NULL);
 
     // wait until NoButton is released
     do {
@@ -58,11 +56,9 @@ void factoryTest(void)
         factoryTest_screen();
 
         if (factoryTest_buttons(0) && factoryTest_buttons(1)) {
-            layoutDialogSwipe(&bmp_icon_info, NULL, "Exit", NULL, NULL,
-                ("Buttons are OK"), NULL, NULL, NULL, NULL);
+            layoutDialogSwipe(&bmp_icon_info, NULL, "Exit", NULL, NULL, ("Buttons are OK"), NULL, NULL, NULL, NULL);
         } else {
-            layoutDialogSwipe(&bmp_icon_info, NULL, "Exit", NULL, NULL,
-                ("Buttons error"), NULL, NULL, NULL, NULL);
+            layoutDialogSwipe(&bmp_icon_info, NULL, "Exit", NULL, NULL, ("Buttons error"), NULL, NULL, NULL, NULL);
         }
 
         do { // Back home
@@ -96,10 +92,7 @@ bool factoryTest_buttons(bool buttonToTest)
 {
     bool testResult = 0;
 
-    layoutDialog(&bmp_icon_question, ((buttonToTest) ? NULL : "No"),
-        ((buttonToTest) ? "Yes" : NULL), NULL,
-        ((buttonToTest) ? "Press Yes" : " Press No"), (""), NULL, NULL, NULL,
-        NULL);
+    layoutDialog(&bmp_icon_question, ((buttonToTest) ? NULL : "No"), ((buttonToTest) ? "Yes" : NULL), NULL, ((buttonToTest) ? "Press Yes" : " Press No"), (""), NULL, NULL, NULL, NULL);
 
     do {
         wait_ms(5);

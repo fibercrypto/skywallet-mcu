@@ -88,29 +88,27 @@ static const struct {
         uint8_t bReportDescriptorType;
         uint16_t wDescriptorLength;
     } __attribute__((packed)) hid_report;
-} __attribute__((packed))
-hid_function = {.hid_descriptor =
-                    {
-                        .bLength = sizeof(hid_function),
-                        .bDescriptorType = USB_DT_HID,
-                        .bcdHID = 0x0111,
-                        .bCountryCode = 0,
-                        .bNumDescriptors = 1,
-                    },
+} __attribute__((packed)) hid_function = {
+    .hid_descriptor = {
+        .bLength = sizeof(hid_function),
+        .bDescriptorType = USB_DT_HID,
+        .bcdHID = 0x0111,
+        .bCountryCode = 0,
+        .bNumDescriptors = 1,
+    },
     .hid_report = {
         .bReportDescriptorType = USB_DT_REPORT,
         .wDescriptorLength = sizeof(hid_report_descriptor),
     }};
 
-static const struct usb_endpoint_descriptor hid_endpoints[2] = {
-    {
-        .bLength = USB_DT_ENDPOINT_SIZE,
-        .bDescriptorType = USB_DT_ENDPOINT,
-        .bEndpointAddress = ENDPOINT_ADDRESS_IN,
-        .bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
-        .wMaxPacketSize = 64,
-        .bInterval = 1,
-    },
+static const struct usb_endpoint_descriptor hid_endpoints[2] = {{
+                                                                    .bLength = USB_DT_ENDPOINT_SIZE,
+                                                                    .bDescriptorType = USB_DT_ENDPOINT,
+                                                                    .bEndpointAddress = ENDPOINT_ADDRESS_IN,
+                                                                    .bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
+                                                                    .wMaxPacketSize = 64,
+                                                                    .bInterval = 1,
+                                                                },
     {
         .bLength = USB_DT_ENDPOINT_SIZE,
         .bDescriptorType = USB_DT_ENDPOINT,
@@ -153,21 +151,19 @@ static const struct usb_config_descriptor config = {
 };
 
 static const char* usb_strings[] = {
-    "SkycoinFoundation", "SKYWALLET",
+    "SkycoinFoundation",
+    "SKYWALLET",
     "", // empty serial
 };
 
-static int hid_control_request(usbd_device* dev,
-    struct usb_setup_data* req,
-    uint8_t** buf,
-    uint16_t* len,
-    usbd_control_complete_callback* complete)
+static int hid_control_request(usbd_device* dev, struct usb_setup_data* req, uint8_t** buf, uint16_t* len, usbd_control_complete_callback* complete)
 {
     (void)complete;
     (void)dev;
 
     if ((req->bmRequestType != 0x81) ||
-        (req->bRequest != USB_REQ_GET_DESCRIPTOR) || (req->wValue != 0x2200))
+        (req->bRequest != USB_REQ_GET_DESCRIPTOR) ||
+        (req->wValue != 0x2200))
         return 0;
 
     /* Handle the HID report descriptor. */
@@ -205,11 +201,9 @@ static void send_msg_success(usbd_device* dev)
                // msg_size
                "\x00\x00\x00\x00"
                // padding
-               "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-               "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-               "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-               "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-               64) != 64) {}
+               "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+               64) != 64) {
+    }
 }
 
 static void send_msg_failure(usbd_device* dev)
@@ -227,11 +221,9 @@ static void send_msg_failure(usbd_device* dev)
                "\x08"
                "\x63"
                // padding
-               "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-               "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-               "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-               "\x00\x00\x00\x00\x00\x00\x00\x00",
-               64) != 64) {}
+               "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+               64) != 64) {
+    }
 }
 
 static void send_msg_features(usbd_device* dev)
@@ -256,8 +248,10 @@ static void send_msg_features(usbd_device* dev)
                    "\x0a"
                    "\x11"
                    "bitcointrezor.com"
-                   "\x10" VERSION_MAJOR_CHAR "\x18" VERSION_MINOR_CHAR
-                   "\x20" VERSION_PATCH_CHAR "\x28"
+                   "\x10" VERSION_MAJOR_CHAR
+                   "\x18" VERSION_MINOR_CHAR
+                   "\x20" VERSION_PATCH_CHAR
+                   "\x28"
                    "\x01"
                    "\x90\x01"
                    "\x00"
@@ -265,9 +259,9 @@ static void send_msg_features(usbd_device* dev)
                    "\x01"
                    "1"
                    // padding
-                   "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-                   "\x00\x00\x00\x00\x00\x00\x00\x00",
-                   64) != 64) {}
+                   "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+                   64) != 64) {
+        }
     } else {
         while (usbd_ep_write_packet(dev, ENDPOINT_ADDRESS_IN,
                    // header
@@ -279,8 +273,10 @@ static void send_msg_features(usbd_device* dev)
                    // data
                    "\x0a\x11"
                    "bitcointrezor.com"
-                   "\x10" VERSION_MAJOR_CHAR "\x18" VERSION_MINOR_CHAR
-                   "\x20" VERSION_PATCH_CHAR "\x28"
+                   "\x10" VERSION_MAJOR_CHAR
+                   "\x18" VERSION_MINOR_CHAR
+                   "\x20" VERSION_PATCH_CHAR
+                   "\x28"
                    "\x01"
                    "\x90\x01"
                    "\x01"
@@ -288,9 +284,9 @@ static void send_msg_features(usbd_device* dev)
                    "\x01"
                    "1"
                    // padding
-                   "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-                   "\x00\x00\x00\x00\x00\x00\x00\x00",
-                   64) != 64) {}
+                   "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+                   64) != 64) {
+        }
     }
 }
 
@@ -309,11 +305,9 @@ static void send_msg_buttonrequest_firmwarecheck(usbd_device* dev)
                "\x08"
                "\x09"
                // padding
-               "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-               "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-               "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-               "\x00\x00\x00\x00\x00\x00\x00\x00",
-               64) != 64) {}
+               "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+               64) != 64) {
+    }
 }
 
 static void erase_metadata_sectors(void)
@@ -349,12 +343,12 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
 
     if (usbd_ep_read_packet(dev, ENDPOINT_ADDRESS_OUT, buf, 64) != 64) return;
 
-    if (flash_state == STATE_END) { return; }
+    if (flash_state == STATE_END) {
+        return;
+    }
 
-    if (flash_state == STATE_READY || flash_state == STATE_OPEN ||
-        flash_state == STATE_FLASHSTART || flash_state == STATE_CHECK) {
-        if (buf[0] != '?' || buf[1] != '#' ||
-            buf[2] != '#') { // invalid start - discard
+    if (flash_state == STATE_READY || flash_state == STATE_OPEN || flash_state == STATE_FLASHSTART || flash_state == STATE_CHECK) {
+        if (buf[0] != '?' || buf[1] != '#' || buf[2] != '#') { // invalid start - discard
             return;
         }
         // struct.unpack(">HL") => msg, size
@@ -377,9 +371,7 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
             return;
         }
         if (msg_id == 0x0005) { // WipeDevice message (id 5)
-            layoutDialog(&bmp_icon_question, "Cancel", "Confirm", NULL,
-                "Do you really want to", "wipe the device?", NULL,
-                "All data will be lost.", NULL, NULL);
+            layoutDialog(&bmp_icon_question, "Cancel", "Confirm", NULL, "Do you really want to", "wipe the device?", NULL, "All data will be lost.", NULL, NULL);
             do {
                 delay(100000);
                 buttonUpdate();
@@ -389,33 +381,23 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
                 flash_clear_status_flags();
                 flash_unlock();
                 // erase metadata area
-                for (int i = FLASH_META_SECTOR_FIRST;
-                     i <= FLASH_META_SECTOR_LAST; i++) {
-                    layoutProgress("ERASING ... Please wait",
-                        1000 * (i - FLASH_META_SECTOR_FIRST) /
-                            (FLASH_CODE_SECTOR_LAST - FLASH_META_SECTOR_FIRST));
+                for (int i = FLASH_META_SECTOR_FIRST; i <= FLASH_META_SECTOR_LAST; i++) {
+                    layoutProgress("ERASING ... Please wait", 1000 * (i - FLASH_META_SECTOR_FIRST) / (FLASH_CODE_SECTOR_LAST - FLASH_META_SECTOR_FIRST));
                     flash_erase_sector(i, FLASH_CR_PROGRAM_X32);
                 }
                 // erase code area
-                for (int i = FLASH_CODE_SECTOR_FIRST;
-                     i <= FLASH_CODE_SECTOR_LAST; i++) {
-                    layoutProgress("ERASING ... Please wait",
-                        1000 * (i - FLASH_META_SECTOR_FIRST) /
-                            (FLASH_CODE_SECTOR_LAST - FLASH_META_SECTOR_FIRST));
+                for (int i = FLASH_CODE_SECTOR_FIRST; i <= FLASH_CODE_SECTOR_LAST; i++) {
+                    layoutProgress("ERASING ... Please wait", 1000 * (i - FLASH_META_SECTOR_FIRST) / (FLASH_CODE_SECTOR_LAST - FLASH_META_SECTOR_FIRST));
                     flash_erase_sector(i, FLASH_CR_PROGRAM_X32);
                 }
                 flash_wait_for_last_operation();
                 flash_lock();
                 flash_state = STATE_END;
-                layoutDialog(&bmp_icon_ok, NULL, NULL, NULL, "Device",
-                    "successfully wiped.", NULL, "You may now",
-                    "unplug your Skywallet.", NULL);
+                layoutDialog(&bmp_icon_ok, NULL, NULL, NULL, "Device", "successfully wiped.", NULL, "You may now", "unplug your Skywallet.", NULL);
                 send_msg_success(dev);
             } else {
                 flash_state = STATE_END;
-                layoutDialog(&bmp_icon_warning, NULL, NULL, NULL, "Device wipe",
-                    "aborted.", NULL, "You may now", "unplug your Skywallet.",
-                    NULL);
+                layoutDialog(&bmp_icon_warning, NULL, NULL, NULL, "Device wipe", "aborted.", NULL, "You may now", "unplug your Skywallet.", NULL);
                 send_msg_failure(dev);
             }
             return;
@@ -424,12 +406,10 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
 
             // USB TEST
             layoutProgress("TESTING USB ...", 0);
-            bool status_usb = (buf[9] == 0x0a) && (buf[10] == 53) &&
-                              (0 == memcmp(buf + 11,
-                                        "\x00\xFF\x55\xAA\x66\x99\x33\xCC"
-                                        "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!"
-                                        "\x00\xFF\x55\xAA\x66\x99\x33\xCC",
-                                        53));
+            bool status_usb = (buf[9] == 0x0a) && (buf[10] == 53) && (0 == memcmp(buf + 11, "\x00\xFF\x55\xAA\x66\x99\x33\xCC"
+                                                                                            "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!"
+                                                                                            "\x00\xFF\x55\xAA\x66\x99\x33\xCC",
+                                                                               53));
 
             // RNG TEST
             layoutProgress("TESTING RNG ...", 250);
@@ -449,25 +429,18 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
 
             // CPU TEST
             layoutProgress("TESTING CPU ...", 500);
-            // privkey :
-            // e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-            // pubkey  :
-            // 04a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd
+            // privkey :   e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+            // pubkey  : 04a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd
             //             5b8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abea235
-            // digest  :
-            // c84a4cc264100070c8be2acf4072efaadaedfef3d6209c0fe26387e6b1262bbf
-            // sig:    :
-            // f7869c679bbed1817052affd0264ccc6486795f6d06d0c187651b8f3863670c8
+            // digest  :   c84a4cc264100070c8be2acf4072efaadaedfef3d6209c0fe26387e6b1262bbf
+            // sig:    :   f7869c679bbed1817052affd0264ccc6486795f6d06d0c187651b8f3863670c8
             //             2ccf89be32a53eb65ea7c007859783d46717986fead0833ec60c5729cdc4a9ee
 
             bool status_cpu = true;
             // bool status_cpu = (0 == ecdsa_verify_digest(&secp256k1,
-            // 	(const uint8_t
-            // *)"\x04\xa3\x4b\x99\xf2\x2c\x79\x0c\x4e\x36\xb2\xb3\xc2\xc3\x5a\x36\xdb\x06\x22\x6e\x41\xc6\x92\xfc\x82\xb8\xb5\x6a\xc1\xc5\x40\xc5\xbd\x5b\x8d\xec\x52\x35\xa0\xfa\x87\x22\x47\x6c\x77\x09\xc0\x25\x59\xe3\xaa\x73\xaa\x03\x91\x8b\xa2\xd4\x92\xee\xa7\x5a\xbe\xa2\x35",
-            // 	(const uint8_t
-            // *)"\xf7\x86\x9c\x67\x9b\xbe\xd1\x81\x70\x52\xaf\xfd\x02\x64\xcc\xc6\x48\x67\x95\xf6\xd0\x6d\x0c\x18\x76\x51\xb8\xf3\x86\x36\x70\xc8\x2c\xcf\x89\xbe\x32\xa5\x3e\xb6\x5e\xa7\xc0\x07\x85\x97\x83\xd4\x67\x17\x98\x6f\xea\xd0\x83\x3e\xc6\x0c\x57\x29\xcd\xc4\xa9\xee",
-            // 	(const uint8_t
-            // *)"\xc8\x4a\x4c\xc2\x64\x10\x00\x70\xc8\xbe\x2a\xcf\x40\x72\xef\xaa\xda\xed\xfe\xf3\xd6\x20\x9c\x0f\xe2\x63\x87\xe6\xb1\x26\x2b\xbf"));
+            // 	(const uint8_t *)"\x04\xa3\x4b\x99\xf2\x2c\x79\x0c\x4e\x36\xb2\xb3\xc2\xc3\x5a\x36\xdb\x06\x22\x6e\x41\xc6\x92\xfc\x82\xb8\xb5\x6a\xc1\xc5\x40\xc5\xbd\x5b\x8d\xec\x52\x35\xa0\xfa\x87\x22\x47\x6c\x77\x09\xc0\x25\x59\xe3\xaa\x73\xaa\x03\x91\x8b\xa2\xd4\x92\xee\xa7\x5a\xbe\xa2\x35",
+            // 	(const uint8_t *)"\xf7\x86\x9c\x67\x9b\xbe\xd1\x81\x70\x52\xaf\xfd\x02\x64\xcc\xc6\x48\x67\x95\xf6\xd0\x6d\x0c\x18\x76\x51\xb8\xf3\x86\x36\x70\xc8\x2c\xcf\x89\xbe\x32\xa5\x3e\xb6\x5e\xa7\xc0\x07\x85\x97\x83\xd4\x67\x17\x98\x6f\xea\xd0\x83\x3e\xc6\x0c\x57\x29\xcd\xc4\xa9\xee",
+            // 	(const uint8_t *)"\xc8\x4a\x4c\xc2\x64\x10\x00\x70\xc8\xbe\x2a\xcf\x40\x72\xef\xaa\xda\xed\xfe\xf3\xd6\x20\x9c\x0f\xe2\x63\x87\xe6\xb1\x26\x2b\xbf"));
 
             // FLASH TEST
             layoutProgress("TESTING FLASH ...", 750);
@@ -492,31 +465,25 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
             restore_metadata(meta_backup);
             memzero(meta_backup, sizeof(meta_backup));
 
-            // compare against known hash computed via the following Python3
-            // script: hashlib.sha256(binascii.unhexlify('0F5A693C' *
-            // 8192)).hexdigest()
-            bool status_flash =
-                (0 == memcmp(hash,
-                          "\xa6\xc2\x25\xa4\x76\xa1\xde\x76\x09\xe0\xb0\x07\xf8"
-                          "\xe2\x5a\xec\x1d\x75\x8d\x5c\x36\xc8\x4a\x6b\x75\x4e"
-                          "\xd5\x3d\xe6\x99\x97\x64",
-                          32));
+            // compare against known hash computed via the following Python3 script:
+            // hashlib.sha256(binascii.unhexlify('0F5A693C' * 8192)).hexdigest()
+            bool status_flash = (0 == memcmp(hash, "\xa6\xc2\x25\xa4\x76\xa1\xde\x76\x09\xe0\xb0\x07\xf8\xe2\x5a\xec\x1d\x75\x8d\x5c\x36\xc8\x4a\x6b\x75\x4e\xd5\x3d\xe6\x99\x97\x64", 32));
 
-            bool status_all =
-                status_usb && status_rng && status_cpu && status_flash;
+            bool status_all = status_usb && status_rng && status_cpu && status_flash;
 
             if (status_all) {
                 send_msg_success(dev);
             } else {
                 send_msg_failure(dev);
             }
-            layoutDialog(status_all ? &bmp_icon_info : &bmp_icon_error, NULL,
-                NULL, NULL,
+            layoutDialog(status_all ? &bmp_icon_info : &bmp_icon_error,
+                NULL, NULL, NULL,
                 status_usb ? "Test USB ... OK" : "Test USB ... Failed",
                 status_rng ? "Test RNG ... OK" : "Test RNG ... Failed",
                 status_cpu ? "Test CPU ... OK" : "Test CPU ... Failed",
                 status_flash ? "Test FLASH ... OK" : "Test FLASH ... Failed",
-                NULL, NULL);
+                NULL,
+                NULL);
             return;
         }
     }
@@ -524,9 +491,7 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
     if (flash_state == STATE_OPEN) {
         if (msg_id == 0x0006) { // FirmwareErase message (id 6)
             if (!brand_new_firmware) {
-                layoutDialog(&bmp_icon_question, "Abort", "Continue", NULL,
-                    "Install new", "firmware?", NULL, "Never do this without",
-                    "your recovery card!", NULL);
+                layoutDialog(&bmp_icon_question, "Abort", "Continue", NULL, "Install new", "firmware?", NULL, "Never do this without", "your recovery card!", NULL);
                 do {
                     delay(100000);
                     buttonUpdate();
@@ -545,19 +510,13 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
                 flash_clear_status_flags();
                 flash_unlock();
                 // erase metadata area
-                for (int i = FLASH_META_SECTOR_FIRST;
-                     i <= FLASH_META_SECTOR_LAST; i++) {
-                    layoutProgress("ERASING ... Please wait",
-                        1000 * (i - FLASH_META_SECTOR_FIRST) /
-                            (FLASH_CODE_SECTOR_LAST - FLASH_META_SECTOR_FIRST));
+                for (int i = FLASH_META_SECTOR_FIRST; i <= FLASH_META_SECTOR_LAST; i++) {
+                    layoutProgress("ERASING ... Please wait", 1000 * (i - FLASH_META_SECTOR_FIRST) / (FLASH_CODE_SECTOR_LAST - FLASH_META_SECTOR_FIRST));
                     flash_erase_sector(i, FLASH_CR_PROGRAM_X32);
                 }
                 // erase code area
-                for (int i = FLASH_CODE_SECTOR_FIRST;
-                     i <= FLASH_CODE_SECTOR_LAST; i++) {
-                    layoutProgress("ERASING ... Please wait",
-                        1000 * (i - FLASH_META_SECTOR_FIRST) /
-                            (FLASH_CODE_SECTOR_LAST - FLASH_META_SECTOR_FIRST));
+                for (int i = FLASH_CODE_SECTOR_FIRST; i <= FLASH_CODE_SECTOR_LAST; i++) {
+                    layoutProgress("ERASING ... Please wait", 1000 * (i - FLASH_META_SECTOR_FIRST) / (FLASH_CODE_SECTOR_LAST - FLASH_META_SECTOR_FIRST));
                     flash_erase_sector(i, FLASH_CR_PROGRAM_X32);
                 }
                 layoutProgress("INSTALLING ... Please wait", 0);
@@ -568,20 +527,11 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
                 // flash status register should show now error and
                 // the config block should contain only \xff.
                 uint8_t hash[32];
-                sha256_Raw(
-                    (unsigned char*)FLASH_META_START, FLASH_META_LEN, hash);
-                if ((FLASH_SR & (FLASH_SR_PGAERR | FLASH_SR_PGPERR |
-                                    FLASH_SR_PGSERR | FLASH_SR_WRPERR)) != 0 ||
-                    memcmp(hash,
-                        "\x2d\x86\x4c\x0b\x78\x9a\x43\x21\x4e\xee\x85\x24\xd3"
-                        "\x18\x20\x75\x12\x5e\x5c\xa2\xcd\x52\x7f\x35\x82\xec"
-                        "\x87\xff\xd9\x40\x76\xbc",
-                        32) != 0) {
+                sha256_Raw((unsigned char*)FLASH_META_START, FLASH_META_LEN, hash);
+                if ((FLASH_SR & (FLASH_SR_PGAERR | FLASH_SR_PGPERR | FLASH_SR_PGSERR | FLASH_SR_WRPERR)) != 0 || memcmp(hash, "\x2d\x86\x4c\x0b\x78\x9a\x43\x21\x4e\xee\x85\x24\xd3\x18\x20\x75\x12\x5e\x5c\xa2\xcd\x52\x7f\x35\x82\xec\x87\xff\xd9\x40\x76\xbc", 32) != 0) {
                     send_msg_failure(dev);
                     flash_state = STATE_END;
-                    layoutDialog(&bmp_icon_error, NULL, NULL, NULL,
-                        "Error installing ", "firmware.", NULL,
-                        "Unplug your Skywallet", "and try again.", NULL);
+                    layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Error installing ", "firmware.", NULL, "Unplug your Skywallet", "and try again.", NULL);
                     return;
                 }
 
@@ -591,9 +541,7 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
             }
             send_msg_failure(dev);
             flash_state = STATE_END;
-            layoutDialog(&bmp_icon_warning, NULL, NULL, NULL,
-                "Firmware installation", "aborted.", NULL, "You may now",
-                "unplug your Skywallet.", NULL);
+            layoutDialog(&bmp_icon_warning, NULL, NULL, NULL, "Firmware installation", "aborted.", NULL, "You may now", "unplug your Skywallet.", NULL);
             return;
         }
         return;
@@ -604,31 +552,23 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
             if (buf[9] != 0x0a) { // invalid contents
                 send_msg_failure(dev);
                 flash_state = STATE_END;
-                layoutDialog(&bmp_icon_error, NULL, NULL, NULL,
-                    "Error installing ", "firmware.", NULL,
-                    "Unplug your Skywallet", "and try again.", NULL);
+                layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Error installing ", "firmware.", NULL, "Unplug your Skywallet", "and try again.", NULL);
                 return;
             }
             // read payload length
             uint8_t* p = buf + 10;
             flash_len = readprotobufint(&p);
-            if (flash_len >
-                FLASH_TOTAL_SIZE + FLASH_META_DESC_LEN -
-                    (FLASH_APP_START - FLASH_ORIGIN)) { // firmware is too big
+            if (flash_len > FLASH_TOTAL_SIZE + FLASH_META_DESC_LEN - (FLASH_APP_START - FLASH_ORIGIN)) { // firmware is too big
                 send_msg_failure(dev);
                 flash_state = STATE_END;
-                layoutDialog(&bmp_icon_error, NULL, NULL, NULL,
-                    "Firmware is too big.", NULL, "Get official firmware",
-                    "github.com/skycoin/hardware-wallet", NULL, NULL);
+                layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Firmware is too big.", NULL, "Get official firmware", "github.com/skycoin/hardware-wallet", NULL, NULL);
                 return;
             }
             // check firmware magic
             if (memcmp(p, FIRMWARE_MAGIC, 4) != 0) {
                 send_msg_failure(dev);
                 flash_state = STATE_END;
-                layoutDialog(&bmp_icon_error, NULL, NULL, NULL,
-                    "Wrong firmware header.", NULL, "Get official firmware",
-                    "github.com/skycoin/hardware-wallet", NULL, NULL);
+                layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Wrong firmware header.", NULL, "Get official firmware", "github.com/skycoin/hardware-wallet", NULL, NULL);
                 return;
             }
             flash_state = STATE_FLASHING;
@@ -657,15 +597,12 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
         if (buf[0] != '?') { // invalid contents
             send_msg_failure(dev);
             flash_state = STATE_END;
-            layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Error installing ",
-                "firmware.", NULL, "Unplug your Skywallet", "and try again.",
-                NULL);
+            layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Error installing ", "firmware.", NULL, "Unplug your Skywallet", "and try again.", NULL);
             return;
         }
         const uint8_t* p = buf + 1;
         if (flash_anim % 32 == 4) {
-            layoutProgress(
-                "INSTALLING ... Please wait", 1000 * flash_pos / flash_len);
+            layoutProgress("INSTALLING ... Please wait", 1000 * flash_pos / flash_len);
         }
         flash_anim++;
         flash_unlock();
@@ -675,13 +612,9 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
             if (wi == 4) {
                 const uint32_t* w = (const uint32_t*)towrite;
                 if (flash_pos < FLASH_META_DESC_LEN) {
-                    flash_program_word(FLASH_META_START + flash_pos,
-                        *w); // the first 256 bytes of firmware is metadata
-                             // descriptor
+                    flash_program_word(FLASH_META_START + flash_pos, *w); // the first 256 bytes of firmware is metadata descriptor
                 } else {
-                    flash_program_word(
-                        FLASH_APP_START + (flash_pos - FLASH_META_DESC_LEN),
-                        *w); // the rest is code
+                    flash_program_word(FLASH_APP_START + (flash_pos - FLASH_META_DESC_LEN), *w); // the rest is code
                 }
                 flash_pos += 4;
                 wi = 0;
@@ -707,8 +640,7 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
                 return;
             }
             uint8_t hash[32];
-            sha256_Raw((unsigned char*)FLASH_APP_START,
-                flash_len - FLASH_META_DESC_LEN, hash);
+            sha256_Raw((unsigned char*)FLASH_APP_START, flash_len - FLASH_META_DESC_LEN, hash);
             layoutFirmwareHash(hash);
             do {
                 delay(100000);
@@ -725,8 +657,7 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
         // 1) old firmware was unsigned
         // 2) firmware restore flag isn't set
         // 3) signatures are not ok
-        if (brand_new_firmware || old_was_unsigned || (flags & 0x01) == 0 ||
-            SIG_OK != signatures_ok(NULL)) {
+        if (brand_new_firmware || old_was_unsigned || (flags & 0x01) == 0 || SIG_OK != signatures_ok(NULL)) {
             memzero(meta_backup, sizeof(meta_backup));
         }
         // copy new firmware header
@@ -738,21 +669,16 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
             memzero(meta_backup, 4);
         }
 
-        // no need to erase, because we are not changing any already flashed
-        // byte.
+        // no need to erase, because we are not changing any already flashed byte.
         restore_metadata(meta_backup);
         memzero(meta_backup, sizeof(meta_backup));
 
         flash_state = STATE_END;
         if (hash_check_ok) {
-            layoutDialog(&bmp_icon_ok, NULL, NULL, NULL, "New firmware",
-                "successfully installed.", NULL, "You may now",
-                "unplug your Skywallet.", NULL);
+            layoutDialog(&bmp_icon_ok, NULL, NULL, NULL, "New firmware", "successfully installed.", NULL, "You may now", "unplug your Skywallet.", NULL);
             send_msg_success(dev);
         } else {
-            layoutDialog(&bmp_icon_warning, NULL, NULL, NULL,
-                "Firmware installation", "aborted.", NULL, "You need to repeat",
-                "the procedure with", "the correct firmware.");
+            layoutDialog(&bmp_icon_warning, NULL, NULL, NULL, "Firmware installation", "aborted.", NULL, "You need to repeat", "the procedure with", "the correct firmware.");
             send_msg_failure(dev);
         }
         return;
@@ -764,12 +690,13 @@ static void hid_set_config(usbd_device* dev, uint16_t wValue)
     (void)wValue;
 
     usbd_ep_setup(dev, ENDPOINT_ADDRESS_IN, USB_ENDPOINT_ATTR_INTERRUPT, 64, 0);
-    usbd_ep_setup(dev, ENDPOINT_ADDRESS_OUT, USB_ENDPOINT_ATTR_INTERRUPT, 64,
-        hid_rx_callback);
+    usbd_ep_setup(dev, ENDPOINT_ADDRESS_OUT, USB_ENDPOINT_ATTR_INTERRUPT, 64, hid_rx_callback);
 
-    usbd_register_control_callback(dev,
+    usbd_register_control_callback(
+        dev,
         USB_REQ_TYPE_STANDARD | USB_REQ_TYPE_INTERFACE,
-        USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT, hid_control_request);
+        USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
+        hid_control_request);
 }
 
 static usbd_device* usbd_dev;
@@ -778,28 +705,40 @@ static uint8_t usbd_control_buffer[128];
 void checkButtons(void)
 {
     static bool btn_left = false, btn_right = false, btn_final = false;
-    if (btn_final) { return; }
+    if (btn_final) {
+        return;
+    }
     uint16_t state = gpio_port_read(BTN_PORT);
     if ((state & (BTN_PIN_YES | BTN_PIN_NO)) != (BTN_PIN_YES | BTN_PIN_NO)) {
-        if ((state & BTN_PIN_NO) != BTN_PIN_NO) { btn_left = true; }
-        if ((state & BTN_PIN_YES) != BTN_PIN_YES) { btn_right = true; }
+        if ((state & BTN_PIN_NO) != BTN_PIN_NO) {
+            btn_left = true;
+        }
+        if ((state & BTN_PIN_YES) != BTN_PIN_YES) {
+            btn_right = true;
+        }
     }
-    if (btn_left) { oledBox(0, 0, 3, 3, true); }
-    if (btn_right) { oledBox(OLED_WIDTH - 4, 0, OLED_WIDTH - 1, 3, true); }
-    if (btn_left || btn_right) { oledRefresh(); }
-    if (btn_left && btn_right) { btn_final = true; }
+    if (btn_left) {
+        oledBox(0, 0, 3, 3, true);
+    }
+    if (btn_right) {
+        oledBox(OLED_WIDTH - 4, 0, OLED_WIDTH - 1, 3, true);
+    }
+    if (btn_left || btn_right) {
+        oledRefresh();
+    }
+    if (btn_left && btn_right) {
+        btn_final = true;
+    }
 }
 
 void usbLoop(bool firmware_present)
 {
     brand_new_firmware = !firmware_present;
-    usbd_dev = usbd_init(&otgfs_usb_driver, &dev_descr, &config, usb_strings, 3,
-        usbd_control_buffer, sizeof(usbd_control_buffer));
+    usbd_dev = usbd_init(&otgfs_usb_driver, &dev_descr, &config, usb_strings, 3, usbd_control_buffer, sizeof(usbd_control_buffer));
     usbd_register_set_config_callback(usbd_dev, hid_set_config);
     for (;;) {
         usbd_poll(usbd_dev);
-        if (brand_new_firmware &&
-            (flash_state == STATE_READY || flash_state == STATE_OPEN)) {
+        if (brand_new_firmware && (flash_state == STATE_READY || flash_state == STATE_OPEN)) {
             checkButtons();
         }
     }

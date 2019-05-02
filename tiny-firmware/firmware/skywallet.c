@@ -48,11 +48,8 @@ void check_lock_screen(void)
     }
 
     // button held for long enough (2 seconds)
-    if (layoutLast == layoutHome && button.NoDown >= 285000 * 2 &&
-        !button.YesDown) {
-        layoutDialog(&bmp_icon_question, _("Cancel"), _("Lock Device"), NULL,
-            _("Do you really want to"), _("lock your"), _("Skywallet?"), NULL,
-            NULL, NULL);
+    if (layoutLast == layoutHome && button.NoDown >= 285000 * 2 && !button.YesDown) {
+        layoutDialog(&bmp_icon_question, _("Cancel"), _("Lock Device"), NULL, _("Do you really want to"), _("lock your"), _("Skywallet?"), NULL, NULL, NULL);
 
         // wait until NoButton is released
         usbTiny(1);
@@ -98,8 +95,7 @@ void check_factory_test(void)
     buttonUpdate();
 
     // yes button held for long enough (2 seconds)
-    if (layoutLast == layoutHome && button.YesDown >= 285000 * 2 &&
-        !button.NoDown) {
+    if (layoutLast == layoutHome && button.YesDown >= 285000 * 2 && !button.NoDown) {
         usbTiny(1);
         factoryTest();
         usbTiny(0);

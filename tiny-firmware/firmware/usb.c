@@ -1,5 +1,5 @@
 /*
- * This file is part of the Skycoin project, https://skycoin.net/
+ * This file is part of the Skycoin project, https://skycoin.net/ 
  *
  * Copyright (C) 2014 Pavol Rusnak <stick@satoshilabs.com>
  * Copyright (C) 2018-2019 Skycoin Project
@@ -47,7 +47,8 @@ enum {
 #undef X
 
 #define X(name, value) value,
-static const char* usb_strings[] = {USB_STRINGS};
+static const char* usb_strings[] = {
+    USB_STRINGS};
 #undef X
 
 static const struct usb_device_descriptor dev_descr = {
@@ -92,29 +93,27 @@ static const struct {
         uint8_t bReportDescriptorType;
         uint16_t wDescriptorLength;
     } __attribute__((packed)) hid_report;
-} __attribute__((packed))
-hid_function = {.hid_descriptor =
-                    {
-                        .bLength = sizeof(hid_function),
-                        .bDescriptorType = USB_DT_HID,
-                        .bcdHID = 0x0111,
-                        .bCountryCode = 0,
-                        .bNumDescriptors = 1,
-                    },
+} __attribute__((packed)) hid_function = {
+    .hid_descriptor = {
+        .bLength = sizeof(hid_function),
+        .bDescriptorType = USB_DT_HID,
+        .bcdHID = 0x0111,
+        .bCountryCode = 0,
+        .bNumDescriptors = 1,
+    },
     .hid_report = {
         .bReportDescriptorType = USB_DT_REPORT,
         .wDescriptorLength = sizeof(hid_report_descriptor),
     }};
 
-static const struct usb_endpoint_descriptor hid_endpoints[2] = {
-    {
-        .bLength = USB_DT_ENDPOINT_SIZE,
-        .bDescriptorType = USB_DT_ENDPOINT,
-        .bEndpointAddress = ENDPOINT_ADDRESS_IN,
-        .bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
-        .wMaxPacketSize = 64,
-        .bInterval = 1,
-    },
+static const struct usb_endpoint_descriptor hid_endpoints[2] = {{
+                                                                    .bLength = USB_DT_ENDPOINT_SIZE,
+                                                                    .bDescriptorType = USB_DT_ENDPOINT,
+                                                                    .bEndpointAddress = ENDPOINT_ADDRESS_IN,
+                                                                    .bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
+                                                                    .wMaxPacketSize = 64,
+                                                                    .bInterval = 1,
+                                                                },
     {
         .bLength = USB_DT_ENDPOINT_SIZE,
         .bDescriptorType = USB_DT_ENDPOINT,
@@ -156,17 +155,14 @@ static const struct usb_config_descriptor config = {
     .interface = ifaces,
 };
 
-static int hid_control_request(usbd_device* dev,
-    struct usb_setup_data* req,
-    uint8_t** buf,
-    uint16_t* len,
-    usbd_control_complete_callback* complete)
+static int hid_control_request(usbd_device* dev, struct usb_setup_data* req, uint8_t** buf, uint16_t* len, usbd_control_complete_callback* complete)
 {
     (void)complete;
     (void)dev;
 
     if ((req->bmRequestType != 0x81) ||
-        (req->bRequest != USB_REQ_GET_DESCRIPTOR) || (req->wValue != 0x2200))
+        (req->bRequest != USB_REQ_GET_DESCRIPTOR) ||
+        (req->wValue != 0x2200))
         return 0;
 
     *buf = (uint8_t*)hid_report_descriptor;
@@ -193,12 +189,13 @@ static void hid_set_config(usbd_device* dev, uint16_t wValue)
     (void)wValue;
 
     usbd_ep_setup(dev, ENDPOINT_ADDRESS_IN, USB_ENDPOINT_ATTR_INTERRUPT, 64, 0);
-    usbd_ep_setup(dev, ENDPOINT_ADDRESS_OUT, USB_ENDPOINT_ATTR_INTERRUPT, 64,
-        hid_rx_callback);
+    usbd_ep_setup(dev, ENDPOINT_ADDRESS_OUT, USB_ENDPOINT_ATTR_INTERRUPT, 64, hid_rx_callback);
 
-    usbd_register_control_callback(dev,
+    usbd_register_control_callback(
+        dev,
         USB_REQ_TYPE_STANDARD | USB_REQ_TYPE_INTERFACE,
-        USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT, hid_control_request);
+        USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
+        hid_control_request);
 }
 
 static usbd_device* usbd_dev;
@@ -206,9 +203,7 @@ static uint8_t usbd_control_buffer[128];
 
 void usbInit(void)
 {
-    usbd_dev = usbd_init(&otgfs_usb_driver, &dev_descr, &config, usb_strings,
-        sizeof(usb_strings) / sizeof(*usb_strings), usbd_control_buffer,
-        sizeof(usbd_control_buffer));
+    usbd_dev = usbd_init(&otgfs_usb_driver, &dev_descr, &config, usb_strings, sizeof(usb_strings) / sizeof(*usb_strings), usbd_control_buffer, sizeof(usbd_control_buffer));
     usbd_register_set_config_callback(usbd_dev, hid_set_config);
 }
 
@@ -220,8 +215,8 @@ void usbPoll(void)
     // write pending data
     data = msg_out_data();
     if (data) {
-        while (usbd_ep_write_packet(usbd_dev, ENDPOINT_ADDRESS_IN, data, 64) !=
-               64) {}
+        while (usbd_ep_write_packet(usbd_dev, ENDPOINT_ADDRESS_IN, data, 64) != 64) {
+        }
     }
 }
 

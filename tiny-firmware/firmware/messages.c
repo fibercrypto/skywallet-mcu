@@ -107,9 +107,7 @@ static inline void msg_out_pad(void)
     msg_out_end = (msg_out_end + 1) % (MSG_OUT_SIZE / 64);
 }
 
-static bool pb_callback_out(pb_ostream_t* stream,
-    const uint8_t* buf,
-    size_t count)
+static bool pb_callback_out(pb_ostream_t* stream, const uint8_t* buf, size_t count)
 {
     (void)stream;
     for (size_t i = 0; i < count; i++) {
@@ -128,7 +126,9 @@ bool msg_write_common(char type, uint16_t msg_id, const void* msg_ptr)
     pb_ostream_t sizestream = {0, 0, SIZE_MAX, 0, 0};
     bool status = pb_encode(&sizestream, fields, msg_ptr);
 
-    if (!status) { return false; }
+    if (!status) {
+        return false;
+    }
 
     void (*append)(uint8_t);
     bool (*pb_callback)(pb_ostream_t*, const uint8_t*, size_t);
@@ -151,7 +151,9 @@ bool msg_write_common(char type, uint16_t msg_id, const void* msg_ptr)
     append(len & 0xFF);
     pb_ostream_t stream = {pb_callback, 0, SIZE_MAX, 0, 0};
     status = pb_encode(&stream, fields, msg_ptr);
-    if (type == 'n') { msg_out_pad(); }
+    if (type == 'n') {
+        msg_out_pad();
+    }
     return status;
 }
 
@@ -160,11 +162,7 @@ enum {
     READSTATE_READING,
 };
 
-void msg_process(char type,
-    uint16_t msg_id,
-    const pb_field_t* fields,
-    uint8_t* msg_raw,
-    uint32_t msg_size)
+void msg_process(char type, uint16_t msg_id, const pb_field_t* fields, uint8_t* msg_raw, uint32_t msg_size)
 {
     static CONFIDENTIAL uint8_t msg_data[MSG_IN_SIZE];
     memset(msg_data, 0, sizeof(msg_data));
@@ -189,8 +187,7 @@ void msg_read_common(char type, const uint8_t* buf, int len)
     if (len != 64) return;
 
     if (read_state == READSTATE_IDLE) {
-        if (buf[0] != '?' || buf[1] != '#' ||
-            buf[2] != '#') { // invalid start - discard
+        if (buf[0] != '?' || buf[1] != '#' || buf[2] != '#') { // invalid start - discard
             return;
         }
         msg_id = (buf[3] << 8) + buf[4];
@@ -198,13 +195,11 @@ void msg_read_common(char type, const uint8_t* buf, int len)
 
         fields = MessageFields(type, 'i', msg_id);
         if (!fields) { // unknown message
-            fsm_sendFailure(FailureType_Failure_UnexpectedMessage,
-                _("Unknown message read_common"));
+            fsm_sendFailure(FailureType_Failure_UnexpectedMessage, _("Unknown message read_common"));
             return;
         }
         if (msg_size > MSG_IN_SIZE) { // message is too big :(
-            fsm_sendFailure(
-                FailureType_Failure_DataError, _("Message too big"));
+            fsm_sendFailure(FailureType_Failure_DataError, _("Message too big"));
             return;
         }
 
@@ -243,11 +238,14 @@ uint16_t msg_tiny_id = 0xFFFF;
 void msg_read_tiny(const uint8_t* buf, int len)
 {
     if (len != 64) return;
-    if (buf[0] != '?' || buf[1] != '#' || buf[2] != '#') { return; }
+    if (buf[0] != '?' || buf[1] != '#' || buf[2] != '#') {
+        return;
+    }
     uint16_t msg_id = (buf[3] << 8) + buf[4];
-    uint32_t msg_size =
-        (buf[5] << 24) + (buf[6] << 16) + (buf[7] << 8) + buf[8];
-    if (msg_size > 64 || len - msg_size < 9) { return; }
+    uint32_t msg_size = (buf[5] << 24) + (buf[6] << 16) + (buf[7] << 8) + buf[8];
+    if (msg_size > 64 || len - msg_size < 9) {
+        return;
+    }
 
     const pb_field_t* fields = 0;
     // upstream nanopb is missing const qualifier, so we have to cast :-/
@@ -279,8 +277,7 @@ void msg_read_tiny(const uint8_t* buf, int len)
             msg_tiny_id = 0xFFFF;
         }
     } else {
-        fsm_sendFailure(FailureType_Failure_UnexpectedMessage,
-            _("Unknown message read_tiny"));
+        fsm_sendFailure(FailureType_Failure_UnexpectedMessage, _("Unknown message read_tiny"));
         msg_tiny_id = 0xFFFF;
     }
 }

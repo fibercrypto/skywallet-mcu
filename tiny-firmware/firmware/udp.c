@@ -26,7 +26,10 @@
 
 static volatile char tiny = 0;
 
-void usbInit(void) { emulatorSocketInit(); }
+void usbInit(void)
+{
+    emulatorSocketInit();
+}
 
 #if DEBUG_LINK
 #define _ISDBG (((iface == 1) ? 'd' : 'n'))
@@ -72,7 +75,9 @@ void usbPoll(void)
     }
 
     const uint8_t* data = msg_out_data();
-    if (data != NULL) { emulatorSocketWrite(0, data, 64); }
+    if (data != NULL) {
+        emulatorSocketWrite(0, data, 64);
+    }
 }
 
 char usbTiny(char set)

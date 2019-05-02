@@ -40,11 +40,12 @@ uint32_t random32(void)
         srand((unsigned)time(NULL));
         initialized = 1;
     }
-    return ((rand() % 0xFF) | ((rand() % 0xFF) << 8) | ((rand() % 0xFF) << 16) |
-            ((rand() % 0xFF) << 24));
+    return ((rand() % 0xFF) | ((rand() % 0xFF) << 8) | ((rand() % 0xFF) << 16) | ((rand() % 0xFF) << 24));
 #else
     static FILE* frand = NULL;
-    if (!frand) { frand = fopen("/dev/urandom", "r"); }
+    if (!frand) {
+        frand = fopen("/dev/urandom", "r");
+    }
     uint32_t r;
     size_t len_read = fread(&r, 1, sizeof(r), frand);
     assert(len_read == sizeof(r));
@@ -70,7 +71,9 @@ void __attribute__((weak)) random_buffer(uint8_t* buf, size_t len)
 {
     uint32_t r = 0;
     for (size_t i = 0; i < len; i++) {
-        if (i % 4 == 0) { r = random32(); }
+        if (i % 4 == 0) {
+            r = random32();
+        }
         buf[i] = (r >> ((i % 4) * 8)) & 0xFF;
     }
 }

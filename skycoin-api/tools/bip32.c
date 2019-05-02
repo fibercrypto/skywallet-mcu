@@ -61,15 +61,12 @@ const curve_info curve25519_info = {
     .hasher_type = HASHER_SHA2,
 };
 
-int hdnode_from_xpub(uint32_t depth,
-    uint32_t child_num,
-    const uint8_t* chain_code,
-    const uint8_t* public_key,
-    const char* curve,
-    HDNode* out)
+int hdnode_from_xpub(uint32_t depth, uint32_t child_num, const uint8_t* chain_code, const uint8_t* public_key, const char* curve, HDNode* out)
 {
     const curve_info* info = get_curve_by_name(curve);
-    if (info == 0) { return 0; }
+    if (info == 0) {
+        return 0;
+    }
     if (public_key[0] != 0x02 && public_key[0] != 0x03) { // invalid pubkey
         return 0;
     }
@@ -82,12 +79,7 @@ int hdnode_from_xpub(uint32_t depth,
     return 1;
 }
 
-int hdnode_from_xprv(uint32_t depth,
-    uint32_t child_num,
-    const uint8_t* chain_code,
-    const uint8_t* private_key,
-    const char* curve,
-    HDNode* out)
+int hdnode_from_xprv(uint32_t depth, uint32_t child_num, const uint8_t* chain_code, const uint8_t* private_key, const char* curve, HDNode* out)
 {
     bool failed = false;
     const curve_info* info = get_curve_by_name(curve);
@@ -106,7 +98,9 @@ int hdnode_from_xprv(uint32_t depth,
         memzero(&a, sizeof(a));
     }
 
-    if (failed) { return 0; }
+    if (failed) {
+        return 0;
+    }
 
     out->curve = info;
     out->depth = depth;
@@ -117,20 +111,18 @@ int hdnode_from_xprv(uint32_t depth,
     return 1;
 }
 
-int hdnode_from_seed(const uint8_t* seed,
-    int seed_len,
-    const char* curve,
-    HDNode* out)
+int hdnode_from_seed(const uint8_t* seed, int seed_len, const char* curve, HDNode* out)
 {
     static CONFIDENTIAL uint8_t I[32 + 32];
     memset(out, 0, sizeof(HDNode));
     out->depth = 0;
     out->child_num = 0;
     out->curve = get_curve_by_name(curve);
-    if (out->curve == 0) { return 0; }
+    if (out->curve == 0) {
+        return 0;
+    }
     static CONFIDENTIAL HMAC_SHA512_CTX ctx;
-    hmac_sha512_Init(&ctx, (const uint8_t*)out->curve->bip32_name,
-        strlen(out->curve->bip32_name));
+    hmac_sha512_Init(&ctx, (const uint8_t*)out->curve->bip32_name, strlen(out->curve->bip32_name));
     hmac_sha512_Update(&ctx, seed, seed_len);
     hmac_sha512_Final(&ctx, I);
 
@@ -142,8 +134,7 @@ int hdnode_from_seed(const uint8_t* seed,
                 && bn_is_less(&a, &out->curve->params->order)) { // < order
                 break;
             }
-            hmac_sha512_Init(&ctx, (const uint8_t*)out->curve->bip32_name,
-                strlen(out->curve->bip32_name));
+            hmac_sha512_Init(&ctx, (const uint8_t*)out->curve->bip32_name, strlen(out->curve->bip32_name));
             hmac_sha512_Update(&ctx, I, sizeof(I));
             hmac_sha512_Final(&ctx, I);
         }
@@ -158,24 +149,32 @@ int hdnode_from_seed(const uint8_t* seed,
 
 void hdnode_fill_public_key(HDNode* node)
 {
-    if (node->public_key[0] != 0) return;
+    if (node->public_key[0] != 0)
+        return;
     if (node->curve->params) {
-        ecdsa_get_public_key33(
-            node->curve->params, node->private_key, node->public_key);
+        ecdsa_get_public_key33(node->curve->params, node->private_key, node->public_key);
     }
 }
 
 const curve_info* get_curve_by_name(const char* curve_name)
 {
-    if (curve_name == 0) { return 0; }
-    if (strcmp(curve_name, SECP256K1_NAME) == 0) { return &secp256k1_info; }
+    if (curve_name == 0) {
+        return 0;
+    }
+    if (strcmp(curve_name, SECP256K1_NAME) == 0) {
+        return &secp256k1_info;
+    }
     if (strcmp(curve_name, SECP256K1_DECRED_NAME) == 0) {
         return &secp256k1_decred_info;
     }
-    if (strcmp(curve_name, ED25519_NAME) == 0) { return &ed25519_info; }
+    if (strcmp(curve_name, ED25519_NAME) == 0) {
+        return &ed25519_info;
+    }
     if (strcmp(curve_name, ED25519_SHA3_NAME) == 0) {
         return &ed25519_sha3_info;
     }
-    if (strcmp(curve_name, CURVE25519_NAME) == 0) { return &curve25519_info; }
+    if (strcmp(curve_name, CURVE25519_NAME) == 0) {
+        return &curve25519_info;
+    }
     return 0;
 }
