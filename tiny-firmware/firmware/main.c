@@ -11,6 +11,8 @@
 
 #include <libopencm3/stm32/desig.h>
 
+#include "skywallet.h"
+#include "oled.h"
 #include "bitmaps.h"
 #include "util.h"
 #include "usb.h"
@@ -22,10 +24,10 @@
 #include "timer.h"
 #include "buttons.h"
 #include "gettext.h"
-#include "memory.h"
 #include "fastflash.h"
 #include "factory_test.h"
 #include "entropy.h"
+#include "memory.h"
 
 extern uint32_t storage_uuid[STM32_UUID_LEN/sizeof(uint32_t)];
 int main(void)
