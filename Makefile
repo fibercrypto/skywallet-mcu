@@ -48,16 +48,11 @@ install-linters: install-linters-$(UNAME_S) ## Install code quality checking too
 lint: ## Check code quality
 	yamllint -d relaxed .travis.yml
 
-lint-firmware: #Check code quality and format code in tiny-firmware/firmware
+format: # Format C code in the project
+	$(CLANG_FORMAT) -i -assume-filename=.clang-format tiny-firmware/*.c
 	$(CLANG_FORMAT) -i -assume-filename=.clang-format tiny-firmware/firmware/*.c
-
-lint-bootloader: #Check code quality and format code in tiny-firmware/bootloader
 	$(CLANG_FORMAT) -i -assume-filename=.clang-format tiny-firmware/bootloader/*.c
-
-lint-emulator: #Check code quality and format code in tiny-firmware/emulator
 	$(CLANG_FORMAT) -i -assume-filename=.clang-format tiny-firmware/emulator/*.c
-
-lint-skypi: #Check code quality and format code in skycoin-api
 	$(CLANG_FORMAT) -i -assume-filename=.clang-format skycoin-api/*.c
 	$(CLANG_FORMAT) -i -assume-filename=.clang-format skycoin-api/tools/*.c
 
