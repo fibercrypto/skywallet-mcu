@@ -12,67 +12,67 @@
 #include <libopencm3/stm32/desig.h>
 
 #include "bitmaps.h"
-#include "util.h"
-#include "usb.h"
-#include "setup.h"
-#include "storage.h"
+#include "buttons.h"
+#include "entropy.h"
+#include "factory_test.h"
+#include "fastflash.h"
+#include "gettext.h"
 #include "layout.h"
 #include "layout2.h"
-#include "rng.h"
-#include "timer.h"
-#include "buttons.h"
-#include "gettext.h"
 #include "memory.h"
-#include "fastflash.h"
-#include "factory_test.h"
-#include "entropy.h"
+#include "rng.h"
+#include "setup.h"
+#include "storage.h"
+#include "timer.h"
+#include "usb.h"
+#include "util.h"
 
-extern uint32_t storage_uuid[STM32_UUID_LEN/sizeof(uint32_t)];
+extern uint32_t storage_uuid[STM32_UUID_LEN / sizeof(uint32_t)];
 int main(void)
 {
 #ifndef APPVER
-	setup();
-	__stack_chk_guard = random32(); // this supports compiler provided unpredictable stack protection checks
-	oledInit();
+    setup();
+    __stack_chk_guard = random32(); // this supports compiler provided
+                                    // unpredictable stack protection checks
+    oledInit();
 #else
-	setupApp();
-	__stack_chk_guard = random32(); // this supports compiler provided unpredictable stack protection checks
+    setupApp();
+    __stack_chk_guard = random32(); // this supports compiler provided
+                                    // unpredictable stack protection checks
 #endif
 
 #if FASTFLASH
-	uint16_t state = gpio_port_read(BTN_PORT);
-	if ((state & BTN_PIN_NO) == 0) {
-		run_bootloader();
-	}
+    uint16_t state = gpio_port_read(BTN_PORT);
+    if ((state & BTN_PIN_NO) == 0) { run_bootloader(); }
 #endif
 
-	timer_init();
+    timer_init();
 
 #ifdef APPVER
-	desig_get_unique_id(storage_uuid);
-	// enable MPU (Memory Protection Unit)
-	mpu_config();
+    desig_get_unique_id(storage_uuid);
+    // enable MPU (Memory Protection Unit)
+    mpu_config();
 #else
-	random_buffer((uint8_t *)storage_uuid, sizeof(storage_uuid));
+    random_buffer((uint8_t*)storage_uuid, sizeof(storage_uuid));
 #endif
 
 #if DEBUG_LINK
-	oledSetDebugLink(1);
-	storage_wipe();
+    oledSetDebugLink(1);
+    storage_wipe();
 #endif
 
-	oledDrawBitmap(0, 0, &bmp_skycoin_logo64);
-	oledRefresh();
+    oledDrawBitmap(0, 0, &bmp_skycoin_logo64);
+    oledRefresh();
 
-	storage_init();
-	layoutHome();
-	usbInit();
-	for (;;) {
-		usbPoll();
-		check_lock_screen();
-		check_factory_test();
-		check_entropy();
-	}
+    storage_init();
+    layoutHome();
+    usbInit();
+    for (;;) {
+        usbPoll();
+        check_lock_screen();
+        check_factory_test();
+        check_entropy();
+    }
 
-	return 0;
+    return 0;
 }
