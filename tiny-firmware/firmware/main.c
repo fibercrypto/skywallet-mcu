@@ -19,6 +19,7 @@
 #include "gettext.h"
 #include "layout.h"
 #include "layout2.h"
+#include "memory.h"
 #include "oled.h"
 #include "rng.h"
 #include "setup.h"
@@ -27,35 +28,34 @@
 #include "timer.h"
 #include "usb.h"
 #include "util.h"
-#include "memory.h"
 
-extern uint32_t storage_uuid[STM32_UUID_LEN/sizeof(uint32_t)];
+extern uint32_t storage_uuid[STM32_UUID_LEN / sizeof(uint32_t)];
 int main(void)
 {
 #ifndef APPVER
     setup();
-    __stack_chk_guard = random32(); // this supports compiler provided unpredictable stack protection checks
+    __stack_chk_guard = random32(); // this supports compiler provided
+                                    // unpredictable stack protection checks
     oledInit();
 #else
     setupApp();
-    __stack_chk_guard = random32(); // this supports compiler provided unpredictable stack protection checks
+    __stack_chk_guard = random32(); // this supports compiler provided
+                                    // unpredictable stack protection checks
 #endif
 
 #if FASTFLASH
     uint16_t state = gpio_port_read(BTN_PORT);
-    if ((state & BTN_PIN_NO) == 0) {
-        run_bootloader();
-    }
+    if ((state & BTN_PIN_NO) == 0) { run_bootloader(); }
 #endif
 
     timer_init();
 
 #ifdef APPVER
-	desig_get_unique_id(storage_uuid);
+    desig_get_unique_id(storage_uuid);
     // enable MPU (Memory Protection Unit)
     mpu_config();
 #else
-	random_buffer((uint8_t *)storage_uuid, sizeof(storage_uuid));
+    random_buffer((uint8_t*)storage_uuid, sizeof(storage_uuid));
 #endif
 
 #if DEBUG_LINK

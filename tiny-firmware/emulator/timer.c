@@ -22,10 +22,7 @@
 #include "firmware/swtimer.h"
 #include "timer.h"
 
-void timer_init(void)
-{
-    timer_init_sw();
-}
+void timer_init(void) { timer_init_sw(); }
 
 uint32_t timer_ms(void)
 {

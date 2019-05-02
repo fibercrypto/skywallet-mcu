@@ -55,14 +55,14 @@
         fsm_sendFailure(fail, msg);        \
         break;
 
-void fsm_sendResponseFromErrCode(ErrCode_t err, const char* successMsg, const char* failMsg)
+void fsm_sendResponseFromErrCode(ErrCode_t err,
+    const char* successMsg,
+    const char* failMsg)
 {
     FailureType failure;
     switch (err) {
     case ErrOk:
-        if (successMsg == NULL) {
-            successMsg = _("Success");
-        }
+        if (successMsg == NULL) { successMsg = _("Success"); }
         fsm_sendSuccess(successMsg);
         return;
     case ErrFailed:
@@ -70,36 +70,26 @@ void fsm_sendResponseFromErrCode(ErrCode_t err, const char* successMsg, const ch
         break;
     case ErrInvalidArg:
         failure = FailureType_Failure_DataError;
-        if (failMsg == NULL) {
-            failMsg = _("Invalid argument");
-        }
+        if (failMsg == NULL) { failMsg = _("Invalid argument"); }
         break;
     case ErrPreconditionFailed:
         failure = FailureType_Failure_DataError;
-        if (failMsg == NULL) {
-            failMsg = _("Precondition failed");
-        }
+        if (failMsg == NULL) { failMsg = _("Precondition failed"); }
         break;
     case ErrIndexValue:
         failure = FailureType_Failure_DataError;
-        if (failMsg == NULL) {
-            failMsg = _("Index out of bounds");
-        }
+        if (failMsg == NULL) { failMsg = _("Index out of bounds"); }
         break;
     case ErrInvalidValue:
         failure = FailureType_Failure_ProcessError;
         break;
     case ErrNotImplemented:
         failure = FailureType_Failure_FirmwareError;
-        if (failMsg == NULL) {
-            failMsg = _("Not Implemented");
-        }
+        if (failMsg == NULL) { failMsg = _("Not Implemented"); }
         break;
     case ErrInvalidChecksum:
         failure = FailureType_Failure_DataError;
-        if (failMsg == NULL) {
-            failMsg = _("Invalid checksum");
-        }
+        if (failMsg == NULL) { failMsg = _("Invalid checksum"); }
         break;
     case ErrPinRequired:
         failure = FailureType_Failure_PinExpected;
@@ -118,18 +108,14 @@ void fsm_sendResponseFromErrCode(ErrCode_t err, const char* successMsg, const ch
         break;
     case ErrMnemonicRequired:
         failure = FailureType_Failure_AddressGeneration;
-        if (failMsg == NULL) {
-            failMsg = _("Mnemonic required");
-        }
+        if (failMsg == NULL) { failMsg = _("Mnemonic required"); }
         break;
     case ErrAddressGeneration:
         failure = FailureType_Failure_AddressGeneration;
         break;
     case ErrTooManyAddresses:
         failure = FailureType_Failure_AddressGeneration;
-        if (failMsg == NULL) {
-            failMsg = _("Too many addresses requested");
-        }
+        if (failMsg == NULL) { failMsg = _("Too many addresses requested"); }
         break;
     case ErrUnfinishedBackup:
         // FIXME: FailureType_Failure_ProcessError ?
@@ -253,19 +239,29 @@ void fsm_msgApplySettings(ApplySettings* msg)
     msg->has_label = msg->has_label && strlen(msg->label);
     msg->has_language = msg->has_language && strlen(msg->language);
     if (msg->has_label) {
-        layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("change name to"), msg->label, "?", NULL, NULL);
+        layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL,
+            _("Do you really want to"), _("change name to"), msg->label, "?",
+            NULL, NULL);
         CHECK_BUTTON_PROTECT
     }
     if (msg->has_language) {
-        layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("change language to"), msg->language, "?", NULL, NULL);
+        layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL,
+            _("Do you really want to"), _("change language to"), msg->language,
+            "?", NULL, NULL);
         CHECK_BUTTON_PROTECT
     }
     if (msg->has_use_passphrase) {
-        layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), msg->use_passphrase ? _("enable passphrase") : _("disable passphrase"), _("protection?"), NULL, NULL, NULL);
+        layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL,
+            _("Do you really want to"),
+            msg->use_passphrase ? _("enable passphrase") :
+                                  _("disable passphrase"),
+            _("protection?"), NULL, NULL, NULL);
         CHECK_BUTTON_PROTECT
     }
     if (msg->has_homescreen) {
-        layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("change the home"), _("screen?"), NULL, NULL, NULL);
+        layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL,
+            _("Do you really want to"), _("change the home"), _("screen?"),
+            NULL, NULL, NULL);
         CHECK_BUTTON_PROTECT
     }
 
@@ -294,7 +290,8 @@ void fsm_msgSkycoinCheckMessageSignature(SkycoinCheckMessageSignature* msg)
 {
     GET_MSG_POINTER(Success, successResp);
     GET_MSG_POINTER(Failure, failureResp);
-    if (msgSkycoinCheckMessageSignatureImpl(msg, successResp, failureResp) == ErrOk) {
+    if (msgSkycoinCheckMessageSignatureImpl(msg, successResp, failureResp) ==
+        ErrOk) {
         msg_write(MessageType_MessageType_Success, successResp);
     } else {
         failureResp->code = FailureType_Failure_InvalidSignature;
@@ -303,9 +300,14 @@ void fsm_msgSkycoinCheckMessageSignature(SkycoinCheckMessageSignature* msg)
     layoutHome();
 }
 
-ErrCode_t requestConfirmTransaction(char* strCoin, char* strHour, TransactionSign* msg, uint32_t i)
+ErrCode_t requestConfirmTransaction(char* strCoin,
+    char* strHour,
+    TransactionSign* msg,
+    uint32_t i)
 {
-    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Next"), NULL, _("Do you really want to"), strCoin, strHour, _("to address"), _("..."), NULL);
+    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Next"), NULL,
+        _("Do you really want to"), strCoin, strHour, _("to address"), _("..."),
+        NULL);
     CHECK_BUTTON_PROTECT_RET_ERR_CODE
     layoutAddress(msg->transactionOut[i].address);
     CHECK_BUTTON_PROTECT_RET_ERR_CODE
@@ -320,7 +322,8 @@ void fsm_msgTransactionSign(TransactionSign* msg)
     CHECK_OUTPUTS(msg)
 
     RESP_INIT(ResponseTransactionSign);
-    ErrCode_t err = msgTransactionSignImpl(msg, &requestConfirmTransaction, resp);
+    ErrCode_t err =
+        msgTransactionSignImpl(msg, &requestConfirmTransaction, resp);
     char* failMsg = NULL;
     switch (err) {
     case ErrOk:
@@ -341,9 +344,7 @@ void fsm_msgSkycoinSignMessage(SkycoinSignMessage* msg)
     RESP_INIT(ResponseSkycoinSignMessage);
     ErrCode_t err = msgSkycoinSignMessageImpl(msg, resp);
     char* failMsg = NULL;
-    if (err == ErrMnemonicRequired) {
-        failMsg = _("Mnemonic not set");
-    }
+    if (err == ErrMnemonicRequired) { failMsg = _("Mnemonic not set"); }
     fsm_sendResponseFromErrCode(err, NULL, failMsg);
     layoutHome();
 }
@@ -356,7 +357,8 @@ void fsm_msgSkycoinAddress(SkycoinAddress* msg)
     switch (err) {
     case ErrUserConfirmation:
         layoutAddress(resp->addresses[0]);
-        if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
+        if (!protectButton(
+                ButtonRequestType_ButtonRequest_ProtectCall, false)) {
             err = ErrActionCancelled;
             break;
         }
@@ -386,14 +388,14 @@ void fsm_msgSkycoinAddress(SkycoinAddress* msg)
 void fsm_msgPing(Ping* msg)
 {
     if (msg->has_button_protection && msg->button_protection) {
-        layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("answer to ping?"), NULL, NULL, NULL, NULL);
+        layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL,
+            _("Do you really want to"), _("answer to ping?"), NULL, NULL, NULL,
+            NULL);
         CHECK_BUTTON_PROTECT
     }
 
     ErrCode_t err = msgPingImpl(msg);
-    if (err != ErrOk) {
-        fsm_sendResponseFromErrCode(err, NULL, NULL);
-    }
+    if (err != ErrOk) { fsm_sendResponseFromErrCode(err, NULL, NULL); }
     layoutHome();
 }
 
@@ -402,30 +404,42 @@ void fsm_msgChangePin(ChangePin* msg)
     bool removal = msg->has_remove && msg->remove;
     if (removal) {
         if (storage_hasPin()) {
-            layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("remove current PIN?"), NULL, NULL, NULL, NULL);
+            layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"),
+                NULL, _("Do you really want to"), _("remove current PIN?"),
+                NULL, NULL, NULL, NULL);
         } else {
             fsm_sendSuccess(_("PIN removed"));
             return;
         }
     } else {
         if (storage_hasPin()) {
-            layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("change current PIN?"), NULL, NULL, NULL, NULL);
+            layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"),
+                NULL, _("Do you really want to"), _("change current PIN?"),
+                NULL, NULL, NULL, NULL);
         } else {
-            layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("set new PIN?"), NULL, NULL, NULL, NULL);
+            layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"),
+                NULL, _("Do you really want to"), _("set new PIN?"), NULL, NULL,
+                NULL, NULL);
         }
     }
 
     CHECK_BUTTON_PROTECT
     CHECK_PIN_UNCACHED
 
-    fsm_sendResponseFromErrCode(msgChangePinImpl(msg, &requestPin), (removal) ? _("PIN removed") : _("PIN changed"), NULL);
+    fsm_sendResponseFromErrCode(msgChangePinImpl(msg, &requestPin),
+        (removal) ? _("PIN removed") : _("PIN changed"), NULL);
     layoutHome();
 }
 
 void fsm_msgWipeDevice(WipeDevice* msg)
 {
-    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("wipe the device?"), NULL, _("All data will be lost."), NULL, NULL);
-    ErrCode_t err = protectButton(ButtonRequestType_ButtonRequest_WipeDevice, false) ? msgWipeDeviceImpl(msg) : ErrActionCancelled;
+    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL,
+        _("Do you really want to"), _("wipe the device?"), NULL,
+        _("All data will be lost."), NULL, NULL);
+    ErrCode_t err =
+        protectButton(ButtonRequestType_ButtonRequest_WipeDevice, false) ?
+            msgWipeDeviceImpl(msg) :
+            ErrActionCancelled;
     fsm_sendResponseFromErrCode(err, _("Device wiped"), NULL);
     layoutHome();
 }
@@ -434,10 +448,15 @@ void fsm_msgGenerateMnemonic(GenerateMnemonic* msg)
 {
     GET_MSG_POINTER(EntropyRequest, entropy_request);
     switch (msgGenerateMnemonicImpl(msg, &random_salted_buffer)) {
-        CASE_SEND_FAILURE(ErrNotInitialized, FailureType_Failure_UnexpectedMessage, _("Device is already initialized. Use Wipe first."))
-        CASE_SEND_FAILURE(ErrInvalidArg, FailureType_Failure_DataError, _("Invalid word count expecified, the valid options are 12 or 24."))
-        CASE_SEND_FAILURE(ErrInvalidValue, FailureType_Failure_ProcessError, _("Device could not generate a valid Mnemonic"))
-        CASE_SEND_FAILURE(ErrInvalidChecksum, FailureType_Failure_DataError, _("Mnemonic with wrong checksum provided"))
+        CASE_SEND_FAILURE(ErrNotInitialized,
+            FailureType_Failure_UnexpectedMessage,
+            _("Device is already initialized. Use Wipe first."))
+        CASE_SEND_FAILURE(ErrInvalidArg, FailureType_Failure_DataError,
+            _("Invalid word count expecified, the valid options are 12 or 24."))
+        CASE_SEND_FAILURE(ErrInvalidValue, FailureType_Failure_ProcessError,
+            _("Device could not generate a valid Mnemonic"))
+        CASE_SEND_FAILURE(ErrInvalidChecksum, FailureType_Failure_DataError,
+            _("Mnemonic with wrong checksum provided"))
     case ErrEntropyRequired:
         msg_write(MessageType_MessageType_EntropyRequest, entropy_request);
         break;
@@ -445,7 +464,8 @@ void fsm_msgGenerateMnemonic(GenerateMnemonic* msg)
         fsm_sendSuccess(_("Mnemonic successfully configured"));
         break;
     default:
-        fsm_sendFailure(FailureType_Failure_FirmwareError, _("Mnemonic generation failed"));
+        fsm_sendFailure(
+            FailureType_Failure_FirmwareError, _("Mnemonic generation failed"));
         break;
     }
     layoutHome();
@@ -454,10 +474,14 @@ void fsm_msgGenerateMnemonic(GenerateMnemonic* msg)
 void fsm_msgSetMnemonic(SetMnemonic* msg)
 {
     CHECK_NOT_INITIALIZED
-    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("I take the risk"), NULL, _("Writing seed"), _("is not recommended."), _("Continue only if you"), _("know what you are"), _("doing!"), NULL);
+    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("I take the risk"),
+        NULL, _("Writing seed"), _("is not recommended."),
+        _("Continue only if you"), _("know what you are"), _("doing!"), NULL);
     CHECK_BUTTON_PROTECT
     ErrCode_t err = msgSetMnemonicImpl(msg);
-    char* failMsg = (err == ErrInvalidValue) ? _("Mnemonic with wrong checksum provided") : NULL;
+    char* failMsg = (err == ErrInvalidValue) ?
+                        _("Mnemonic with wrong checksum provided") :
+                        NULL;
     fsm_sendResponseFromErrCode(err, msg->mnemonic, failMsg);
     layoutHome();
 }
@@ -465,7 +489,8 @@ void fsm_msgSetMnemonic(SetMnemonic* msg)
 void fsm_msgGetRawEntropy(GetRawEntropy* msg)
 {
 #if !DISABLE_GETENTROPY_CONFIRM
-    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("send entropy?"), NULL, NULL, NULL, NULL);
+    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL,
+        _("Do you really want to"), _("send entropy?"), NULL, NULL, NULL, NULL);
     CHECK_BUTTON_PROTECT
 #endif // DISABLE_GETENTROPY_CONFIRM
     RESP_INIT(Entropy);
@@ -482,7 +507,8 @@ void fsm_msgGetRawEntropy(GetRawEntropy* msg)
 void fsm_msgGetMixedEntropy(GetMixedEntropy* _msg)
 {
 #if !DISABLE_GETENTROPY_CONFIRM
-    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("send entropy?"), NULL, NULL, NULL, NULL);
+    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL,
+        _("Do you really want to"), _("send entropy?"), NULL, NULL, NULL, NULL);
     CHECK_BUTTON_PROTECT
 #endif // DISABLE_GETENTROPY_CONFIRM
     RESP_INIT(Entropy);
@@ -501,11 +527,15 @@ void fsm_msgGetMixedEntropy(GetMixedEntropy* _msg)
 void fsm_msgLoadDevice(LoadDevice* msg)
 {
     CHECK_NOT_INITIALIZED
-    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("I take the risk"), NULL, _("Loading private seed"), _("is not recommended."), _("Continue only if you"), _("know what you are"), _("doing!"), NULL);
+    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("I take the risk"),
+        NULL, _("Loading private seed"), _("is not recommended."),
+        _("Continue only if you"), _("know what you are"), _("doing!"), NULL);
     CHECK_BUTTON_PROTECT
 
     ErrCode_t err = msgLoadDeviceImpl(msg);
-    char* failMsg = (err == ErrInvalidValue) ? _("Mnemonic with wrong checksum provided") : NULL;
+    char* failMsg = (err == ErrInvalidValue) ?
+                        _("Mnemonic with wrong checksum provided") :
+                        NULL;
     fsm_sendResponseFromErrCode(err, _("Device loaded"), failMsg);
     layoutHome();
 }
@@ -514,21 +544,23 @@ void fsm_msgResetDevice(ResetDevice* msg)
 {
     CHECK_NOT_INITIALIZED
 
-    CHECK_PARAM(!msg->has_strength || msg->strength == 128 || msg->strength == 192 || msg->strength == 256, _("Invalid seed strength"));
+    CHECK_PARAM(!msg->has_strength || msg->strength == 128 ||
+                    msg->strength == 192 || msg->strength == 256,
+        _("Invalid seed strength"));
 
-    reset_init(
-        msg->has_display_random && msg->display_random,
+    reset_init(msg->has_display_random && msg->display_random,
         msg->has_strength ? msg->strength : 128,
         msg->has_passphrase_protection && msg->passphrase_protection,
         msg->has_pin_protection && msg->pin_protection,
-        msg->has_language ? msg->language : 0,
-        msg->has_label ? msg->label : 0,
+        msg->has_language ? msg->language : 0, msg->has_label ? msg->label : 0,
         msg->has_skip_backup ? msg->skip_backup : false);
 }
 
 ErrCode_t confirmBackup(void)
 {
-    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you confirm you"), _("backed up your seed."), _("This will never be"), _("possible again."), NULL, NULL);
+    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL,
+        _("Do you confirm you"), _("backed up your seed."),
+        _("This will never be"), _("possible again."), NULL, NULL);
     CHECK_BUTTON_PROTECT_RET_ERR_CODE
     return ErrOk;
 }
@@ -542,21 +574,26 @@ void fsm_msgBackupDevice(BackupDevice* msg)
     case ErrOk:
         fsm_sendSuccess(_("Device backed up!"));
         break;
-        CASE_SEND_FAILURE(ErrUnexpectedMessage, FailureType_Failure_UnexpectedMessage, _("Seed already backed up"))
-        CASE_SEND_FAILURE(ErrActionCancelled, FailureType_Failure_ActionCancelled, NULL)
-        CASE_SEND_FAILURE(ErrUnfinishedBackup, FailureType_Failure_ActionCancelled, _("Backup operation did not finish properly."))
+        CASE_SEND_FAILURE(ErrUnexpectedMessage,
+            FailureType_Failure_UnexpectedMessage, _("Seed already backed up"))
+        CASE_SEND_FAILURE(
+            ErrActionCancelled, FailureType_Failure_ActionCancelled, NULL)
+        CASE_SEND_FAILURE(ErrUnfinishedBackup,
+            FailureType_Failure_ActionCancelled,
+            _("Backup operation did not finish properly."))
     default:
-        fsm_sendFailure(FailureType_Failure_FirmwareError, _("Unexpected failure"));
+        fsm_sendFailure(
+            FailureType_Failure_FirmwareError, _("Unexpected failure"));
         break;
     }
-    if (err != ErrActionCancelled) {
-        layoutHome();
-    }
+    if (err != ErrActionCancelled) { layoutHome(); }
 }
 
 ErrCode_t confirmRecovery(void)
 {
-    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("recover the device?"), NULL, NULL, NULL, NULL);
+    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL,
+        _("Do you really want to"), _("recover the device?"), NULL, NULL, NULL,
+        NULL);
     CHECK_BUTTON_PROTECT_RET_ERR_CODE
     return ErrOk;
 }
@@ -565,24 +602,26 @@ void fsm_msgRecoveryDevice(RecoveryDevice* msg)
 {
     ErrCode_t err = msgRecoveryDeviceImpl(msg, &confirmRecovery);
     switch (err) {
-        CASE_SEND_FAILURE(ErrPinRequired, FailureType_Failure_PinExpected, _("Expected pin"))
-        CASE_SEND_FAILURE(ErrNotInitialized, FailureType_Failure_UnexpectedMessage, _("Device is already initialized. Use Wipe first."))
-        CASE_SEND_FAILURE(ErrInitialized, FailureType_Failure_UnexpectedMessage, _("Device it's not inizialized"))
-        CASE_SEND_FAILURE(ErrInvalidArg, FailureType_Failure_DataError, _("Invalid word count"))
-        CASE_SEND_FAILURE(ErrActionCancelled, FailureType_Failure_ActionCancelled, NULL)
+        CASE_SEND_FAILURE(
+            ErrPinRequired, FailureType_Failure_PinExpected, _("Expected pin"))
+        CASE_SEND_FAILURE(ErrNotInitialized,
+            FailureType_Failure_UnexpectedMessage,
+            _("Device is already initialized. Use Wipe first."))
+        CASE_SEND_FAILURE(ErrInitialized, FailureType_Failure_UnexpectedMessage,
+            _("Device it's not inizialized"))
+        CASE_SEND_FAILURE(ErrInvalidArg, FailureType_Failure_DataError,
+            _("Invalid word count"))
+        CASE_SEND_FAILURE(
+            ErrActionCancelled, FailureType_Failure_ActionCancelled, NULL)
     default:
-        fsm_sendFailure(FailureType_Failure_FirmwareError, _("Unexpected failure"));
+        fsm_sendFailure(
+            FailureType_Failure_FirmwareError, _("Unexpected failure"));
         break;
     }
-    if (err != ErrActionCancelled && err != ErrOk) {
-        layoutHome();
-    }
+    if (err != ErrActionCancelled && err != ErrOk) { layoutHome(); }
 }
 
-void fsm_msgWordAck(WordAck* msg)
-{
-    recovery_word(msg->word);
-}
+void fsm_msgWordAck(WordAck* msg) { recovery_word(msg->word); }
 
 void fsm_msgCancel(Cancel* msg)
 {
@@ -594,13 +633,15 @@ void fsm_msgCancel(Cancel* msg)
 void fsm_msgEntropyAck(EntropyAck* msg)
 {
     switch (msgEntropyAckImpl(msg)) {
-        CASE_SEND_FAILURE(ErrUnexpectedMessage, FailureType_Failure_UnexpectedMessage, _("Unexpected entropy ack msg."))
+        CASE_SEND_FAILURE(ErrUnexpectedMessage,
+            FailureType_Failure_UnexpectedMessage,
+            _("Unexpected entropy ack msg."))
     case ErrOk:
         fsm_sendSuccess(_("Recived entropy"));
         break;
     default:
-        fsm_sendFailure(FailureType_Failure_FirmwareError,
-            _("Entropy ack failed."));
+        fsm_sendFailure(
+            FailureType_Failure_FirmwareError, _("Entropy ack failed."));
         break;
     }
     layoutHome();

@@ -28,11 +28,11 @@ void stopwatch_start_impl(TIMER* t, uint32_t timeout, uint32_t ticks)
 
 uint32_t stopwatch_counter_impl(TIMER* t, uint32_t ticks)
 {
-    if (!t->active) {
-        return INFINITE_TS;
-    }
+    if (!t->active) { return INFINITE_TS; }
     // FIXME: Conditional statement needed ?
-    uint32_t counter = (ticks > t->checkpoint) ? ticks - t->checkpoint : UINT32_MAX - ticks + t->checkpoint;
+    uint32_t counter = (ticks > t->checkpoint) ?
+                           ticks - t->checkpoint :
+                           UINT32_MAX - ticks + t->checkpoint;
     if (!t->delay) {
         // Ascending counter
         return counter;
@@ -45,10 +45,7 @@ uint32_t stopwatch_counter_impl(TIMER* t, uint32_t ticks)
     return 0;
 }
 
-void stopwatch_reset_impl(TIMER* t, uint32_t ticks)
-{
-    t->checkpoint = ticks;
-}
+void stopwatch_reset_impl(TIMER* t, uint32_t ticks) { t->checkpoint = ticks; }
 
 void stopwatch_close_impl(TIMER* t)
 {
@@ -77,8 +74,7 @@ void timer_init_sw(void)
 SWTIMER stopwatch_start(uint32_t timeout)
 {
     for (int i = 0; i < MAX_TIMERS; ++i) {
-        if (sw_timers[i].active)
-            continue;
+        if (sw_timers[i].active) continue;
         stopwatch_start_impl(sw_timers + i, timeout, timer_ms());
         return (SWTIMER)i;
     }
@@ -87,9 +83,7 @@ SWTIMER stopwatch_start(uint32_t timeout)
 
 uint32_t stopwatch_counter(SWTIMER timerId)
 {
-    if (timerId >= MAX_TIMERS) {
-        return INFINITE_TS;
-    }
+    if (timerId >= MAX_TIMERS) { return INFINITE_TS; }
     return stopwatch_counter_impl(sw_timers + timerId, timer_ms());
 }
 
@@ -102,7 +96,5 @@ void stopwatch_reset(SWTIMER timerId)
 
 void stopwatch_close(SWTIMER timer)
 {
-    if (timer < MAX_TIMERS) {
-        stopwatch_close_impl(sw_timers + timer);
-    }
+    if (timer < MAX_TIMERS) { stopwatch_close_impl(sw_timers + timer); }
 }

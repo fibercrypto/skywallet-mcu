@@ -1,5 +1,5 @@
 /*
- * This file is part of the Skycoin project, https://skycoin.net/ 
+ * This file is part of the Skycoin project, https://skycoin.net/
  *
  * Copyright (C) 2014 Pavol Rusnak <stick@satoshilabs.com>
  * Copyright (C) 2018-2019 Skycoin Project
@@ -37,17 +37,15 @@
 #define BIP32_MAX_LAST_ELEMENT 1000000
 
 // split longer string into 4 rows, rowlen chars each
-static const char** split_message(const uint8_t* msg, uint32_t len, uint32_t rowlen)
+static const char** split_message(const uint8_t* msg,
+    uint32_t len,
+    uint32_t rowlen)
 {
     static char str[4][32 + 1];
-    if (rowlen > 32) {
-        rowlen = 32;
-    }
+    if (rowlen > 32) { rowlen = 32; }
     memset(str, 0, sizeof(str));
     strlcpy(str[0], (char*)msg, rowlen + 1);
-    if (len > rowlen) {
-        strlcpy(str[1], (char*)msg + rowlen, rowlen + 1);
-    }
+    if (len > rowlen) { strlcpy(str[1], (char*)msg + rowlen, rowlen + 1); }
     if (len > rowlen * 2) {
         strlcpy(str[2], (char*)msg + rowlen * 2, rowlen + 1);
     }
@@ -65,11 +63,21 @@ static const char** split_message(const uint8_t* msg, uint32_t len, uint32_t row
 
 void* layoutLast = layoutHome;
 
-void layoutDialogSwipe(const BITMAP* icon, const char* btnNo, const char* btnYes, const char* desc, const char* line1, const char* line2, const char* line3, const char* line4, const char* line5, const char* line6)
+void layoutDialogSwipe(const BITMAP* icon,
+    const char* btnNo,
+    const char* btnYes,
+    const char* desc,
+    const char* line1,
+    const char* line2,
+    const char* line3,
+    const char* line4,
+    const char* line5,
+    const char* line6)
 {
     layoutLast = layoutDialogSwipe;
     layoutSwipe();
-    layoutDialog(icon, btnNo, btnYes, desc, line1, line2, line3, line4, line5, line6);
+    layoutDialog(
+        icon, btnNo, btnYes, desc, line1, line2, line3, line4, line5, line6);
 }
 
 void layoutProgressSwipe(const char* desc, int permil)
@@ -105,7 +113,8 @@ void layoutHome(void)
         layoutSwipe();
     }
     layoutLast = layoutHome;
-    const char* label = storage_isInitialized() ? storage_getLabel() : _("Go to trezor.io/start");
+    const char* label = storage_isInitialized() ? storage_getLabel() :
+                                                  _("Go to trezor.io/start");
     const uint8_t* homescreen = bmp_skycoin_logo64.data;
     if (homescreen) {
         BITMAP b;
@@ -131,12 +140,12 @@ void layoutHome(void)
         } else {
             // NOTE(): The screen is not long enough
             // so clip the device label string.
-            char devLabel[MAX(sizeof(storageUpdate.label),
-                sizeof(storage_uuid_str))];
-            _Static_assert(sizeof(storageUpdate.label) > 23 || sizeof(storage_uuid_str) > 23,
+            char devLabel[MAX(
+                sizeof(storageUpdate.label), sizeof(storage_uuid_str))];
+            _Static_assert(sizeof(storageUpdate.label) > 23 ||
+                               sizeof(storage_uuid_str) > 23,
                 "The label fits well on the screen");
-            strncpy(devLabel, storage_getLabelOrDeviceId(),
-                sizeof(devLabel));
+            strncpy(devLabel, storage_getLabelOrDeviceId(), sizeof(devLabel));
             const int lastIndex = 23;
             devLabel[lastIndex - 3] = '.';
             devLabel[lastIndex - 2] = '.';
@@ -156,41 +165,39 @@ void layoutSignMessage(const uint8_t* msg, uint32_t len)
 {
     const char** str = split_message(msg, len, 16);
     layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"),
-        _("Sign message?"),
-        str[0], str[1], str[2], str[3], NULL, NULL);
+        _("Sign message?"), str[0], str[1], str[2], str[3], NULL, NULL);
 }
 
 void layoutVerifyAddress(const char* address)
 {
-    const char** str = split_message((const uint8_t*)address, strlen(address), 17);
+    const char** str =
+        split_message((const uint8_t*)address, strlen(address), 17);
     layoutDialogSwipe(&bmp_icon_info, _("Cancel"), _("Confirm"),
-        _("Confirm address?"),
-        _("Message signed by:"),
-        str[0], str[1], str[2], NULL, NULL);
+        _("Confirm address?"), _("Message signed by:"), str[0], str[1], str[2],
+        NULL, NULL);
 }
 
 void layoutAddress(const char* address)
 {
-    const char** str = split_message((const uint8_t*)address, strlen(address), 17);
+    const char** str =
+        split_message((const uint8_t*)address, strlen(address), 17);
     layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"),
-        _("Confirm address?"),
-        NULL,
-        str[0], str[1], str[2], NULL, NULL);
+        _("Confirm address?"), NULL, str[0], str[1], str[2], NULL, NULL);
 }
 
 void layoutVerifyMessage(const uint8_t* msg, uint32_t len)
 {
     const char** str = split_message(msg, len, 16);
     layoutDialogSwipe(&bmp_icon_info, _("Cancel"), _("Confirm"),
-        _("Verified message"),
-        str[0], str[1], str[2], str[3], NULL, NULL);
+        _("Verified message"), str[0], str[1], str[2], str[3], NULL, NULL);
 }
 
 void layoutCipherKeyValue(bool encrypt, const char* key)
 {
     const char** str = split_message((const uint8_t*)key, strlen(key), 16);
     layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"),
-        encrypt ? _("Encrypt value of this key?") : _("Decrypt value of this key?"),
+        encrypt ? _("Encrypt value of this key?") :
+                  _("Decrypt value of this key?"),
         str[0], str[1], str[2], str[3], NULL, NULL);
 }
 
@@ -198,8 +205,8 @@ void layoutEncryptMessage(const uint8_t* msg, uint32_t len, bool signing)
 {
     const char** str = split_message(msg, len, 16);
     layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"),
-        signing ? _("Encrypt+Sign message?") : _("Encrypt message?"),
-        str[0], str[1], str[2], str[3], NULL, NULL);
+        signing ? _("Encrypt+Sign message?") : _("Encrypt message?"), str[0],
+        str[1], str[2], str[3], NULL, NULL);
 }
 
 void layoutDecryptMessage(const uint8_t* msg, uint32_t len, const char* address)
@@ -257,7 +264,8 @@ void layoutResetWord(const char* word, int pass, int word_pos, bool last)
     left = bmp_icon_info.width + 4;
 
     oledDrawString(left, 0 * 9, action, FONT_STANDARD);
-    oledDrawString(left, 2 * 9, word_pos < 10 ? index_str + 1 : index_str, FONT_STANDARD);
+    oledDrawString(
+        left, 2 * 9, word_pos < 10 ? index_str + 1 : index_str, FONT_STANDARD);
     oledDrawString(left, 3 * 9, word, FONT_STANDARD | FONT_DOUBLE);
     oledHLine(OLED_HEIGHT - 13);
     layoutButtonYes(btnYes);
@@ -276,8 +284,8 @@ void layoutPublicKey(const uint8_t* pubkey)
     }
     data2hex(pubkey + 1, 32, hex);
     const char** str = split_message((const uint8_t*)hex, 32 * 2, 16);
-    layoutDialogSwipe(&bmp_icon_question, NULL, _("Continue"), NULL,
-        desc, str[0], str[1], str[2], str[3], NULL);
+    layoutDialogSwipe(&bmp_icon_question, NULL, _("Continue"), NULL, desc,
+        str[0], str[1], str[2], str[3], NULL);
 }
 
 void layoutSignIdentity(const IdentityType* identity, const char* challenge)
@@ -332,20 +340,14 @@ void layoutSignIdentity(const IdentityType* identity, const char* challenge)
             strlcpy(row_user, email_start + 1, sizeof(row_user));
             *email_start = 0;
             char* email_end = strchr(row_user, '>');
-            if (email_end) {
-                *email_end = 0;
-            }
+            if (email_end) { *email_end = 0; }
         }
     }
 
     layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"),
-        _("Do you want to sign in?"),
-        row_proto[0] ? row_proto : NULL,
-        row_hostport[0] ? row_hostport : NULL,
-        row_user[0] ? row_user : NULL,
-        challenge,
-        NULL,
-        NULL);
+        _("Do you want to sign in?"), row_proto[0] ? row_proto : NULL,
+        row_hostport[0] ? row_hostport : NULL, row_user[0] ? row_user : NULL,
+        challenge, NULL, NULL);
 }
 
 void layoutDecryptIdentity(const IdentityType* identity)
@@ -384,31 +386,34 @@ void layoutDecryptIdentity(const IdentityType* identity)
     }
 
     layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"),
-        _("Do you want to decrypt?"),
-        row_proto[0] ? row_proto : NULL,
-        row_hostport[0] ? row_hostport : NULL,
-        row_user[0] ? row_user : NULL,
-        NULL,
-        NULL,
-        NULL);
+        _("Do you want to decrypt?"), row_proto[0] ? row_proto : NULL,
+        row_hostport[0] ? row_hostport : NULL, row_user[0] ? row_user : NULL,
+        NULL, NULL, NULL);
 }
 
-void layoutU2FDialog(const char* verb, const char* appname, const BITMAP* appicon)
+void layoutU2FDialog(const char* verb,
+    const char* appname,
+    const BITMAP* appicon)
 {
-    if (!appicon) {
-        appicon = &bmp_icon_question;
-    }
-    layoutDialog(appicon, NULL, verb, NULL, verb, _("U2F security key?"), NULL, appname, NULL, NULL);
+    if (!appicon) { appicon = &bmp_icon_question; }
+    layoutDialog(appicon, NULL, verb, NULL, verb, _("U2F security key?"), NULL,
+        appname, NULL, NULL);
 }
 
 static inline bool is_slip18(const uint32_t* address_n, size_t address_n_count)
 {
-    return address_n_count == 2 && address_n[0] == (0x80000000 + 10018) && (address_n[1] & 0x80000000) && (address_n[1] & 0x7FFFFFFF) <= 9;
+    return address_n_count == 2 && address_n[0] == (0x80000000 + 10018) &&
+           (address_n[1] & 0x80000000) && (address_n[1] & 0x7FFFFFFF) <= 9;
 }
 
-void layoutCosiCommitSign(const uint32_t* address_n, size_t address_n_count, const uint8_t* data, uint32_t len, bool final_sign)
+void layoutCosiCommitSign(const uint32_t* address_n,
+    size_t address_n_count,
+    const uint8_t* data,
+    uint32_t len,
+    bool final_sign)
 {
-    char* desc = final_sign ? _("CoSi sign message?") : _("CoSi commit message?");
+    char* desc =
+        final_sign ? _("CoSi sign message?") : _("CoSi commit message?");
     char desc_buf[32];
     if (is_slip18(address_n, address_n_count)) {
         if (final_sign) {

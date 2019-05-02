@@ -230,8 +230,7 @@ bool b58tobin(void* bin, size_t* binszp, const char* b58)
     // Count canonical base58 byte count
     binu = bin;
     for (i = 0; i < binsz; ++i) {
-        if (binu[i])
-            break;
+        if (binu[i]) break;
         --*binszp;
     }
     *binszp += zerocount;
@@ -239,28 +238,30 @@ bool b58tobin(void* bin, size_t* binszp, const char* b58)
     return true;
 }
 
-int b58check(const void* bin, size_t binsz, HasherType hasher_type, const char* base58str)
+int b58check(const void* bin,
+    size_t binsz,
+    HasherType hasher_type,
+    const char* base58str)
 {
     unsigned char buf[32];
     const uint8_t* binc = bin;
     unsigned i;
-    if (binsz < 4)
-        return -4;
+    if (binsz < 4) return -4;
     hasher_Raw(hasher_type, bin, binsz - 4, buf);
     hasher_Raw(hasher_type, buf, 32, buf);
-    if (memcmp(&binc[binsz - 4], buf, 4))
-        return -1;
+    if (memcmp(&binc[binsz - 4], buf, 4)) return -1;
 
-    // Check number of zeros is correct AFTER verifying checksum (to avoid possibility of accessing base58str beyond the end)
+    // Check number of zeros is correct AFTER verifying checksum (to avoid
+    // possibility of accessing base58str beyond the end)
     for (i = 0; binc[i] == '\0' && base58str[i] == '1'; ++i) {
     } // Just finding the end of zeros, nothing to do in loop
-    if (binc[i] == '\0' || base58str[i] == '1')
-        return -3;
+    if (binc[i] == '\0' || base58str[i] == '1') return -3;
 
     return binc[0];
 }
 
-static const char b58digits_ordered[] = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+static const char b58digits_ordered[] =
+    "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
 bool b58enc(char* b58, size_t* b58sz, const void* data, size_t binsz)
 {
@@ -292,8 +293,7 @@ bool b58enc(char* b58, size_t* b58sz, const void* data, size_t binsz)
         return false;
     }
 
-    if (zcount)
-        memset(b58, '1', zcount);
+    if (zcount) memset(b58, '1', zcount);
     for (i = zcount; j < (ssize_t)size; ++i, ++j)
         b58[i] = b58digits_ordered[buf[j]];
     b58[i] = '\0';
@@ -302,11 +302,13 @@ bool b58enc(char* b58, size_t* b58sz, const void* data, size_t binsz)
     return true;
 }
 
-int base58_encode_check(const uint8_t* data, int datalen, HasherType hasher_type, char* str, int strsize)
+int base58_encode_check(const uint8_t* data,
+    int datalen,
+    HasherType hasher_type,
+    char* str,
+    int strsize)
 {
-    if (datalen > 128) {
-        return 0;
-    }
+    if (datalen > 128) { return 0; }
     uint8_t buf[datalen + 32];
     uint8_t* hash = buf + datalen;
     memcpy(buf, data, datalen);
@@ -318,20 +320,17 @@ int base58_encode_check(const uint8_t* data, int datalen, HasherType hasher_type
     return success ? res : 0;
 }
 
-int base58_decode_check(const char* str, HasherType hasher_type, uint8_t* data, int datalen)
+int base58_decode_check(const char* str,
+    HasherType hasher_type,
+    uint8_t* data,
+    int datalen)
 {
-    if (datalen > 128) {
-        return 0;
-    }
+    if (datalen > 128) { return 0; }
     uint8_t d[datalen + 4];
     size_t res = datalen + 4;
-    if (b58tobin(d, &res, str) != true) {
-        return 0;
-    }
+    if (b58tobin(d, &res, str) != true) { return 0; }
     uint8_t* nd = d + datalen + 4 - res;
-    if (b58check(nd, res, hasher_type, str) < 0) {
-        return 0;
-    }
+    if (b58check(nd, res, hasher_type, str) < 0) { return 0; }
     memcpy(data, nd, res - 4);
     return res - 4;
 }

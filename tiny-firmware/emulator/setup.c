@@ -87,7 +87,8 @@ static void setup_flash(void)
         exit(1);
     }
 
-    emulator_flash_base = mmap(NULL, FLASH_TOTAL_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    emulator_flash_base =
+        mmap(NULL, FLASH_TOTAL_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (emulator_flash_base == MAP_FAILED) {
         perror("Failed to map flash emulation file");
         exit(1);

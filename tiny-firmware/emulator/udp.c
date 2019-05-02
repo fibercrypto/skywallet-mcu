@@ -56,10 +56,13 @@ static int socket_setup(int port)
     return fd;
 }
 
-static size_t socket_write(struct usb_socket* sock, const void* buffer, size_t size)
+static size_t socket_write(struct usb_socket* sock,
+    const void* buffer,
+    size_t size)
 {
     if (sock->fromlen > 0) {
-        ssize_t n = sendto(sock->fd, buffer, size, MSG_DONTWAIT, (const struct sockaddr*)&sock->from, sock->fromlen);
+        ssize_t n = sendto(sock->fd, buffer, size, MSG_DONTWAIT,
+            (const struct sockaddr*)&sock->from, sock->fromlen);
         if (n < 0 || ((size_t)n) != size) {
             perror("Failed to write socket");
             return 0;
@@ -72,7 +75,8 @@ static size_t socket_write(struct usb_socket* sock, const void* buffer, size_t s
 static size_t socket_read(struct usb_socket* sock, void* buffer, size_t size)
 {
     sock->fromlen = sizeof(sock->from);
-    ssize_t n = recvfrom(sock->fd, buffer, size, MSG_DONTWAIT, (struct sockaddr*)&sock->from, &sock->fromlen);
+    ssize_t n = recvfrom(sock->fd, buffer, size, MSG_DONTWAIT,
+        (struct sockaddr*)&sock->from, &sock->fromlen);
 
     if (n < 0) {
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
@@ -84,7 +88,8 @@ static size_t socket_read(struct usb_socket* sock, void* buffer, size_t size)
     static const char msg_ping[] = {'P', 'I', 'N', 'G', 'P', 'I', 'N', 'G'};
     static const char msg_pong[] = {'P', 'O', 'N', 'G', 'P', 'O', 'N', 'G'};
 
-    if (n == sizeof(msg_ping) && memcmp(buffer, msg_ping, sizeof(msg_ping)) == 0) {
+    if (n == sizeof(msg_ping) &&
+        memcmp(buffer, msg_ping, sizeof(msg_ping)) == 0) {
         socket_write(sock, msg_pong, sizeof(msg_pong));
         return 0;
     }
@@ -119,11 +124,7 @@ size_t emulatorSocketRead(int* iface, void* buffer, size_t size)
 
 size_t emulatorSocketWrite(int iface, const void* buffer, size_t size)
 {
-    if (iface == 0) {
-        return socket_write(&usb_main, buffer, size);
-    }
-    if (iface == 1) {
-        return socket_write(&usb_debug, buffer, size);
-    }
+    if (iface == 0) { return socket_write(&usb_main, buffer, size); }
+    if (iface == 1) { return socket_write(&usb_debug, buffer, size); }
     return 0;
 }

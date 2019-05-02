@@ -34,9 +34,10 @@
  * 32-bit integer manipulation macros (little endian)
  */
 #ifndef GET_UINT32_LE
-#define GET_UINT32_LE(n, b, i)                                                                                                        \
-    {                                                                                                                                 \
-        (n) = ((uint32_t)(b)[(i)]) | ((uint32_t)(b)[(i) + 1] << 8) | ((uint32_t)(b)[(i) + 2] << 16) | ((uint32_t)(b)[(i) + 3] << 24); \
+#define GET_UINT32_LE(n, b, i)                                                 \
+    {                                                                          \
+        (n) = ((uint32_t)(b)[(i)]) | ((uint32_t)(b)[(i) + 1] << 8) |           \
+              ((uint32_t)(b)[(i) + 2] << 16) | ((uint32_t)(b)[(i) + 3] << 24); \
     }
 #endif
 
@@ -69,7 +70,8 @@ void ripemd160_Init(RIPEMD160_CTX* ctx)
 /*
  * Process one block
  */
-void ripemd160_process(RIPEMD160_CTX* ctx, const uint8_t data[RIPEMD160_BLOCK_LENGTH])
+void ripemd160_process(RIPEMD160_CTX* ctx,
+    const uint8_t data[RIPEMD160_BLOCK_LENGTH])
 {
     uint32_t A, B, C, D, E, Ap, Bp, Cp, Dp, Ep, X[16];
 
@@ -255,8 +257,7 @@ void ripemd160_Update(RIPEMD160_CTX* ctx, const uint8_t* input, uint32_t ilen)
     uint32_t fill;
     uint32_t left;
 
-    if (ilen == 0)
-        return;
+    if (ilen == 0) return;
 
     left = ctx->total[0] & 0x3F;
     fill = RIPEMD160_BLOCK_LENGTH - left;
@@ -264,8 +265,7 @@ void ripemd160_Update(RIPEMD160_CTX* ctx, const uint8_t* input, uint32_t ilen)
     ctx->total[0] += (uint32_t)ilen;
     ctx->total[0] &= 0xFFFFFFFF;
 
-    if (ctx->total[0] < (uint32_t)ilen)
-        ctx->total[1]++;
+    if (ctx->total[0] < (uint32_t)ilen) ctx->total[1]++;
 
     if (left && ilen >= fill) {
         memcpy((void*)(ctx->buffer + left), input, fill);
@@ -281,22 +281,19 @@ void ripemd160_Update(RIPEMD160_CTX* ctx, const uint8_t* input, uint32_t ilen)
         ilen -= RIPEMD160_BLOCK_LENGTH;
     }
 
-    if (ilen > 0) {
-        memcpy((void*)(ctx->buffer + left), input, ilen);
-    }
+    if (ilen > 0) { memcpy((void*)(ctx->buffer + left), input, ilen); }
 }
 
-static const uint8_t ripemd160_padding[RIPEMD160_BLOCK_LENGTH] =
-    {
-        0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static const uint8_t ripemd160_padding[RIPEMD160_BLOCK_LENGTH] = {0x80, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 /*
  * RIPEMD-160 final digest
  */
-void ripemd160_Final(RIPEMD160_CTX* ctx, uint8_t output[RIPEMD160_DIGEST_LENGTH])
+void ripemd160_Final(RIPEMD160_CTX* ctx,
+    uint8_t output[RIPEMD160_DIGEST_LENGTH])
 {
     uint32_t last, padn;
     uint32_t high, low;
@@ -326,7 +323,9 @@ void ripemd160_Final(RIPEMD160_CTX* ctx, uint8_t output[RIPEMD160_DIGEST_LENGTH]
 /*
  * output = RIPEMD-160( input buffer )
  */
-void ripemd160(const uint8_t* msg, uint32_t msg_len, uint8_t hash[RIPEMD160_DIGEST_LENGTH])
+void ripemd160(const uint8_t* msg,
+    uint32_t msg_len,
+    uint8_t hash[RIPEMD160_DIGEST_LENGTH])
 {
     RIPEMD160_CTX ctx;
     ripemd160_Init(&ctx);

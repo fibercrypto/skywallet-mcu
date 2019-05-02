@@ -31,9 +31,7 @@ static SWTIMER entropy_timeout = INVALID_TIMER;
 ErrCode_t is_external_entropy_needed(void)
 {
     // Request for external entropy after 60000 clock ticks ellapsed
-    if (stopwatch_counter(entropy_timeout)) {
-        return ErrEntropyNotNeeded;
-    }
+    if (stopwatch_counter(entropy_timeout)) { return ErrEntropyNotNeeded; }
     return ErrEntropyRequired;
 }
 
@@ -56,9 +54,7 @@ void reset_entropy_mix_256(void)
 
 void entropy_salt_mix_256(uint8_t* in, size_t in_len, uint8_t* buf)
 {
-    if (entropy_timeout == INVALID_TIMER) {
-        return;
-    }
+    if (entropy_timeout == INVALID_TIMER) { return; }
 #ifdef EMULATOR
     uint64_t salt_ticker = 0;
     random_buffer((uint8_t*)&salt_ticker, sizeof(salt_ticker));
@@ -71,20 +67,18 @@ void entropy_salt_mix_256(uint8_t* in, size_t in_len, uint8_t* buf)
     uint32_t salt_trng = random32();
     random_buffer((uint8_t*)&salt_trng, sizeof(salt_trng));
     entropy_mix_256((uint8_t*)&salt_trng, sizeof(salt_trng), NULL);
-    if (in != NULL) {
-        entropy_mix_256(in, in_len, buf);
-    }
+    if (in != NULL) { entropy_mix_256(in, in_len, buf); }
 }
 
-void entropy_mix_256(const uint8_t* in, size_t in_len, uint8_t* out_mixed_entropy)
+void entropy_mix_256(const uint8_t* in,
+    size_t in_len,
+    uint8_t* out_mixed_entropy)
 {
     uint8_t val1[SHA256_DIGEST_LENGTH] = {0};
     compute_sha256sum(in, val1, in_len);
     uint8_t val2[SHA256_DIGEST_LENGTH] = {0};
-    add_sha256(
-        val1, sizeof(val1),
-        entropy_mixer_prev_val, sizeof(entropy_mixer_prev_val),
-        val2);
+    add_sha256(val1, sizeof(val1), entropy_mixer_prev_val,
+        sizeof(entropy_mixer_prev_val), val2);
     uint8_t val3[SHA256_DIGEST_LENGTH] = {0};
     add_sha256(val1, sizeof(val1), val2, sizeof(val2), val3);
     memset(val1, 0, sizeof(val1));
@@ -101,9 +95,9 @@ void entropy_mix_n(const uint8_t* in, size_t in_len, uint8_t* out_mixed_entropy)
     uint8_t* iptr = (uint8_t*)in;
     uint8_t* optr;
     size_t i;
-    for (i = in_len, optr = out_mixed_entropy;
-         i >= SHA256_DIGEST_LENGTH;
-         i -= SHA256_DIGEST_LENGTH, iptr += SHA256_DIGEST_LENGTH, optr += SHA256_DIGEST_LENGTH) {
+    for (i = in_len, optr = out_mixed_entropy; i >= SHA256_DIGEST_LENGTH;
+         i -= SHA256_DIGEST_LENGTH, iptr += SHA256_DIGEST_LENGTH,
+        optr += SHA256_DIGEST_LENGTH) {
         entropy_mix_256(iptr, SHA256_DIGEST_LENGTH, optr);
     }
     if (i > 0) {
@@ -122,7 +116,8 @@ void __attribute__((weak)) random_salted_buffer(uint8_t* buf, size_t len)
     uint8_t tmp[SHA256_DIGEST_LENGTH] = {0};
     uint8_t *bptr, *tptr;
     size_t i, j;
-    for (i = len, bptr = buf; i >= SHA256_DIGEST_LENGTH; i -= SHA256_DIGEST_LENGTH) {
+    for (i = len, bptr = buf; i >= SHA256_DIGEST_LENGTH;
+         i -= SHA256_DIGEST_LENGTH) {
         entropy_mix_256(bptr, SHA256_DIGEST_LENGTH, tmp);
         for (j = SHA256_DIGEST_LENGTH, tptr = tmp; j; --j, ++tptr, ++bptr) {
             // FIXME: XOR the whole architecture-specific word

@@ -1,5 +1,5 @@
 /*
- * This file is part of the Skycoin project, https://skycoin.net/ 
+ * This file is part of the Skycoin project, https://skycoin.net/
  *
  * Copyright (C) 2018-2019 Skycoin Project
  *
@@ -34,15 +34,22 @@ static void generate_k_random(bignum256* k, const bignum256* prime)
 }
 
 const ecdsa_curve msecp256k1 = {
-    /* .prime */ {
-        /*.val =*/{0x3ffffc2f, 0x3ffffffb, 0x3fffffff, 0x3fffffff, 0x3fffffff, 0x3fffffff, 0x3fffffff, 0x3fffffff, 0xffff}},
+    /* .prime */ {/*.val =*/{0x3ffffc2f, 0x3ffffffb, 0x3fffffff, 0x3fffffff,
+        0x3fffffff, 0x3fffffff, 0x3fffffff, 0x3fffffff, 0xffff}},
 
-    /* G */ {/*.x =*/{/*.val =*/{0x16f81798, 0x27ca056c, 0x1ce28d95, 0x26ff36cb, 0x70b0702, 0x18a573a, 0xbbac55a, 0x199fbe77, 0x79be}},
-        /*.y =*/{/*.val =*/{0x3b10d4b8, 0x311f423f, 0x28554199, 0x5ed1229, 0x1108a8fd, 0x13eff038, 0x3c4655da, 0x369dc9a8, 0x483a}}},
+    /* G */
+    {/*.x =*/{/*.val =*/{0x16f81798, 0x27ca056c, 0x1ce28d95, 0x26ff36cb,
+         0x70b0702, 0x18a573a, 0xbbac55a, 0x199fbe77, 0x79be}},
+        /*.y =*/{/*.val =*/{0x3b10d4b8, 0x311f423f, 0x28554199, 0x5ed1229,
+            0x1108a8fd, 0x13eff038, 0x3c4655da, 0x369dc9a8, 0x483a}}},
 
-    /* order */ {/*.val =*/{0x10364141, 0x3f497a33, 0x348a03bb, 0x2bb739ab, 0x3ffffeba, 0x3fffffff, 0x3fffffff, 0x3fffffff, 0xffff}},
+    /* order */
+    {/*.val =*/{0x10364141, 0x3f497a33, 0x348a03bb, 0x2bb739ab, 0x3ffffeba,
+        0x3fffffff, 0x3fffffff, 0x3fffffff, 0xffff}},
 
-    /* order_half */ {/*.val =*/{0x281b20a0, 0x3fa4bd19, 0x3a4501dd, 0x15db9cd5, 0x3fffff5d, 0x3fffffff, 0x3fffffff, 0x3fffffff, 0x7fff}},
+    /* order_half */
+    {/*.val =*/{0x281b20a0, 0x3fa4bd19, 0x3a4501dd, 0x15db9cd5, 0x3fffff5d,
+        0x3fffffff, 0x3fffffff, 0x3fffffff, 0x7fff}},
 
     /* a */ 0,
 
@@ -69,11 +76,10 @@ static int from_seed(const uint8_t* seed, int seed_len, HNode* out)
     out->depth = 0;
     out->child_num = 0;
     out->curve = &secp256k1_minfo;
-    if (out->curve == 0) {
-        return 0;
-    }
+    if (out->curve == 0) { return 0; }
     static CONFIDENTIAL HMAC_SHA512_CTX ctx;
-    hmac_sha512_Init(&ctx, (const uint8_t*)out->curve->bip32_name, strlen(out->curve->bip32_name));
+    hmac_sha512_Init(&ctx, (const uint8_t*)out->curve->bip32_name,
+        strlen(out->curve->bip32_name));
     hmac_sha512_Update(&ctx, seed, seed_len);
     hmac_sha512_Final(&ctx, I);
 
@@ -85,7 +91,8 @@ static int from_seed(const uint8_t* seed, int seed_len, HNode* out)
                 && bn_is_less(&a, &out->curve->params->order)) { // < order
                 break;
             }
-            hmac_sha512_Init(&ctx, (const uint8_t*)out->curve->bip32_name, strlen(out->curve->bip32_name));
+            hmac_sha512_Init(&ctx, (const uint8_t*)out->curve->bip32_name,
+                strlen(out->curve->bip32_name));
             hmac_sha512_Update(&ctx, I, sizeof(I));
             hmac_sha512_Final(&ctx, I);
         }
@@ -99,7 +106,9 @@ static int from_seed(const uint8_t* seed, int seed_len, HNode* out)
 }
 
 
-void mecdsa_get_public_key33(const ecdsa_curve* curve, const uint8_t* priv_key, uint8_t* pub_key)
+void mecdsa_get_public_key33(const ecdsa_curve* curve,
+    const uint8_t* priv_key,
+    uint8_t* pub_key)
 {
     curve_point R;
     bignum256 k;
@@ -115,10 +124,10 @@ void mecdsa_get_public_key33(const ecdsa_curve* curve, const uint8_t* priv_key, 
 
 static void fill_public_key(HNode* node)
 {
-    if (node->public_key[0] != 0)
-        return;
+    if (node->public_key[0] != 0) return;
     if (node->curve->params) {
-        mecdsa_get_public_key33(node->curve->params, node->private_key, node->public_key);
+        mecdsa_get_public_key33(
+            node->curve->params, node->private_key, node->public_key);
     }
 }
 
@@ -129,7 +138,10 @@ void create_node(const char* seed_str, HNode* node)
 }
 
 
-void uncompress_mcoords(const ecdsa_curve* curve, uint8_t odd, const bignum256* x, bignum256* y)
+void uncompress_mcoords(const ecdsa_curve* curve,
+    uint8_t odd,
+    const bignum256* x,
+    bignum256* y)
 {
     // y^2 = x^3 + a*x + b
     memcpy(y, x, sizeof(bignum256));      // y is x
@@ -152,11 +164,10 @@ int mecdsa_validate_pubkey(const ecdsa_curve* curve, const curve_point* pub)
 {
     bignum256 y_2, x3_ax_b;
 
-    if (mpoint_is_infinity(pub)) {
-        return 0;
-    }
+    if (mpoint_is_infinity(pub)) { return 0; }
 
-    if (!bn_is_less(&(pub->x), &curve->prime) || !bn_is_less(&(pub->y), &curve->prime)) {
+    if (!bn_is_less(&(pub->x), &curve->prime) ||
+        !bn_is_less(&(pub->y), &curve->prime)) {
         return 0;
     }
 
@@ -174,16 +185,17 @@ int mecdsa_validate_pubkey(const ecdsa_curve* curve, const curve_point* pub)
     bn_addmod(&x3_ax_b, &curve->b, &curve->prime);   // x^3 + ax + b
     bn_mod(&x3_ax_b, &curve->prime);
 
-    if (!bn_is_equal(&x3_ax_b, &y_2)) {
-        return 0;
-    }
+    if (!bn_is_equal(&x3_ax_b, &y_2)) { return 0; }
 
     return 1;
 }
 
 
 // res = k * p
-void mpoint_multiply(const ecdsa_curve* curve, const bignum256* k, const curve_point* p, curve_point* res)
+void mpoint_multiply(const ecdsa_curve* curve,
+    const bignum256* k,
+    const curve_point* p,
+    curve_point* res)
 {
     // this algorithm is loosely based on
     //  Katsuyuki Okeya and Tsuyoshi Takagi, The Width-w NAF Method Provides
@@ -304,7 +316,9 @@ void mpoint_multiply(const ecdsa_curve* curve, const bignum256* k, const curve_p
     memzero(&jres, sizeof(jres));
 }
 
-void mscalar_multiply(const ecdsa_curve* curve, const bignum256* k, curve_point* res)
+void mscalar_multiply(const ecdsa_curve* curve,
+    const bignum256* k,
+    curve_point* res)
 {
     mpoint_multiply(curve, k, &curve->G, res);
 }
@@ -326,13 +340,13 @@ int mpoint_is_infinity(const curve_point* p)
 
 
 // cp2 = cp1 + cp2
-void mpoint_add(const ecdsa_curve* curve, const curve_point* cp1, curve_point* cp2)
+void mpoint_add(const ecdsa_curve* curve,
+    const curve_point* cp1,
+    curve_point* cp2)
 {
     bignum256 lambda, inv, xr, yr;
 
-    if (mpoint_is_infinity(cp1)) {
-        return;
-    }
+    if (mpoint_is_infinity(cp1)) { return; }
     if (mpoint_is_infinity(cp2)) {
         mpoint_copy(cp1, cp2);
         return;
@@ -373,10 +387,7 @@ void mpoint_add(const ecdsa_curve* curve, const curve_point* cp1, curve_point* c
 
 
 // Set cp2 = cp1
-void mpoint_copy(const curve_point* cp1, curve_point* cp2)
-{
-    *cp2 = *cp1;
-}
+void mpoint_copy(const curve_point* cp1, curve_point* cp2) { *cp2 = *cp1; }
 
 
 // return true iff both points are equal
@@ -390,14 +401,10 @@ int mpoint_is_equal(const curve_point* p, const curve_point* q)
 int mpoint_is_negative_of(const curve_point* p, const curve_point* q)
 {
     // if P == (x, y), then -P would be (x, -y) on this curve
-    if (!bn_is_equal(&(p->x), &(q->x))) {
-        return 0;
-    }
+    if (!bn_is_equal(&(p->x), &(q->x))) { return 0; }
 
     // we shouldn't hit this for a valid point
-    if (bn_is_zero(&(p->y))) {
-        return 0;
-    }
+    if (bn_is_zero(&(p->y))) { return 0; }
 
     return !bn_is_equal(&(p->y), &(q->y));
 }
@@ -408,9 +415,7 @@ void mpoint_double(const ecdsa_curve* curve, curve_point* cp)
 {
     bignum256 lambda, xr, yr;
 
-    if (mpoint_is_infinity(cp)) {
-        return;
-    }
+    if (mpoint_is_infinity(cp)) { return; }
     if (bn_is_zero(&(cp->y))) {
         mpoint_set_infinity(cp);
         return;
@@ -447,7 +452,9 @@ void mpoint_double(const ecdsa_curve* curve, curve_point* cp)
     cp->y = yr;
 }
 
-void mcurve_to_jacobian(const curve_point* p, jacobian_curve_point* jp, const bignum256* prime)
+void mcurve_to_jacobian(const curve_point* p,
+    jacobian_curve_point* jp,
+    const bignum256* prime)
 {
     // randomize z coordinate
     generate_k_random(&jp->z, prime);
@@ -463,7 +470,9 @@ void mcurve_to_jacobian(const curve_point* p, jacobian_curve_point* jp, const bi
     bn_multiply(&p->y, &jp->y, prime);
 }
 
-void mjacobian_to_curve(const jacobian_curve_point* jp, curve_point* p, const bignum256* prime)
+void mjacobian_to_curve(const jacobian_curve_point* jp,
+    curve_point* p,
+    const bignum256* prime)
 {
     p->y = jp->z;
     bn_inverse(&p->y, prime);
@@ -481,7 +490,9 @@ void mjacobian_to_curve(const jacobian_curve_point* jp, curve_point* p, const bi
     bn_mod(&p->y, prime);
 }
 
-void mpoint_jacobian_add(const curve_point* p1, jacobian_curve_point* p2, const ecdsa_curve* curve)
+void mpoint_jacobian_add(const curve_point* p1,
+    jacobian_curve_point* p2,
+    const ecdsa_curve* curve)
 {
     bignum256 r, h, r2;
     bignum256 hcby, hsqx;
@@ -493,36 +504,36 @@ void mpoint_jacobian_add(const curve_point* p1, jacobian_curve_point* p2, const 
     assert(-3 <= a && a <= 0);
 
     /* First we bring p1 to the same denominator:
-	 * x1' := x1 * z2^2
-	 * y1' := y1 * z2^3
-	 */
+     * x1' := x1 * z2^2
+     * y1' := y1 * z2^3
+     */
     /*
-	 * lambda  = ((y1' - y2)/z2^3) / ((x1' - x2)/z2^2)
-	 *         = (y1' - y2) / (x1' - x2) z2
-	 * x3/z3^2 = lambda^2 - (x1' + x2)/z2^2
-	 * y3/z3^3 = 1/2 lambda * (2x3/z3^2 - (x1' + x2)/z2^2) + (y1'+y2)/z2^3
-	 *
-	 * For the special case x1=x2, y1=y2 (doubling) we have
-	 * lambda = 3/2 ((x2/z2^2)^2 + a) / (y2/z2^3)
-	 *        = 3/2 (x2^2 + a*z2^4) / y2*z2)
-	 *
-	 * to get rid of fraction we write lambda as
-	 * lambda = r / (h*z2)
-	 * with  r = is_doubling ? 3/2 x2^2 + az2^4 : (y1 - y2)
-	 *       h = is_doubling ?      y1+y2       : (x1 - x2)
-	 *
-	 * With z3 = h*z2  (the denominator of lambda)
-	 * we get x3 = lambda^2*z3^2 - (x1' + x2)/z2^2*z3^2
-	 *           = r^2 - h^2 * (x1' + x2)
-	 *    and y3 = 1/2 r * (2x3 - h^2*(x1' + x2)) + h^3*(y1' + y2)
-	 */
+     * lambda  = ((y1' - y2)/z2^3) / ((x1' - x2)/z2^2)
+     *         = (y1' - y2) / (x1' - x2) z2
+     * x3/z3^2 = lambda^2 - (x1' + x2)/z2^2
+     * y3/z3^3 = 1/2 lambda * (2x3/z3^2 - (x1' + x2)/z2^2) + (y1'+y2)/z2^3
+     *
+     * For the special case x1=x2, y1=y2 (doubling) we have
+     * lambda = 3/2 ((x2/z2^2)^2 + a) / (y2/z2^3)
+     *        = 3/2 (x2^2 + a*z2^4) / y2*z2)
+     *
+     * to get rid of fraction we write lambda as
+     * lambda = r / (h*z2)
+     * with  r = is_doubling ? 3/2 x2^2 + az2^4 : (y1 - y2)
+     *       h = is_doubling ?      y1+y2       : (x1 - x2)
+     *
+     * With z3 = h*z2  (the denominator of lambda)
+     * we get x3 = lambda^2*z3^2 - (x1' + x2)/z2^2*z3^2
+     *           = r^2 - h^2 * (x1' + x2)
+     *    and y3 = 1/2 r * (2x3 - h^2*(x1' + x2)) + h^3*(y1' + y2)
+     */
 
     /* h = x1 - x2
-	 * r = y1 - y2
-	 * x3 = r^2 - h^3 - 2*h^2*x2
-	 * y3 = r*(h^2*x2 - x3) - h^3*y2
-	 * z3 = h*z2
-	 */
+     * r = y1 - y2
+     * x3 = r^2 - h^3 - 2*h^2*x2
+     * y3 = r*(h^2*x2 - x3) - h^3*y2
+     * z3 = h*z2
+     */
 
     xz = p2->z;
     bn_multiply(&xz, &xz, prime); // xz = z2^2
@@ -626,28 +637,28 @@ void mpoint_jacobian_double(jacobian_curve_point* p, const ecdsa_curve* curve)
 
     assert(-3 <= curve->a && curve->a <= 0);
     /* usual algorithm:
-	 *
-	 * lambda  = (3((x/z^2)^2 + a) / 2y/z^3) = (3x^2 + az^4)/2yz
-	 * x3/z3^2 = lambda^2 - 2x/z^2
-	 * y3/z3^3 = lambda * (x/z^2 - x3/z3^2) - y/z^3
-	 *
-	 * to get rid of fraction we set
-	 *  m = (3 x^2 + az^4) / 2
-	 * Hence,
-	 *  lambda = m / yz = m / z3
-	 *
-	 * With z3 = yz  (the denominator of lambda)
-	 * we get x3 = lambda^2*z3^2 - 2*x/z^2*z3^2
-	 *           = m^2 - 2*xy^2
-	 *    and y3 = (lambda * (x/z^2 - x3/z3^2) - y/z^3) * z3^3
-	 *           = m * (xy^2 - x3) - y^4
-	 */
+     *
+     * lambda  = (3((x/z^2)^2 + a) / 2y/z^3) = (3x^2 + az^4)/2yz
+     * x3/z3^2 = lambda^2 - 2x/z^2
+     * y3/z3^3 = lambda * (x/z^2 - x3/z3^2) - y/z^3
+     *
+     * to get rid of fraction we set
+     *  m = (3 x^2 + az^4) / 2
+     * Hence,
+     *  lambda = m / yz = m / z3
+     *
+     * With z3 = yz  (the denominator of lambda)
+     * we get x3 = lambda^2*z3^2 - 2*x/z^2*z3^2
+     *           = m^2 - 2*xy^2
+     *    and y3 = (lambda * (x/z^2 - x3/z3^2) - y/z^3) * z3^3
+     *           = m * (xy^2 - x3) - y^4
+     */
 
     /* m = (3*x^2 + a z^4) / 2
-	 * x3 = m^2 - 2*xy^2
-	 * y3 = m*(xy^2 - x3) - 8y^4
-	 * z3 = y*z
-	 */
+     * x3 = m^2 - 2*xy^2
+     * y3 = m*(xy^2 - x3) - 8y^4
+     * z3 = y*z
+     */
 
     m = p->x;
     bn_multiply(&m, &m, prime);

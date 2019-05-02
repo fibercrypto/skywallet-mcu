@@ -1,5 +1,5 @@
 /*
- * This file is part of the Skycoin project, https://skycoin.net/ 
+ * This file is part of the Skycoin project, https://skycoin.net/
  *
  * Copyright (C) 2014 Pavol Rusnak <stick@satoshilabs.com>
  * Copyright (C) 2018-2019 Skycoin Project
@@ -36,11 +36,15 @@ uint32_t strength;
 uint8_t int_entropy[32];
 bool skip_backup = false;
 
-void reset_init(bool display_random, uint32_t _strength, bool passphrase_protection, bool pin_protection, const char* language, const char* label, bool _skip_backup)
+void reset_init(bool display_random,
+    uint32_t _strength,
+    bool passphrase_protection,
+    bool pin_protection,
+    const char* language,
+    const char* label,
+    bool _skip_backup)
 {
-    if (_strength != 128 && _strength != 192 && _strength != 256) {
-        return;
-    }
+    if (_strength != 128 && _strength != 192 && _strength != 256) { return; }
 
     strength = _strength;
     skip_backup = _skip_backup;
@@ -54,8 +58,11 @@ void reset_init(bool display_random, uint32_t _strength, bool passphrase_protect
     data2hex(int_entropy + 24, 8, ent_str[3]);
 
     if (display_random) {
-        layoutDialogSwipe(&bmp_icon_info, _("Cancel"), _("Continue"), NULL, _("Internal entropy:"), ent_str[0], ent_str[1], ent_str[2], ent_str[3], NULL);
-        if (!protectButton(ButtonRequestType_ButtonRequest_ResetDevice, false)) {
+        layoutDialogSwipe(&bmp_icon_info, _("Cancel"), _("Continue"), NULL,
+            _("Internal entropy:"), ent_str[0], ent_str[1], ent_str[2],
+            ent_str[3], NULL);
+        if (!protectButton(
+                ButtonRequestType_ButtonRequest_ResetDevice, false)) {
             fsm_sendFailure(FailureType_Failure_ActionCancelled, NULL);
             layoutHome();
             return;
@@ -82,9 +89,7 @@ ErrCode_t reset_entropy(void)
 {
     storage_setNeedsBackup(true);
     const char* mnemonic = mnemonic_from_data(int_entropy, strength / 8);
-    if (!mnemonic_check(mnemonic)) {
-        return ErrInvalidValue;
-    }
+    if (!mnemonic_check(mnemonic)) { return ErrInvalidValue; }
     storage_setMnemonic(mnemonic);
     memset(int_entropy, 0, sizeof(int_entropy));
 
@@ -102,15 +107,14 @@ static char current_word[10];
 void reset_backup(bool separated)
 {
     if (!storage_needsBackup()) {
-        fsm_sendFailure(FailureType_Failure_UnexpectedMessage, _("Seed already backed up"));
+        fsm_sendFailure(
+            FailureType_Failure_UnexpectedMessage, _("Seed already backed up"));
         return;
     }
 
     storage_setUnfinishedBackup(true);
 
-    if (separated) {
-        storage_update();
-    }
+    if (separated) { storage_update(); }
 
     const char* mnemonic = storage_getMnemonic();
 
@@ -119,17 +123,17 @@ void reset_backup(bool separated)
         while (mnemonic[i] != 0) {
             // copy current_word
             int j = 0;
-            while (mnemonic[i] != ' ' && mnemonic[i] != 0 && j + 1 < (int)sizeof(current_word)) {
+            while (mnemonic[i] != ' ' && mnemonic[i] != 0 &&
+                   j + 1 < (int)sizeof(current_word)) {
                 current_word[j] = mnemonic[i];
                 i++;
                 j++;
             }
             current_word[j] = 0;
-            if (mnemonic[i] != 0) {
-                i++;
-            }
+            if (mnemonic[i] != 0) { i++; }
             layoutResetWord(current_word, pass, word_pos, mnemonic[i] == 0);
-            if (!protectButton(ButtonRequestType_ButtonRequest_ConfirmWord, true)) {
+            if (!protectButton(
+                    ButtonRequestType_ButtonRequest_ConfirmWord, true)) {
                 if (!separated) {
                     storage_clear_update();
                     session_clear(true);
@@ -159,9 +163,6 @@ uint32_t reset_get_int_entropy(uint8_t* entropy)
     return 32;
 }
 
-const char* reset_get_word(void)
-{
-    return current_word;
-}
+const char* reset_get_word(void) { return current_word; }
 
 #endif

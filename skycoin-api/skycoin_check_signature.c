@@ -1,5 +1,5 @@
 /*
- * This file is part of the Skycoin project, https://skycoin.net/ 
+ * This file is part of the Skycoin project, https://skycoin.net/
  *
  * Copyright (C) 2018-2019 Skycoin Project
  *
@@ -19,7 +19,10 @@
 
 // Compute public key from signature and recovery id.
 // returns 0 if verification succeeded
-int verify_digest_recover(const ecdsa_curve* curve, uint8_t* pub_key, const uint8_t* sig, const uint8_t* digest)
+int verify_digest_recover(const ecdsa_curve* curve,
+    uint8_t* pub_key,
+    const uint8_t* sig,
+    const uint8_t* digest)
 {
     bignum256 r, s, e;
     curve_point cp, cp2;
@@ -27,28 +30,20 @@ int verify_digest_recover(const ecdsa_curve* curve, uint8_t* pub_key, const uint
     // read r and s
     bn_read_be(sig, &r);
     bn_read_be(sig + 32, &s);
-    if (!bn_is_less(&r, &curve->order) || bn_is_zero(&r)) {
-        return 1;
-    }
-    if (!bn_is_less(&s, &curve->order) || bn_is_zero(&s)) {
-        return 1;
-    }
+    if (!bn_is_less(&r, &curve->order) || bn_is_zero(&r)) { return 1; }
+    if (!bn_is_less(&s, &curve->order) || bn_is_zero(&s)) { return 1; }
     uint8_t recid = sig[64];
 
     // cp = R = k * G (k is secret nonce when signing)
     if (recid & 2) {
         bn_add(&r, &curve->order);
-        if (!bn_is_less(&r, &curve->prime)) {
-            return 1;
-        }
+        if (!bn_is_less(&r, &curve->prime)) { return 1; }
     }
 
     memcpy(&cp.x, &r, sizeof(bignum256));
     // compute y from x
     uncompress_mcoords(curve, recid & 1, &cp.x, &cp.y);
-    if (!mecdsa_validate_pubkey(curve, &cp)) {
-        return 1;
-    }
+    if (!mecdsa_validate_pubkey(curve, &cp)) { return 1; }
     // r := r^-1
     bn_inverse(&r, &curve->order);
 
@@ -81,11 +76,13 @@ int verify_digest_recover(const ecdsa_curve* curve, uint8_t* pub_key, const uint
     return 0;
 }
 
-/*signature: 65 bytes, 
-message 32 bytes, 
+/*signature: 65 bytes,
+message 32 bytes,
 pubkey 33 bytes
 returns 0 if signature matches and 5 if it does not*/
-int recover_pubkey_from_signed_message(const char* message, const uint8_t* signature, uint8_t* pubkey)
+int recover_pubkey_from_signed_message(const char* message,
+    const uint8_t* signature,
+    uint8_t* pubkey)
 {
     int res = -1;
     HNode dummy_node;
@@ -97,7 +94,8 @@ int recover_pubkey_from_signed_message(const char* message, const uint8_t* signa
     bn_read_be(signature, &r);
     bn_read_be(signature + 32, &s);
 
-    res = verify_digest_recover(dummy_node.curve->params, long_pubkey, signature, (uint8_t*)message);
+    res = verify_digest_recover(
+        dummy_node.curve->params, long_pubkey, signature, (uint8_t*)message);
     memcpy(&pubkey[1], &long_pubkey[1], 32);
     if (long_pubkey[64] % 2 == 0) {
         pubkey[0] = 0x02;

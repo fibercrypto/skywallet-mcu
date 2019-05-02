@@ -27,7 +27,8 @@ static void create_node(const char* seed_str, HDNode* node);
 static void create_node(const char* seed_str, HDNode* node)
 {
     const char* curve_name = SECP256K1_NAME;
-    hdnode_from_seed((const uint8_t*)seed_str, strlen(seed_str), curve_name, node);
+    hdnode_from_seed(
+        (const uint8_t*)seed_str, strlen(seed_str), curve_name, node);
     hdnode_fill_public_key(node);
 }
 
@@ -43,10 +44,14 @@ void tobuff(const char* str, uint8_t* buf, size_t bufferLength)
 {
     for (size_t i = 0; i < bufferLength; i++) {
         uint8_t c = 0;
-        if (str[i * 2] >= '0' && str[i * 2] <= '9') c += (str[i * 2] - '0') << 4;
-        if ((str[i * 2] & ~0x20) >= 'A' && (str[i * 2] & ~0x20) <= 'F') c += (10 + (str[i * 2] & ~0x20) - 'A') << 4;
-        if (str[i * 2 + 1] >= '0' && str[i * 2 + 1] <= '9') c += (str[i * 2 + 1] - '0');
-        if ((str[i * 2 + 1] & ~0x20) >= 'A' && (str[i * 2 + 1] & ~0x20) <= 'F') c += (10 + (str[i * 2 + 1] & ~0x20) - 'A');
+        if (str[i * 2] >= '0' && str[i * 2] <= '9')
+            c += (str[i * 2] - '0') << 4;
+        if ((str[i * 2] & ~0x20) >= 'A' && (str[i * 2] & ~0x20) <= 'F')
+            c += (10 + (str[i * 2] & ~0x20) - 'A') << 4;
+        if (str[i * 2 + 1] >= '0' && str[i * 2 + 1] <= '9')
+            c += (str[i * 2 + 1] - '0');
+        if ((str[i * 2 + 1] & ~0x20) >= 'A' && (str[i * 2 + 1] & ~0x20) <= 'F')
+            c += (10 + (str[i * 2 + 1] & ~0x20) - 'A');
         buf[i] = c;
     }
 }
@@ -66,19 +71,25 @@ void generate_pubkey_from_seckey(const uint8_t* seckey, uint8_t* pubkey)
     ecdsa_get_public_key33(dummy_node.curve->params, seckey, pubkey);
 }
 
-void generate_deterministic_key_pair(const uint8_t* seed, const size_t seed_length, uint8_t* seckey, uint8_t* pubkey)
+void generate_deterministic_key_pair(const uint8_t* seed,
+    const size_t seed_length,
+    uint8_t* seckey,
+    uint8_t* pubkey)
 {
     compute_sha256sum(seed, seckey, seed_length);
     generate_pubkey_from_seckey(seckey, pubkey);
 }
 
-void ecdh(const uint8_t* secret_key, const uint8_t* remote_public_key, uint8_t* ecdh_key /*should be size SHA256_DIGEST_LENGTH*/)
+void ecdh(const uint8_t* secret_key,
+    const uint8_t* remote_public_key,
+    uint8_t* ecdh_key /*should be size SHA256_DIGEST_LENGTH*/)
 {
     uint8_t mult[65] = {0};
     char seed_str[256] = "dummy seed";
     HDNode dummy_node;
     create_node(seed_str, &dummy_node);
-    ecdh_multiply(dummy_node.curve->params, secret_key, remote_public_key, mult); //65
+    ecdh_multiply(
+        dummy_node.curve->params, secret_key, remote_public_key, mult); // 65
     memcpy(&ecdh_key[1], &mult[1], 32);
     if (mult[64] % 2 == 0) {
         ecdh_key[0] = 0x02;
@@ -87,14 +98,18 @@ void ecdh(const uint8_t* secret_key, const uint8_t* remote_public_key, uint8_t* 
     }
 }
 
-void ecdh_shared_secret(const uint8_t* secret_key, const uint8_t* remote_public_key, uint8_t* shared_secret /*should be size SHA256_DIGEST_LENGTH*/)
+void ecdh_shared_secret(const uint8_t* secret_key,
+    const uint8_t* remote_public_key,
+    uint8_t* shared_secret /*should be size SHA256_DIGEST_LENGTH*/)
 {
     uint8_t ecdh_key[33] = {0};
     ecdh(secret_key, remote_public_key, ecdh_key);
     compute_sha256sum(ecdh_key, shared_secret, 33);
 }
 
-void secp256k1Hash(const uint8_t* seed, const size_t seed_length, uint8_t* secp256k1Hash_digest)
+void secp256k1Hash(const uint8_t* seed,
+    const size_t seed_length,
+    uint8_t* secp256k1Hash_digest)
 {
     uint8_t seckey[32] = {0};
     uint8_t dummy_seckey[32] = {0};
@@ -106,15 +121,21 @@ void secp256k1Hash(const uint8_t* seed, const size_t seed_length, uint8_t* secp2
     compute_sha256sum(seed, hash, seed_length);
     compute_sha256sum(hash, seckey, sizeof(hash));
     compute_sha256sum(hash, hash2, sizeof(hash));
-    generate_deterministic_key_pair(hash2, SHA256_DIGEST_LENGTH, dummy_seckey, pubkey);
+    generate_deterministic_key_pair(
+        hash2, SHA256_DIGEST_LENGTH, dummy_seckey, pubkey);
     ecdh(seckey, pubkey, ecdh_key);
     memcpy(secp256k1Hash, hash, sizeof(hash));
     memcpy(&secp256k1Hash[SHA256_DIGEST_LENGTH], ecdh_key, sizeof(ecdh_key));
-    compute_sha256sum(secp256k1Hash, secp256k1Hash_digest, sizeof(secp256k1Hash));
+    compute_sha256sum(
+        secp256k1Hash, secp256k1Hash_digest, sizeof(secp256k1Hash));
 }
 
 // nextSeed should be 32 bytes (size of a secp256k1Hash digest)
-void generate_deterministic_key_pair_iterator(const uint8_t* seed, const size_t seed_length, uint8_t* nextSeed, uint8_t* seckey, uint8_t* pubkey)
+void generate_deterministic_key_pair_iterator(const uint8_t* seed,
+    const size_t seed_length,
+    uint8_t* nextSeed,
+    uint8_t* seckey,
+    uint8_t* pubkey)
 {
     uint8_t seed1[SHA256_DIGEST_LENGTH] = {0};
     uint8_t seed2[SHA256_DIGEST_LENGTH] = {0};
@@ -124,7 +145,8 @@ void generate_deterministic_key_pair_iterator(const uint8_t* seed, const size_t 
     memcpy(&keypair_seed[seed_length], seed1, SHA256_DIGEST_LENGTH);
     memcpy(nextSeed, seed1, SHA256_DIGEST_LENGTH);
     compute_sha256sum(keypair_seed, seed2, seed_length + sizeof(seed1));
-    generate_deterministic_key_pair(seed2, SHA256_DIGEST_LENGTH, seckey, pubkey);
+    generate_deterministic_key_pair(
+        seed2, SHA256_DIGEST_LENGTH, seckey, pubkey);
 }
 
 /**
@@ -133,7 +155,9 @@ void generate_deterministic_key_pair_iterator(const uint8_t* seed, const size_t 
  * @param buffer_len in data len
  * @param out_digest out sha256 data
  */
-void compute_sha256sum(const uint8_t* data, uint8_t* digest /*size SHA256_DIGEST_LENGTH*/, size_t data_length)
+void compute_sha256sum(const uint8_t* data,
+    uint8_t* digest /*size SHA256_DIGEST_LENGTH*/,
+    size_t data_length)
 {
     SHA256_CTX ctx;
     sha256_Init(&ctx);
@@ -149,7 +173,11 @@ void compute_sha256sum(const uint8_t* data, uint8_t* digest /*size SHA256_DIGEST
  * @param msg2_len buffer content len
  * @param out_digest sum_sha256 of msg1 appened to mag2
  */
-void add_sha256(const uint8_t* msg1, size_t msg1_len, const uint8_t* msg2, size_t msg2_len, uint8_t* out_digest)
+void add_sha256(const uint8_t* msg1,
+    size_t msg1_len,
+    const uint8_t* msg2,
+    size_t msg2_len,
+    uint8_t* out_digest)
 {
     SHA256_CTX ctx;
     sha256_Init(&ctx);
@@ -158,8 +186,11 @@ void add_sha256(const uint8_t* msg1, size_t msg1_len, const uint8_t* msg2, size_
     sha256_Final(&ctx, out_digest);
 }
 
-// address_size is the size of the allocated address buffer, it will be overwritten by the computed address size
-void generate_base58_address_from_pubkey(const uint8_t* pubkey, char* address, size_t* size_address)
+// address_size is the size of the allocated address buffer, it will be
+// overwritten by the computed address size
+void generate_base58_address_from_pubkey(const uint8_t* pubkey,
+    char* address,
+    size_t* size_address)
 {
     uint8_t pubkey_hash[25] = {0};
     uint8_t r1[SHA256_DIGEST_LENGTH] = {0};
@@ -175,7 +206,9 @@ void generate_base58_address_from_pubkey(const uint8_t* pubkey, char* address, s
     b58enc(address, size_address, pubkey_hash, sizeof(pubkey_hash));
 }
 
-void generate_bitcoin_address_from_pubkey(const uint8_t* pubkey, char* address, size_t* size_address)
+void generate_bitcoin_address_from_pubkey(const uint8_t* pubkey,
+    char* address,
+    size_t* size_address)
 {
     uint8_t b1[SHA256_DIGEST_LENGTH] = {0};
     uint8_t b2[25] = {0};
@@ -190,7 +223,9 @@ void generate_bitcoin_address_from_pubkey(const uint8_t* pubkey, char* address, 
 }
 
 
-void generate_bitcoin_private_address_from_seckey(const uint8_t* seckey, char* address, size_t* size_address)
+void generate_bitcoin_private_address_from_seckey(const uint8_t* seckey,
+    char* address,
+    size_t* size_address)
 {
     uint8_t b2[38] = {0};
     uint8_t h1[SHA256_DIGEST_LENGTH] = {0};
@@ -210,7 +245,10 @@ void generate_bitcoin_private_address_from_seckey(const uint8_t* seckey, char* a
 // digest is 32 bytes of digest
 // is_canonical is an optional function that checks if the signature
 // conforms to additional coin-specific rules.
-int ecdsa_skycoin_sign(const uint32_t nonce_value, const uint8_t* priv_key, const uint8_t* digest, uint8_t* sig)
+int ecdsa_skycoin_sign(const uint32_t nonce_value,
+    const uint8_t* priv_key,
+    const uint8_t* digest,
+    uint8_t* sig)
 {
     int i;
     curve_point R;
@@ -240,11 +278,12 @@ int ecdsa_skycoin_sign(const uint32_t nonce_value, const uint8_t* priv_key, cons
             printf("Premature exit 1");
             continue;
         }
-        bn_inverse(&nonce, &dummy_node.curve->params->order);     // (nonce*rand)^-1
-        bn_read_be(priv_key, s);                                  // priv
-        bn_multiply(&R.x, s, &dummy_node.curve->params->order);   // R.x*priv
-        bn_add(s, &z);                                            // R.x*priv + z
-        bn_multiply(&nonce, s, &dummy_node.curve->params->order); // (nonce*rand)^-1 (R.x*priv + z)
+        bn_inverse(&nonce, &dummy_node.curve->params->order); // (nonce*rand)^-1
+        bn_read_be(priv_key, s);                              // priv
+        bn_multiply(&R.x, s, &dummy_node.curve->params->order); // R.x*priv
+        bn_add(s, &z);                                          // R.x*priv + z
+        bn_multiply(&nonce, s,
+            &dummy_node.curve->params->order); // (nonce*rand)^-1 (R.x*priv + z)
         bn_mod(s, &dummy_node.curve->params->order);
 
         // if s is zero, we retry
@@ -291,7 +330,10 @@ void transaction_addInput(Transaction* self, uint8_t* address)
     self->nbIn++;
 };
 
-void transaction_addOutput(Transaction* self, uint32_t coin, uint32_t hour, char* address)
+void transaction_addOutput(Transaction* self,
+    uint32_t coin,
+    uint32_t hour,
+    char* address)
 {
     self->outAddress[self->nbOut].coin = coin;
     self->outAddress[self->nbOut].hour = hour;
@@ -344,16 +386,14 @@ void transaction_innerHash(Transaction* self)
     self->has_innerHash = 1;
 }
 
-void transaction_msgToSign(Transaction* self, uint8_t index, uint8_t* msg_digest)
+void transaction_msgToSign(Transaction* self,
+    uint8_t index,
+    uint8_t* msg_digest)
 {
-    if (index >= self->nbIn) {
-        return;
-    }
+    if (index >= self->nbIn) { return; }
     // concat innerHash and transaction hash
     uint8_t shaInput[64];
-    if (!self->has_innerHash) {
-        transaction_innerHash(self);
-    }
+    if (!self->has_innerHash) { transaction_innerHash(self); }
     memcpy(shaInput, self->innerHash, 32);
     memcpy(&shaInput[32], (uint8_t*)&self->inAddress[index], 32);
 #ifdef EMULATOR

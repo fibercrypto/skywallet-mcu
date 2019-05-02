@@ -39,19 +39,16 @@
 #include "memzero.h"
 
 // Set cp2 = cp1
-void point_copy(const curve_point* cp1, curve_point* cp2)
-{
-    *cp2 = *cp1;
-}
+void point_copy(const curve_point* cp1, curve_point* cp2) { *cp2 = *cp1; }
 
 // cp2 = cp1 + cp2
-void point_add(const ecdsa_curve* curve, const curve_point* cp1, curve_point* cp2)
+void point_add(const ecdsa_curve* curve,
+    const curve_point* cp1,
+    curve_point* cp2)
 {
     bignum256 lambda, inv, xr, yr;
 
-    if (point_is_infinity(cp1)) {
-        return;
-    }
+    if (point_is_infinity(cp1)) { return; }
     if (point_is_infinity(cp2)) {
         point_copy(cp1, cp2);
         return;
@@ -95,9 +92,7 @@ void point_double(const ecdsa_curve* curve, curve_point* cp)
 {
     bignum256 lambda, xr, yr;
 
-    if (point_is_infinity(cp)) {
-        return;
-    }
+    if (point_is_infinity(cp)) { return; }
     if (bn_is_zero(&(cp->y))) {
         point_set_infinity(cp);
         return;
@@ -159,14 +154,10 @@ int point_is_equal(const curve_point* p, const curve_point* q)
 int point_is_negative_of(const curve_point* p, const curve_point* q)
 {
     // if P == (x, y), then -P would be (x, -y) on this curve
-    if (!bn_is_equal(&(p->x), &(q->x))) {
-        return 0;
-    }
+    if (!bn_is_equal(&(p->x), &(q->x))) { return 0; }
 
     // we shouldn't hit this for a valid point
-    if (bn_is_zero(&(p->y))) {
-        return 0;
-    }
+    if (bn_is_zero(&(p->y))) { return 0; }
 
     return !bn_is_equal(&(p->y), &(q->y));
 }
@@ -205,7 +196,9 @@ static void generate_k_random(bignum256* k, const bignum256* prime)
     } while (bn_is_zero(k) || !bn_is_less(k, prime));
 }
 
-void curve_to_jacobian(const curve_point* p, jacobian_curve_point* jp, const bignum256* prime)
+void curve_to_jacobian(const curve_point* p,
+    jacobian_curve_point* jp,
+    const bignum256* prime)
 {
     // randomize z coordinate
     generate_k_random(&jp->z, prime);
@@ -221,7 +214,9 @@ void curve_to_jacobian(const curve_point* p, jacobian_curve_point* jp, const big
     bn_multiply(&p->y, &jp->y, prime);
 }
 
-void jacobian_to_curve(const jacobian_curve_point* jp, curve_point* p, const bignum256* prime)
+void jacobian_to_curve(const jacobian_curve_point* jp,
+    curve_point* p,
+    const bignum256* prime)
 {
     p->y = jp->z;
     bn_inverse(&p->y, prime);
@@ -239,7 +234,9 @@ void jacobian_to_curve(const jacobian_curve_point* jp, curve_point* p, const big
     bn_mod(&p->y, prime);
 }
 
-void point_jacobian_add(const curve_point* p1, jacobian_curve_point* p2, const ecdsa_curve* curve)
+void point_jacobian_add(const curve_point* p1,
+    jacobian_curve_point* p2,
+    const ecdsa_curve* curve)
 {
     bignum256 r, h, r2;
     bignum256 hcby, hsqx;
@@ -251,36 +248,36 @@ void point_jacobian_add(const curve_point* p1, jacobian_curve_point* p2, const e
     assert(-3 <= a && a <= 0);
 
     /* First we bring p1 to the same denominator:
-	 * x1' := x1 * z2^2
-	 * y1' := y1 * z2^3
-	 */
+     * x1' := x1 * z2^2
+     * y1' := y1 * z2^3
+     */
     /*
-	 * lambda  = ((y1' - y2)/z2^3) / ((x1' - x2)/z2^2)
-	 *         = (y1' - y2) / (x1' - x2) z2
-	 * x3/z3^2 = lambda^2 - (x1' + x2)/z2^2
-	 * y3/z3^3 = 1/2 lambda * (2x3/z3^2 - (x1' + x2)/z2^2) + (y1'+y2)/z2^3
-	 *
-	 * For the special case x1=x2, y1=y2 (doubling) we have
-	 * lambda = 3/2 ((x2/z2^2)^2 + a) / (y2/z2^3)
-	 *        = 3/2 (x2^2 + a*z2^4) / y2*z2)
-	 *
-	 * to get rid of fraction we write lambda as
-	 * lambda = r / (h*z2)
-	 * with  r = is_doubling ? 3/2 x2^2 + az2^4 : (y1 - y2)
-	 *       h = is_doubling ?      y1+y2       : (x1 - x2)
-	 *
-	 * With z3 = h*z2  (the denominator of lambda)
-	 * we get x3 = lambda^2*z3^2 - (x1' + x2)/z2^2*z3^2
-	 *           = r^2 - h^2 * (x1' + x2)
-	 *    and y3 = 1/2 r * (2x3 - h^2*(x1' + x2)) + h^3*(y1' + y2)
-	 */
+     * lambda  = ((y1' - y2)/z2^3) / ((x1' - x2)/z2^2)
+     *         = (y1' - y2) / (x1' - x2) z2
+     * x3/z3^2 = lambda^2 - (x1' + x2)/z2^2
+     * y3/z3^3 = 1/2 lambda * (2x3/z3^2 - (x1' + x2)/z2^2) + (y1'+y2)/z2^3
+     *
+     * For the special case x1=x2, y1=y2 (doubling) we have
+     * lambda = 3/2 ((x2/z2^2)^2 + a) / (y2/z2^3)
+     *        = 3/2 (x2^2 + a*z2^4) / y2*z2)
+     *
+     * to get rid of fraction we write lambda as
+     * lambda = r / (h*z2)
+     * with  r = is_doubling ? 3/2 x2^2 + az2^4 : (y1 - y2)
+     *       h = is_doubling ?      y1+y2       : (x1 - x2)
+     *
+     * With z3 = h*z2  (the denominator of lambda)
+     * we get x3 = lambda^2*z3^2 - (x1' + x2)/z2^2*z3^2
+     *           = r^2 - h^2 * (x1' + x2)
+     *    and y3 = 1/2 r * (2x3 - h^2*(x1' + x2)) + h^3*(y1' + y2)
+     */
 
     /* h = x1 - x2
-	 * r = y1 - y2
-	 * x3 = r^2 - h^3 - 2*h^2*x2
-	 * y3 = r*(h^2*x2 - x3) - h^3*y2
-	 * z3 = h*z2
-	 */
+     * r = y1 - y2
+     * x3 = r^2 - h^3 - 2*h^2*x2
+     * y3 = r*(h^2*x2 - x3) - h^3*y2
+     * z3 = h*z2
+     */
 
     xz = p2->z;
     bn_multiply(&xz, &xz, prime); // xz = z2^2
@@ -366,28 +363,28 @@ void point_jacobian_double(jacobian_curve_point* p, const ecdsa_curve* curve)
 
     assert(-3 <= curve->a && curve->a <= 0);
     /* usual algorithm:
-	 *
-	 * lambda  = (3((x/z^2)^2 + a) / 2y/z^3) = (3x^2 + az^4)/2yz
-	 * x3/z3^2 = lambda^2 - 2x/z^2
-	 * y3/z3^3 = lambda * (x/z^2 - x3/z3^2) - y/z^3
-	 *
-	 * to get rid of fraction we set
-	 *  m = (3 x^2 + az^4) / 2
-	 * Hence,
-	 *  lambda = m / yz = m / z3
-	 *
-	 * With z3 = yz  (the denominator of lambda)
-	 * we get x3 = lambda^2*z3^2 - 2*x/z^2*z3^2
-	 *           = m^2 - 2*xy^2
-	 *    and y3 = (lambda * (x/z^2 - x3/z3^2) - y/z^3) * z3^3
-	 *           = m * (xy^2 - x3) - y^4
-	 */
+     *
+     * lambda  = (3((x/z^2)^2 + a) / 2y/z^3) = (3x^2 + az^4)/2yz
+     * x3/z3^2 = lambda^2 - 2x/z^2
+     * y3/z3^3 = lambda * (x/z^2 - x3/z3^2) - y/z^3
+     *
+     * to get rid of fraction we set
+     *  m = (3 x^2 + az^4) / 2
+     * Hence,
+     *  lambda = m / yz = m / z3
+     *
+     * With z3 = yz  (the denominator of lambda)
+     * we get x3 = lambda^2*z3^2 - 2*x/z^2*z3^2
+     *           = m^2 - 2*xy^2
+     *    and y3 = (lambda * (x/z^2 - x3/z3^2) - y/z^3) * z3^3
+     *           = m * (xy^2 - x3) - y^4
+     */
 
     /* m = (3*x^2 + a z^4) / 2
-	 * x3 = m^2 - 2*xy^2
-	 * y3 = m*(xy^2 - x3) - 8y^4
-	 * z3 = y*z
-	 */
+     * x3 = m^2 - 2*xy^2
+     * y3 = m*(xy^2 - x3) - 8y^4
+     * z3 = y*z
+     */
 
     m = p->x;
     bn_multiply(&m, &m, prime);
@@ -429,7 +426,10 @@ void point_jacobian_double(jacobian_curve_point* p, const ecdsa_curve* curve)
 }
 
 // res = k * p
-void point_multiply(const ecdsa_curve* curve, const bignum256* k, const curve_point* p, curve_point* res)
+void point_multiply(const ecdsa_curve* curve,
+    const bignum256* k,
+    const curve_point* p,
+    curve_point* res)
 {
     // this algorithm is loosely based on
     //  Katsuyuki Okeya and Tsuyoshi Takagi, The Width-w NAF Method Provides
@@ -554,7 +554,9 @@ void point_multiply(const ecdsa_curve* curve, const bignum256* k, const curve_po
 
 // res = k * G
 // k must be a normalized number with 0 <= k < curve->order
-void scalar_multiply(const ecdsa_curve* curve, const bignum256* k, curve_point* res)
+void scalar_multiply(const ecdsa_curve* curve,
+    const bignum256* k,
+    curve_point* res)
 {
     assert(bn_is_less(k, &curve->order));
 
@@ -640,19 +642,22 @@ void scalar_multiply(const ecdsa_curve* curve, const bignum256* k, curve_point* 
 
 #else
 
-void scalar_multiply(const ecdsa_curve* curve, const bignum256* k, curve_point* res)
+void scalar_multiply(const ecdsa_curve* curve,
+    const bignum256* k,
+    curve_point* res)
 {
     point_multiply(curve, k, &curve->G, res);
 }
 
 #endif
 
-int ecdh_multiply(const ecdsa_curve* curve, const uint8_t* priv_key, const uint8_t* pub_key, uint8_t* session_key)
+int ecdh_multiply(const ecdsa_curve* curve,
+    const uint8_t* priv_key,
+    const uint8_t* pub_key,
+    uint8_t* session_key)
 {
     curve_point point;
-    if (!ecdsa_read_pubkey(curve, pub_key, &point)) {
-        return 1;
-    }
+    if (!ecdsa_read_pubkey(curve, pub_key, &point)) { return 1; }
 
     bignum256 k;
     bn_read_be(priv_key, &k);
@@ -669,7 +674,14 @@ int ecdh_multiply(const ecdsa_curve* curve, const uint8_t* priv_key, const uint8
 
 // msg is a data to be signed
 // msg_len is the message length
-int ecdsa_sign(const ecdsa_curve* curve, HasherType hasher_type, const uint8_t* priv_key, const uint8_t* msg, uint32_t msg_len, uint8_t* sig, uint8_t* pby, int (*is_canonical)(uint8_t by, uint8_t sig[64]))
+int ecdsa_sign(const ecdsa_curve* curve,
+    HasherType hasher_type,
+    const uint8_t* priv_key,
+    const uint8_t* msg,
+    uint32_t msg_len,
+    uint8_t* sig,
+    uint8_t* pby,
+    int (*is_canonical)(uint8_t by, uint8_t sig[64]))
 {
     uint8_t hash[32];
     hasher_Raw(hasher_type, msg, msg_len, hash);
@@ -680,7 +692,14 @@ int ecdsa_sign(const ecdsa_curve* curve, HasherType hasher_type, const uint8_t* 
 
 // msg is a data to be signed
 // msg_len is the message length
-int ecdsa_sign_double(const ecdsa_curve* curve, HasherType hasher_type, const uint8_t* priv_key, const uint8_t* msg, uint32_t msg_len, uint8_t* sig, uint8_t* pby, int (*is_canonical)(uint8_t by, uint8_t sig[64]))
+int ecdsa_sign_double(const ecdsa_curve* curve,
+    HasherType hasher_type,
+    const uint8_t* priv_key,
+    const uint8_t* msg,
+    uint32_t msg_len,
+    uint8_t* sig,
+    uint8_t* pby,
+    int (*is_canonical)(uint8_t by, uint8_t sig[64]))
 {
     uint8_t hash[32];
     hasher_Raw(hasher_type, msg, msg_len, hash);
@@ -696,7 +715,12 @@ int ecdsa_sign_double(const ecdsa_curve* curve, HasherType hasher_type, const ui
 // digest is 32 bytes of digest
 // is_canonical is an optional function that checks if the signature
 // conforms to additional coin-specific rules.
-int ecdsa_sign_digest(const ecdsa_curve* curve, const uint8_t* priv_key, const uint8_t* digest, uint8_t* sig, uint8_t* pby, int (*is_canonical)(uint8_t by, uint8_t sig[64]))
+int ecdsa_sign_digest(const ecdsa_curve* curve,
+    const uint8_t* priv_key,
+    const uint8_t* digest,
+    uint8_t* sig,
+    uint8_t* pby,
+    int (*is_canonical)(uint8_t by, uint8_t sig[64]))
 {
     int i;
     curve_point R;
@@ -718,9 +742,7 @@ int ecdsa_sign_digest(const ecdsa_curve* curve, const uint8_t* priv_key, const u
             by |= 2;
         }
         // if r is zero, we retry
-        if (bn_is_zero(&R.x)) {
-            continue;
-        }
+        if (bn_is_zero(&R.x)) { continue; }
 
         // randomize operations to counter side-channel attacks
         generate_k_random(&randk, &curve->order);
@@ -733,9 +755,7 @@ int ecdsa_sign_digest(const ecdsa_curve* curve, const uint8_t* priv_key, const u
         bn_multiply(&randk, s, &curve->order);  // k^-1 (R.x*priv + z)
         bn_mod(s, &curve->order);
         // if s is zero, we retry
-        if (bn_is_zero(s)) {
-            continue;
-        }
+        if (bn_is_zero(s)) { continue; }
 
         // if S > order/2 => S = -S
         if (bn_is_less(&curve->order_half, s)) {
@@ -747,13 +767,9 @@ int ecdsa_sign_digest(const ecdsa_curve* curve, const uint8_t* priv_key, const u
         bn_write_be(s, sig + 32);
 
         // check if the signature is acceptable or retry
-        if (is_canonical && !is_canonical(by, sig)) {
-            continue;
-        }
+        if (is_canonical && !is_canonical(by, sig)) { continue; }
 
-        if (pby) {
-            *pby = by;
-        }
+        if (pby) { *pby = by; }
 
         memzero(&k, sizeof(k));
         memzero(&randk, sizeof(randk));
@@ -767,7 +783,9 @@ int ecdsa_sign_digest(const ecdsa_curve* curve, const uint8_t* priv_key, const u
     return -1;
 }
 
-void ecdsa_get_public_key33(const ecdsa_curve* curve, const uint8_t* priv_key, uint8_t* pub_key)
+void ecdsa_get_public_key33(const ecdsa_curve* curve,
+    const uint8_t* priv_key,
+    uint8_t* pub_key)
 {
     curve_point R;
     bignum256 k;
@@ -781,7 +799,9 @@ void ecdsa_get_public_key33(const ecdsa_curve* curve, const uint8_t* priv_key, u
     memzero(&k, sizeof(k));
 }
 
-void ecdsa_get_public_key65(const ecdsa_curve* curve, const uint8_t* priv_key, uint8_t* pub_key)
+void ecdsa_get_public_key65(const ecdsa_curve* curve,
+    const uint8_t* priv_key,
+    uint8_t* pub_key)
 {
     curve_point R;
     bignum256 k;
@@ -796,13 +816,13 @@ void ecdsa_get_public_key65(const ecdsa_curve* curve, const uint8_t* priv_key, u
     memzero(&k, sizeof(k));
 }
 
-int ecdsa_uncompress_pubkey(const ecdsa_curve* curve, const uint8_t* pub_key, uint8_t* uncompressed)
+int ecdsa_uncompress_pubkey(const ecdsa_curve* curve,
+    const uint8_t* pub_key,
+    uint8_t* uncompressed)
 {
     curve_point pub;
 
-    if (!ecdsa_read_pubkey(curve, pub_key, &pub)) {
-        return 0;
-    }
+    if (!ecdsa_read_pubkey(curve, pub_key, &pub)) { return 0; }
 
     uncompressed[0] = 4;
     bn_write_be(&pub.x, uncompressed + 1);
@@ -811,7 +831,9 @@ int ecdsa_uncompress_pubkey(const ecdsa_curve* curve, const uint8_t* pub_key, ui
     return 1;
 }
 
-void ecdsa_get_pubkeyhash(const uint8_t* pub_key, HasherType hasher_type, uint8_t* pubkeyhash)
+void ecdsa_get_pubkeyhash(const uint8_t* pub_key,
+    HasherType hasher_type,
+    uint8_t* pubkeyhash)
 {
     uint8_t h[HASHER_DIGEST_LENGTH];
     if (pub_key[0] == 0x04) { // uncompressed format
@@ -825,7 +847,10 @@ void ecdsa_get_pubkeyhash(const uint8_t* pub_key, HasherType hasher_type, uint8_
     memzero(h, sizeof(h));
 }
 
-void uncompress_coords(const ecdsa_curve* curve, uint8_t odd, const bignum256* x, bignum256* y)
+void uncompress_coords(const ecdsa_curve* curve,
+    uint8_t odd,
+    const bignum256* x,
+    bignum256* y)
 {
     // y^2 = x^3 + a*x + b
     memcpy(y, x, sizeof(bignum256));      // y is x
@@ -839,11 +864,11 @@ void uncompress_coords(const ecdsa_curve* curve, uint8_t odd, const bignum256* x
     }
 }
 
-int ecdsa_read_pubkey(const ecdsa_curve* curve, const uint8_t* pub_key, curve_point* pub)
+int ecdsa_read_pubkey(const ecdsa_curve* curve,
+    const uint8_t* pub_key,
+    curve_point* pub)
 {
-    if (!curve) {
-        curve = &secp256k1;
-    }
+    if (!curve) { curve = &secp256k1; }
     if (pub_key[0] == 0x04) {
         bn_read_be(pub_key + 1, &(pub->x));
         bn_read_be(pub_key + 33, &(pub->y));
@@ -867,11 +892,10 @@ int ecdsa_validate_pubkey(const ecdsa_curve* curve, const curve_point* pub)
 {
     bignum256 y_2, x3_ax_b;
 
-    if (point_is_infinity(pub)) {
-        return 0;
-    }
+    if (point_is_infinity(pub)) { return 0; }
 
-    if (!bn_is_less(&(pub->x), &curve->prime) || !bn_is_less(&(pub->y), &curve->prime)) {
+    if (!bn_is_less(&(pub->x), &curve->prime) ||
+        !bn_is_less(&(pub->y), &curve->prime)) {
         return 0;
     }
 
@@ -889,9 +913,7 @@ int ecdsa_validate_pubkey(const ecdsa_curve* curve, const curve_point* pub)
     bn_addmod(&x3_ax_b, &curve->b, &curve->prime);   // x^3 + ax + b
     bn_mod(&x3_ax_b, &curve->prime);
 
-    if (!bn_is_equal(&x3_ax_b, &y_2)) {
-        return 0;
-    }
+    if (!bn_is_equal(&x3_ax_b, &y_2)) { return 0; }
 
     return 1;
 }
@@ -902,7 +924,12 @@ int ecdsa_validate_pubkey(const ecdsa_curve* curve, const curve_point* pub)
 // msg is a data that was signed
 // msg_len is the message length
 
-int ecdsa_verify(const ecdsa_curve* curve, HasherType hasher_type, const uint8_t* pub_key, const uint8_t* sig, const uint8_t* msg, uint32_t msg_len)
+int ecdsa_verify(const ecdsa_curve* curve,
+    HasherType hasher_type,
+    const uint8_t* pub_key,
+    const uint8_t* sig,
+    const uint8_t* msg,
+    uint32_t msg_len)
 {
     uint8_t hash[32];
     hasher_Raw(hasher_type, msg, msg_len, hash);
@@ -911,7 +938,12 @@ int ecdsa_verify(const ecdsa_curve* curve, HasherType hasher_type, const uint8_t
     return res;
 }
 
-int ecdsa_verify_double(const ecdsa_curve* curve, HasherType hasher_type, const uint8_t* pub_key, const uint8_t* sig, const uint8_t* msg, uint32_t msg_len)
+int ecdsa_verify_double(const ecdsa_curve* curve,
+    HasherType hasher_type,
+    const uint8_t* pub_key,
+    const uint8_t* sig,
+    const uint8_t* msg,
+    uint32_t msg_len)
 {
     uint8_t hash[32];
     hasher_Raw(hasher_type, msg, msg_len, hash);
@@ -923,7 +955,11 @@ int ecdsa_verify_double(const ecdsa_curve* curve, HasherType hasher_type, const 
 
 // Compute public key from signature and recovery id.
 // returns 0 if verification succeeded
-int ecdsa_verify_digest_recover(const ecdsa_curve* curve, uint8_t* pub_key, const uint8_t* sig, const uint8_t* digest, int recid)
+int ecdsa_verify_digest_recover(const ecdsa_curve* curve,
+    uint8_t* pub_key,
+    const uint8_t* sig,
+    const uint8_t* digest,
+    int recid)
 {
     bignum256 r, s, e;
     curve_point cp, cp2;
@@ -931,25 +967,17 @@ int ecdsa_verify_digest_recover(const ecdsa_curve* curve, uint8_t* pub_key, cons
     // read r and s
     bn_read_be(sig, &r);
     bn_read_be(sig + 32, &s);
-    if (!bn_is_less(&r, &curve->order) || bn_is_zero(&r)) {
-        return 1;
-    }
-    if (!bn_is_less(&s, &curve->order) || bn_is_zero(&s)) {
-        return 1;
-    }
+    if (!bn_is_less(&r, &curve->order) || bn_is_zero(&r)) { return 1; }
+    if (!bn_is_less(&s, &curve->order) || bn_is_zero(&s)) { return 1; }
     // cp = R = k * G (k is secret nonce when signing)
     memcpy(&cp.x, &r, sizeof(bignum256));
     if (recid & 2) {
         bn_add(&cp.x, &curve->order);
-        if (!bn_is_less(&cp.x, &curve->prime)) {
-            return 1;
-        }
+        if (!bn_is_less(&cp.x, &curve->prime)) { return 1; }
     }
     // compute y from x
     uncompress_coords(curve, recid & 1, &cp.x, &cp.y);
-    if (!ecdsa_validate_pubkey(curve, &cp)) {
-        return 1;
-    }
+    if (!ecdsa_validate_pubkey(curve, &cp)) { return 1; }
     // e = -digest
     bn_read_be(digest, &e);
     bn_subtractmod(&curve->order, &e, &e, &curve->order);
@@ -972,23 +1000,24 @@ int ecdsa_verify_digest_recover(const ecdsa_curve* curve, uint8_t* pub_key, cons
 }
 
 // returns 0 if verification succeeded
-int ecdsa_verify_digest(const ecdsa_curve* curve, const uint8_t* pub_key, const uint8_t* sig, const uint8_t* digest)
+int ecdsa_verify_digest(const ecdsa_curve* curve,
+    const uint8_t* pub_key,
+    const uint8_t* sig,
+    const uint8_t* digest)
 {
     curve_point pub, res;
     bignum256 r, s, z;
 
-    if (!ecdsa_read_pubkey(curve, pub_key, &pub)) {
-        return 1;
-    }
+    if (!ecdsa_read_pubkey(curve, pub_key, &pub)) { return 1; }
 
     bn_read_be(sig, &r);
     bn_read_be(sig + 32, &s);
 
     bn_read_be(digest, &z);
 
-    if (bn_is_zero(&r) || bn_is_zero(&s) ||
-        (!bn_is_less(&r, &curve->order)) ||
-        (!bn_is_less(&s, &curve->order))) return 2;
+    if (bn_is_zero(&r) || bn_is_zero(&s) || (!bn_is_less(&r, &curve->order)) ||
+        (!bn_is_less(&s, &curve->order)))
+        return 2;
 
     bn_inverse(&s, &curve->order);      // s^-1
     bn_multiply(&s, &z, &curve->order); // z*s^-1
@@ -1006,14 +1035,13 @@ int ecdsa_verify_digest(const ecdsa_curve* curve, const uint8_t* pub_key, const 
     }
 
     if (result == 0) {
-        // both pub and res can be infinity, can have y = 0 OR can be equal -> false negative
+        // both pub and res can be infinity, can have y = 0 OR can be equal ->
+        // false negative
         point_multiply(curve, &s, &pub, &pub);
         point_add(curve, &pub, &res);
         bn_mod(&(res.x), &curve->order);
         // signature does not match
-        if (!bn_is_equal(&res.x, &r)) {
-            result = 5;
-        }
+        if (!bn_is_equal(&res.x, &r)) { result = 5; }
     }
 
     memzero(&pub, sizeof(pub));

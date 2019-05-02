@@ -46,10 +46,9 @@ void pinmatrix_draw(const char* text)
         for (int j = 0; j < 3; j++) {
             // use (2 - j) instead of j to achieve 789456123 layout
             int k = pinmatrix_perm[i + (2 - j) * 3] - '0';
-            if (text) {
-                oledDrawStringCenter(0, text, FONT_STANDARD);
-            }
-            oledDrawBitmap((OLED_WIDTH - 3 * w - 2 * pad) / 2 + i * (w + pad), OLED_HEIGHT - 3 * h - 2 * pad + j * (h + pad), bmp_digits[k]);
+            if (text) { oledDrawStringCenter(0, text, FONT_STANDARD); }
+            oledDrawBitmap((OLED_WIDTH - 3 * w - 2 * pad) / 2 + i * (w + pad),
+                OLED_HEIGHT - 3 * h - 2 * pad + j * (h + pad), bmp_digits[k]);
         }
     }
     oledRefresh();
@@ -88,9 +87,6 @@ void pinmatrix_done(char* pin)
 
 #if DEBUG_LINK
 
-const char* pinmatrix_get(void)
-{
-    return pinmatrix_perm;
-}
+const char* pinmatrix_get(void) { return pinmatrix_perm; }
 
 #endif
