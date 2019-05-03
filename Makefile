@@ -74,7 +74,7 @@ lint: check-format ## Check code quality
 
 format: # Format C code in the project
 	$(eval SRC := $(shell find ./ -type f -name *.c -o -name *.h | egrep -v "^(./tiny-firmware/protob/|./tiny-firmware/vendor/)"))
-	$(CLANG_FORMAT) -i -assume-filename=.clang-format $(SRC)
+	$(CLANG_FORMAT) -i $(SRC)
 
 check-format: format # Check the source code format
 	git diff --exit-code
