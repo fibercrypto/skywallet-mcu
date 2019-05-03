@@ -49,7 +49,7 @@ lint: check-format ## Check code quality
 	yamllint -d relaxed .travis.yml
 
 format: # Format C code in the project
-	$(eval SRC := $(shell find ./ -name *.c -o -name *.h | egrep -v "^(./tiny-firmware/protob/|./tiny-firmware/vendor/)"))
+	$(eval SRC := $(shell find ./ -type f -name *.c -o -name *.h | egrep -v "^(./tiny-firmware/protob/|./tiny-firmware/vendor/)"))
 	$(CLANG_FORMAT) -i -assume-filename=.clang-format $(SRC)
 
 check-format: format # Check the source code format
