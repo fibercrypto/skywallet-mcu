@@ -222,7 +222,7 @@ bool b58tobin(void* bin, size_t* binszp, const char* b58)
 
     for (; j < outisz; ++j) {
         *(binu++) = (outi[j] >> 0x18) & 0xff;
-        *(binu++) = (outi[j] >> 0x10) & 0xff;
+        *(binu++ ) = (outi[j] >> 0x10) & 0xff;
         *(binu++) = (outi[j] >> 8) & 0xff;
         *(binu++) = (outi[j] >> 0) & 0xff;
     }

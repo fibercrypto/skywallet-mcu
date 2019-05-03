@@ -72,8 +72,9 @@ install-linters: install-linters-$(UNAME_S) ## Install code quality checking too
 lint: check-format ## Check code quality
 	yamllint -d relaxed .travis.yml
 
+#$(eval SRC := $(shell find ./ -type f -name *.c -o -name *.h | egrep -v "^(./tiny-firmware/protob/|./tiny-firmware/vendor/)"))
 format: # Format C code in the project
-	$(eval SRC := $(shell find ./ -type f -name *.c -o -name *.h | egrep -v "^(./tiny-firmware/protob/|./tiny-firmware/vendor/)"))
+	$(eval SRC := $(shell git diff develop --name-only | grep -E "\.(c|h)$"))
 	$(CLANG_FORMAT) -style=file -i $(SRC)
 
 check-format: format # Check the source code format
