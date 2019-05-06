@@ -48,6 +48,7 @@ LANG=1
 COMBINED_VERSION=v$(VERSION_BOOTLOADER)-v$(VERSION_FIRMWARE)-$(ID_VENDOR)-$(ID_PRODUCT)-$(LANG)
 
 CLANG_FORMAT = clang-format
+CLANG_FORMAT_VERSION?=7
 
 ifeq ($(UNAME_S), Darwin)
 	LD_VAR=DYLD_LIBRARY_PATH
@@ -63,10 +64,11 @@ install-linters-Darwin:
 	brew install yamllint
 	brew tap skycoin/homebrew-skycoin
 	brew update
-	brew install $(CLANG_FORMAT)
+	brew install $(CLANG_FORMAT)-$(CLANG_FORMAT_VERSION)
 
 install-linters-Linux:
 	$(PIP) install $(PIPARGS) yamllint
+	sudo apt-get -y install $(CLANG_FORMAT)-$(CLANG_FORMAT_VERSION)
 
 install-linters: install-linters-$(UNAME_S) ## Install code quality checking tools
 
