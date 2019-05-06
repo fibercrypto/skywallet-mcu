@@ -47,7 +47,7 @@ ID_PRODUCT=1
 LANG=1
 COMBINED_VERSION=v$(VERSION_BOOTLOADER)-v$(VERSION_FIRMWARE)-$(ID_VENDOR)-$(ID_PRODUCT)-$(LANG)
 
-CLANG_FORMAT = ./tiny-firmware/vendor/clang-format-$(UNAME_S)
+CLANG_FORMAT = clang-format
 
 ifeq ($(UNAME_S), Darwin)
 	LD_VAR=DYLD_LIBRARY_PATH
@@ -59,18 +59,15 @@ check-version: ## Check that the tiny-firmware/VERSION match the current tag
 	@if [ $$VERSION_IS_SEMANTIC_COMPLIANT -eq 1 ]; then git diff --exit-code tiny-firmware/VERSION; fi
 	@git checkout tiny-firmware/VERSION
 
-tiny-firmware/vendor/clang-format-$(UNAME_S):
-	wget -c https://github.com/denisacostaq/clang-format-binary-releases/releases/download/v7.1.0/clang-format-$(UNAME_S) tiny-firmware/vendor/clang-format-$(UNAME_S)
-
 install-linters-Darwin:
 	brew install yamllint
+	brew install $(CLANG_FORMAT)
 
 install-linters-Linux:
 	$(PIP) install $(PIPARGS) yamllint
-	wget -c https://github.com/denisacostaq/clang-format-binary-releases/releases/download/v7.1.0/clang-format-$(UNAME_S) -O tiny-firmware/vendor/clang-format-$(UNAME_S)
-	chmod +x ./tiny-firmware/vendor/clang-format-$(UNAME_S)
+	sudo apt-get install -y clang-format-3.9
 
-install-linters: install-linters-$(UNAME_S) tiny-firmware/vendor/clang-format-$(UNAME_S) ## Install code quality checking tools
+install-linters: install-linters-$(UNAME_S) ## Install code quality checking tools
 
 lint: check-format ## Check code quality
 	yamllint -d relaxed .travis.yml
