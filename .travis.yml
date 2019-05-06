@@ -33,6 +33,7 @@ before_script:
 
 script:
   - make check-protob
+  - clang-format --version
   - make lint
   - make -C tiny-firmware/protob build-c
   - make test
