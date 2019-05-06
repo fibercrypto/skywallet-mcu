@@ -64,8 +64,8 @@ install-linters-Darwin:
 	brew install yamllint
 	brew tap skycoin/homebrew-skycoin
 	brew update
-	brew list --versions $(CLANG_FORMAT)
-	brew install $(CLANG_FORMAT)-$(CLANG_FORMAT_VERSION)
+	brew search $(CLANG_FORMAT)
+	brew install $(CLANG_FORMAT)-700
 
 install-linters-Linux:
 	$(PIP) install $(PIPARGS) yamllint
