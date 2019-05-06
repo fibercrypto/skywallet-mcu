@@ -1,10 +1,10 @@
 Language:        Cpp
-AccessModifierOffset: -2
+AccessModifierOffset: -4
 AlignAfterOpenBracket: false
 AlignEscapedNewlinesLeft: true
 AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: false
-AllowShortBlocksOnASingleLine: true
+AllowShortBlocksOnASingleLine: false
 AllowShortFunctionsOnASingleLine: All
 AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: false
