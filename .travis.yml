@@ -5,6 +5,10 @@ matrix:
       env:
         - PIP='sudo pip'
     - os: osx
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['llvm-toolchain-trusty-7.0', 'clang-7.0']
 
 before_script:
   - sh "./tiny-firmware/protob/ci-scripts/install-${TRAVIS_OS_NAME}.sh" ;

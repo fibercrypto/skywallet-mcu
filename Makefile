@@ -61,11 +61,13 @@ check-version: ## Check that the tiny-firmware/VERSION match the current tag
 
 install-linters-Darwin:
 	brew install yamllint
+	brew tap skycoin/homebrew-skycoin
+	brew update
 	brew install $(CLANG_FORMAT)
 
 install-linters-Linux:
 	$(PIP) install $(PIPARGS) yamllint
-	sudo apt-get install -y clang-format-3.9
+	sudo apt-get install -y $(CLANG_FORMAT)
 
 install-linters: install-linters-$(UNAME_S) ## Install code quality checking tools
 
