@@ -2,8 +2,8 @@
 
 set -x
 
-
-sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test && sudo apt-get update -qq
+sudo add-apt-repository -y 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-7 main'
+sudo apt-get update -qq
 # Install libcheck check C testing framework
 wget https://github.com/libcheck/check/releases/download/0.12.0/check-0.12.0.tar.gz
 tar xvf check-0.12.0.tar.gz
@@ -15,7 +15,7 @@ cp src/.libs/*.so* src
 cd -
 
 # Install build tools
-sudo apt-get install -y build-essential curl unzip git python3 python3-pip python-protobuf gcc-arm-none-eabi
+sudo apt-get install -y build-essential curl unzip git python3 python3-pip python-protobuf gcc-arm-none-eabi clang-format-7
 
 # Install SDL
 sudo apt-get install -y libegl1-mesa-dev libgles2-mesa-dev libsdl2-dev libsdl2-image-dev
