@@ -12,6 +12,7 @@ UNAME_S ?= $(shell uname -s)
 PYTHON   ?= /usr/bin/python
 PIP      ?= pip
 PIPARGS  ?=
+CLANG_FORMAT = clang-format
 
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 MKFILE_DIR  := $(dir $(MKFILE_PATH))
@@ -46,9 +47,6 @@ ID_PRODUCT=1
 #https://github.com/skycoin/skycoin-hardware-wallet/tree/55c50ceca0d5552ef4147eb2a26f8b12ee114749#supported-languages
 LANG=1
 COMBINED_VERSION=v$(VERSION_BOOTLOADER)-v$(VERSION_FIRMWARE)-$(ID_VENDOR)-$(ID_PRODUCT)-$(LANG)
-
-CLANG_FORMAT = clang-format
-CLANG_FORMAT_VERSION?=7
 
 ifeq ($(UNAME_S), Darwin)
 	LD_VAR=DYLD_LIBRARY_PATH

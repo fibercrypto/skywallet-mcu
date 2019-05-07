@@ -4,11 +4,12 @@ matrix:
     - os: linux
       env:
         - PIP='sudo pip'
-    - os: osx
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test']
+          sources:
+            - ubuntu-toolchain-r-test
           packages: ['llvm-toolchain-trusty-7.0', 'clang-7.0']
+    - os: osx
 
 before_script:
   - sh "./tiny-firmware/protob/ci-scripts/install-${TRAVIS_OS_NAME}.sh" ;
@@ -33,7 +34,6 @@ before_script:
 
 script:
   - make check-protob
-  - clang-format --version
   - make lint
   - make -C tiny-firmware/protob build-c
   - make test
