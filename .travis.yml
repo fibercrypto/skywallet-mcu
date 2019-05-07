@@ -30,13 +30,11 @@ before_script:
   - eval "./ci-scripts/install-${TRAVIS_OS_NAME}.sh"
   # Install linters
   - make install-linters
-  - clang-format --version
-  - dpkg -L clang-format-7
-  - whereis clang-format
 
 script:
   - make check-protob
-  - make lint
+  - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then CLANG_FORMAT=clang-format-7 make lint; fi
+  - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then make lint; fi
   - make -C tiny-firmware/protob build-c
   - make test
   - make clean

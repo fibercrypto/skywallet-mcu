@@ -12,7 +12,7 @@ UNAME_S ?= $(shell uname -s)
 PYTHON   ?= /usr/bin/python
 PIP      ?= pip
 PIPARGS  ?=
-CLANG_FORMAT = clang-format
+CLANG_FORMAT ?= clang-format
 
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 MKFILE_DIR  := $(dir $(MKFILE_PATH))
