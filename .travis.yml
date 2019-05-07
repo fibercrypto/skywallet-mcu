@@ -31,6 +31,8 @@ before_script:
   # Install linters
   - make install-linters
   - clang-format --version
+  - dpkg -L clang-format-7
+  - whereis clang-format
 
 script:
   - make check-protob
