@@ -215,7 +215,8 @@ void usbPoll(void)
     // write pending data
     data = msg_out_data();
     if (data) {
-        while (usbd_ep_write_packet(usbd_dev, ENDPOINT_ADDRESS_IN, data, 64) != 64) {}
+        while (usbd_ep_write_packet(usbd_dev, ENDPOINT_ADDRESS_IN, data, 64) != 64) {
+        }
     }
 }
 

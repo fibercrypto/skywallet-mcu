@@ -202,7 +202,8 @@ static void send_msg_success(usbd_device* dev)
                "\x00\x00\x00\x00"
                // padding
                "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-               64) != 64) {}
+               64) != 64) {
+    }
 }
 
 static void send_msg_failure(usbd_device* dev)
@@ -221,7 +222,8 @@ static void send_msg_failure(usbd_device* dev)
                "\x63"
                // padding
                "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-               64) != 64) {}
+               64) != 64) {
+    }
 }
 
 extern uint8_t rdp_level;
@@ -273,7 +275,8 @@ static void send_msg_features(usbd_device* dev)
         uint8_t firmwarePresent = 1;
         memcpy(&msg[32], &firmwarePresent, sizeof(firmwarePresent));
     }
-    while (usbd_ep_write_packet(dev, ENDPOINT_ADDRESS_IN, msg, 64) != 64) {}
+    while (usbd_ep_write_packet(dev, ENDPOINT_ADDRESS_IN, msg, 64) != 64) {
+    }
 }
 
 static void send_msg_buttonrequest_firmwarecheck(usbd_device* dev)
@@ -292,7 +295,8 @@ static void send_msg_buttonrequest_firmwarecheck(usbd_device* dev)
                "\x09"
                // padding
                "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-               64) != 64) {}
+               64) != 64) {
+    }
 }
 
 static void erase_metadata_sectors(void)

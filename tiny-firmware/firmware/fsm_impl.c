@@ -113,7 +113,7 @@ ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage* msg, ResponseSkycoinSign
     if (is_digest(msg->message)) {
         writebuf_fromhexstr(msg->message, digest);
     } else {
-        compute_sha256sum((const uint8_t *)msg->message, digest, strlen(msg->message));
+        compute_sha256sum((const uint8_t*)msg->message, digest, strlen(msg->message));
     }
     uint8_t signature[65];
     int res = ecdsa_skycoin_sign(random32(), seckey, digest, signature);
@@ -213,7 +213,7 @@ ErrCode_t msgSkycoinCheckMessageSignatureImpl(SkycoinCheckMessageSignature* msg,
     if (is_digest(msg->message)) {
         tobuff(msg->message, digest, MIN(sizeof(digest), sizeof(msg->message)));
     } else {
-        compute_sha256sum((const uint8_t *)msg->message, digest, strlen(msg->message));
+        compute_sha256sum((const uint8_t*)msg->message, digest, strlen(msg->message));
     }
     tobuff(msg->signature, sign, sizeof(sign));
 
