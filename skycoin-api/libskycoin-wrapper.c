@@ -34,3 +34,9 @@ GoUint32 SKY_cipher_GenerateDeterministicKeyPair(GoSlice p0, cipher__PubKey* p1,
     generate_deterministic_key_pair(p0.data, p0.len, p1, p2);
     return 0;
 }
+
+GoUint32 SKY_cipher_AddressFromPubKey(cipher__PubKey* p0, cipher__Address* p1) {
+    size_t size_address = 0;;
+    generate_base58_address_from_pubkey(p0, p1->Key, &size_address);
+    return 0;
+}
