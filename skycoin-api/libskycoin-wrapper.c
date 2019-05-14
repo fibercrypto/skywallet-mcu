@@ -19,3 +19,13 @@ GoUint32 SKY_cipher_AddSHA256(cipher__SHA256* p0, cipher__SHA256* p1, cipher__SH
                p1, sizeof(cipher__SHA256)/sizeof(uint8_t), 
                p2, sizeof(cipher__SHA256)/sizeof(uint8_t));
 }
+
+GoUint32 SKY_cipher_GenerateKeyPair(cipher__PubKey* p0, cipher__SecKey* p1) {
+    uint8_t digest[SHA256_DIGEST_LENGTH] = {0};
+    int seed = rand();
+    uint8_t seedd[SHA256_DIGEST_LENGTH] = {0};
+    memcpy(&seedd, &seed, sizeof(seed));
+    compute_sha256sum((const uint8_t*)seedd, digest, sizeof(seed));
+    generate_deterministic_key_pair(digest, sizeof(digest), p1, p0);
+    return 0;
+}
