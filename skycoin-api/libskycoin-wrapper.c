@@ -14,7 +14,7 @@ GoUint32 SKY_cipher_SHA256FromHex(GoString p0, cipher__SHA256* p1) {
     free(buf);
 }
 
-extern GoUint32 SKY_cipher_AddSHA256(cipher__SHA256* p0, cipher__SHA256* p1, cipher__SHA256* p2) {
+GoUint32 SKY_cipher_AddSHA256(cipher__SHA256* p0, cipher__SHA256* p1, cipher__SHA256* p2) {
     add_sha256(p0, sizeof(cipher__SHA256)/sizeof(uint8_t), 
                p1, sizeof(cipher__SHA256)/sizeof(uint8_t), 
                p2, sizeof(cipher__SHA256)/sizeof(uint8_t));
