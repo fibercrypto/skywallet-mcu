@@ -42,6 +42,7 @@ endif
 endif
 INC += -I$(TOOLS_DIR)
 CFLAGS += -I$(MKFILE_DIR) $(INC)
+CFLAGS += -I../tiny-firmware/vendor/libskycoin/include
 
 SRCS += skycoin_crypto.c
 SRCS += check_digest.c
@@ -76,6 +77,9 @@ libskycoin-crypto.so: skycoin_crypto.o $(OBJS)
 
 libskycoin-crypto.a: skycoin_crypto.o $(OBJS)
 	$(AR) rcs libskycoin-crypto.a skycoin_crypto.o $(OBJS)
+
+libskycoin-crypto-wrapper.a: libskycoin-wrapper.o libskycoin-crypto.a
+	$(AR) rcs libskycoin-crypto-wrapper.a libskycoin-wrapper.o
 
 test_skycoin_crypto.o: test_skycoin_crypto.c
 	$(CC) $(CFLAGS) $(TESTINC) -o $@ -c $<
