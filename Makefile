@@ -200,7 +200,10 @@ test: ## Run all project test suites.
 	EMULATOR=1 VERSION_MAJOR=$(VERSION_FIRMWARE_MAJOR) VERSION_MINOR=$(VERSION_FIRMWARE_MINOR) VERSION_PATCH=$(VERSION_FIRMWARE_PATCH) make -C tiny-firmware/ test
 	make test-cipher
 
-test-cipher:
+tiny-firmware/vendor/libskycoin/Makefile: ## Download libskycoin for tests
+	git clone --branch=stdevAlDen_t34_hardware-wallet_tests --depth=50 https://github.com/simelo/libskycoin.git ./tiny-firmware/vendor/libskycoin
+
+test-cipher: tiny-firmware/vendor/libskycoin/Makefile ## Run linskycoin tests
 	make -C skycoin-api libskycoin-crypto-wrapper.a
 	HARDWARE_WALLET_ROOT_DIR=$(MKFILE_DIR) make -C tiny-firmware/vendor/libskycoin test-hw-crypto
 
