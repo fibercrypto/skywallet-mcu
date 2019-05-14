@@ -29,3 +29,8 @@ GoUint32 SKY_cipher_GenerateKeyPair(cipher__PubKey* p0, cipher__SecKey* p1) {
     generate_deterministic_key_pair(digest, sizeof(digest), p1, p0);
     return 0;
 }
+
+GoUint32 SKY_cipher_GenerateDeterministicKeyPair(GoSlice p0, cipher__PubKey* p1, cipher__SecKey* p2) {
+    generate_deterministic_key_pair(p0.data, p0.len, p1, p2);
+    return 0;
+}
