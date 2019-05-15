@@ -157,3 +157,10 @@ GoUint32 SKY_cipher_SHA256_Set(cipher__SHA256* p0, GoSlice p1) {
     memcpy(p0, p1.data, p1.len);
     return SKY_OK;
 }
+
+GoUint32 SKY_cipher_SHA256_Null(cipher__SHA256* p0, GoUint8* p1) {
+    cipher__SHA256 s;
+    memset(&s, 0, sizeof(cipher__SHA256));
+    *p1 = memcmp(p0, &s, sizeof(cipher__SHA256)) == 0;
+    return SKY_OK;
+}
