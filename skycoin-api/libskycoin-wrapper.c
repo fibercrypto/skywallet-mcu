@@ -117,7 +117,7 @@ GoUint32 SKY_cipher_AddressFromBytes(GoSlice p0, cipher__Address* p1) {
         return SKY_ErrAddressInvalidChecksum;
     }
     if (p1->Version != 0) {
-        return SKY_ErrAddressInvalidVersion
+        return SKY_ErrAddressInvalidVersion;
     }
     return SKY_OK;
 }
@@ -131,4 +131,9 @@ GoUint32 SKY_cipher_NewPubKey(GoSlice p0, cipher__PubKey* p1) {
         return err;
     }
     return SKY_OK;
+}
+
+GoUint32 SKY_cipher_DecodeBase58Address(GoString p0, cipher__Address* p1) {
+    bool ret = b58tobin(p0.p, p0.n, &(p1->Key));
+    return ret ? SKY_OK : !SKY_OK;
 }
