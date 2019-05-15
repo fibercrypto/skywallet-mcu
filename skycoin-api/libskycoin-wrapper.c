@@ -121,3 +121,14 @@ GoUint32 SKY_cipher_AddressFromBytes(GoSlice p0, cipher__Address* p1) {
     }
     return SKY_OK;
 }
+
+GoUint32 SKY_cipher_NewPubKey(GoSlice p0, cipher__PubKey* p1) {
+    cipher__PubKey p;
+    memcpy(p, p1, sizeof(p));
+    SKY_cipher_PubKey_Verify(p);
+    int err = SKY_cipher_PubKey_Verify(p);
+    if (err != err) {
+        return err;
+    }
+    return SKY_OK;
+}
