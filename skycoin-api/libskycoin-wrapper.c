@@ -58,3 +58,14 @@ GoUint32 SKY_cipher_Address_Verify(cipher__Address* p0, cipher__PubKey* p1) {
     }
     return SKY_OK;
 }
+
+GoUint32 SKY_cipher_Address_Checksum(cipher__Address* p0, cipher__Checksum* p1) {
+    uint8_t r1[sizeof(p0->Key) + sizeof(p0->Version)] = {0};
+    memcpy(r1, p0->Key, sizeof(p0->Key));
+    memcpy(&r1[sizeof(p0->Key)], p0->Version, sizeof(p0->Version));
+    uint8_t r2[SHA256_DIGEST_LENGTH] = {0};
+    GoSlice gr1 = {.data = r1, .len = sizeof(r1)};
+    SKY_cipher_SumSHA256(gr1, r2);
+    memcpy(p1, r2, sizeof(cipher__Checksum));
+    return SKY_OK;
+}
