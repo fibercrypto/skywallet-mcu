@@ -152,3 +152,8 @@ GoUint32 SKY_cipher_SHA256_Hex(cipher__SHA256* p0, GoString_* p1) {
     tohex(p0, p1->p, sizeof(cipher__SHA256));
     return SKY_OK;
 }
+
+GoUint32 SKY_cipher_SHA256_Set(cipher__SHA256* p0, GoSlice p1) {
+    memcpy(p0, p1.data, p1.len);
+    return SKY_OK;
+}
