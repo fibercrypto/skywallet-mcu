@@ -86,3 +86,12 @@ GoUint32 SKY_base58_Encode(GoSlice p0, GoString_* p1) {
     b58enc(p0.data, p0.len, p1->p, p1->n);
     return SKY_OK;
 }
+
+GoUint32 SKY_cipher_Address_String(cipher__Address* p0, GoString_* p1) {
+    char str[1024] = {0};
+    coin__UxArray bytes = {.data = str, .len = sizeof(str)};
+    SKY_cipher_Address_Bytes(p0, &bytes);
+    GoSlice sl = {.data=bytes.data, .len=bytes.len};
+    SKY_base58_Encode(sl, p1);
+    return SKY_OK;
+}
