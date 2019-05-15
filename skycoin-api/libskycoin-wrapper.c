@@ -142,3 +142,8 @@ GoUint32 SKY_base58_Hex2Base58(GoSlice p0, GoString_* p1) {
     tobuff(p0.data, p1, p0.len/2);
     return SKY_OK;
 }
+
+GoUint32 SKY_cipher_HashRipemd160(GoSlice p0, cipher__Ripemd160* p1) {
+    ripemd160(p0.data, p0.len, p1);
+    return SKY_OK;
+}
