@@ -7,6 +7,7 @@
 
 #include "sha2.h"
 #include "ripemd160.h"
+#include "base58.h"
 
 GoUint32 SKY_cipher_SumSHA256(GoSlice p0, cipher__SHA256* p1) {
     compute_sha256sum(p0.data, p1, sizeof(p1));
@@ -78,5 +79,10 @@ GoUint32 SKY_cipher_Address_Bytes(cipher__Address* p0, coin__UxArray* p1) {
     SKY_cipher_Address_Checksum(p0, chs);
     memcpy(&b[21], chs, sizeof(chs));
     memcpy(p1, &b[21], sizeof(b));
+    return SKY_OK;
+}
+
+GoUint32 SKY_base58_Encode(GoSlice p0, GoString_* p1) {
+    b58enc(p0.data, p0.len, p1->p, p1->n);
     return SKY_OK;
 }
