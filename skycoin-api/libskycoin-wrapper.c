@@ -107,3 +107,17 @@ GoUint32 SKY_cipher_PubKey_Verify(cipher__PubKey* p0) {
     // FIXME This should be implemented
     return SKY_OK;
 }
+
+GoUint32 SKY_cipher_AddressFromBytes(GoSlice p0, cipher__Address* p1) {
+    memcpy(p1->Key, p0.data, 20);
+    memcpy(&(p1->Version), &(p0.data[20]), 1);
+    cipher__Checksum chs = {0};
+    SKY_cipher_Address_Checksum(p1, chs);
+    if (memcmp(chs, &(p0.data[21]), sizeof(chs))) {
+        return SKY_ErrAddressInvalidChecksum;
+    }
+    if (p1->Version != 0) {
+        return SKY_ErrAddressInvalidVersion
+    }
+    return SKY_OK;
+}
