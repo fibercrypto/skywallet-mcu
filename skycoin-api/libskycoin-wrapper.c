@@ -43,7 +43,7 @@ GoUint32 SKY_cipher_GenerateDeterministicKeyPair(GoSlice p0, cipher__PubKey* p1,
 }
 
 GoUint32 SKY_cipher_AddressFromPubKey(cipher__PubKey* p0, cipher__Address* p1) {
-    size_t size_address = 0;;
+    size_t size_address = 0;
     generate_base58_address_from_pubkey(p0, p1->Key, &size_address);
     return SKY_OK;
 }
@@ -93,5 +93,12 @@ GoUint32 SKY_cipher_Address_String(cipher__Address* p0, GoString_* p1) {
     SKY_cipher_Address_Bytes(p0, &bytes);
     GoSlice sl = {.data=bytes.data, .len=bytes.len};
     SKY_base58_Encode(sl, p1);
+    return SKY_OK;
+}
+
+GoUint32 SKY_cipher_Address_Null(cipher__Address* p0, GoUint8* p1) {
+    cipher__Address a;
+    memset(&a, 0, sizeof(cipher__Address));
+    *p1 = memcmp(p0->Key, a.Key, sizeof(p0->Key)) == 0 && p0->Version == a.Version;
     return SKY_OK;
 }
