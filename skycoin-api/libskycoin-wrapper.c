@@ -102,3 +102,8 @@ GoUint32 SKY_cipher_Address_Null(cipher__Address* p0, GoUint8* p1) {
     *p1 = memcmp(p0->Key, a.Key, sizeof(p0->Key)) == 0 && p0->Version == a.Version;
     return SKY_OK;
 }
+
+GoUint32 SKY_cipher_PubKey_Verify(cipher__PubKey* p0) {
+    // FIXME This should be implemented
+    return SKY_OK;
+}
