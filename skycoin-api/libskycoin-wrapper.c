@@ -171,3 +171,8 @@ GoUint32 SKY_cipher_PubKeyFromHex(GoString p0, cipher__PubKey* p1) {
     free(buf);
     return ret;
 }
+
+GoUint32 SKY_cipher_PubKey_Hex(cipher__PubKey* p0, GoString_* p1) {
+    tohex(p0, p1->p, sizeof(cipher__SHA256));
+    return SKY_OK;
+}
