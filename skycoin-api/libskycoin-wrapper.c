@@ -176,3 +176,11 @@ GoUint32 SKY_cipher_PubKey_Hex(cipher__PubKey* p0, GoString_* p1) {
     tohex(p0, p1->p, sizeof(cipher__SHA256));
     return SKY_OK;
 }
+
+GoUint32 SKY_cipher_NewSig(GoSlice p0, cipher__Sig* p1) {
+    if (p0.len != sizeof(cipher__Sig)) {
+        return SKY_ErrInvalidLengthSig;
+    }
+    memcpy(p1, p0.data, p0.len);
+    return SKY_OK;
+}
