@@ -193,3 +193,12 @@ GoUint32 SKY_cipher_SigFromHex(GoString p0, cipher__Sig* p1) {
     free(buf);
     return ret;
 }
+
+GoUint32 SKY_cipher_Sig_Hex(cipher__Sig* p0, GoString_* p1) {
+    uint8_t *buf = (uint8_t*)calloc(p1->n/2, sizeof(uint8_t));
+    tobuff(p1->p, buf, p1->n/2);
+    GoSlice s_buf = {.data = buf, .len = p1->n/2};
+    GoUint32 ret = SKY_cipher_NewSig(s_buf, p0);
+    free(buf);
+    return ret;
+}
