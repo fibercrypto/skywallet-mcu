@@ -162,3 +162,12 @@ GoUint32 SKY_cipher_SHA256_Null(cipher__SHA256* p0, GoUint8* p1) {
     *p1 = memcmp(p0, &s, sizeof(cipher__SHA256)) == 0;
     return SKY_OK;
 }
+
+GoUint32 SKY_cipher_PubKeyFromHex(GoString p0, cipher__PubKey* p1) {
+    uint8_t *buf = (uint8_t*)calloc(p0.n/2, sizeof(uint8_t));
+    tobuff(p0.p, buf, p0.n/2);
+    GoSlice data = {.data = buf, .len = p0.n/2};
+    GoUint32 ret = SKY_cipher_NewPubKey(data, p1);
+    free(buf);
+    return ret;
+}
