@@ -123,14 +123,12 @@ GoUint32 SKY_cipher_AddressFromBytes(GoSlice p0, cipher__Address* p1) {
 }
 
 GoUint32 SKY_cipher_NewPubKey(GoSlice p0, cipher__PubKey* p1) {
-    cipher__PubKey p;
-    memcpy(p, p1, sizeof(p));
-    SKY_cipher_PubKey_Verify(p);
-    int err = SKY_cipher_PubKey_Verify(p);
-    if (err != err) {
-        return err;
+    if (sizeof(p1) != p0.len) {
+        return SKY_ErrInvalidLengthPubKey;
     }
-    return SKY_OK;
+    memcpy(p1, p0.data, p0.len);
+    int err = SKY_cipher_PubKey_Verify(p1);
+    return err;
 }
 
 GoUint32 SKY_cipher_DecodeBase58Address(GoString p0, cipher__Address* p1) {
