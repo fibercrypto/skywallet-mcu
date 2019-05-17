@@ -214,3 +214,8 @@ GoUint32 SKY_cipher_NewSecKey(GoSlice p0, cipher__SecKey* p1) {
     //}
     return SKY_OK;
 }
+
+GoUint32 SKY_cipher_PubKeyFromSecKey(cipher__SecKey* p0, cipher__PubKey* p1) {
+    generate_pubkey_from_seckey(p0, p1);
+    return SKY_OK;
+}
