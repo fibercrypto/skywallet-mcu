@@ -202,3 +202,15 @@ GoUint32 SKY_cipher_Sig_Hex(cipher__Sig* p0, GoString_* p1) {
     free(buf);
     return ret;
 }
+
+GoUint32 SKY_cipher_NewSecKey(GoSlice p0, cipher__SecKey* p1) {
+    if (p0.len != sizeof(cipher__SecKey)) {
+        return SKY_ErrInvalidLengthSecKey;
+    }
+    memcpy(p1, p0.data, sizeof(cipher__SecKey));
+    // TODO
+    //if err := p1->verify(false); err != nil {
+    //    return SecKey{}, err
+    //}
+    return SKY_OK;
+}
