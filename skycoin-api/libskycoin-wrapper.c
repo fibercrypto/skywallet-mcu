@@ -219,3 +219,8 @@ GoUint32 SKY_cipher_PubKeyFromSecKey(cipher__SecKey* p0, cipher__PubKey* p1) {
     generate_pubkey_from_seckey(p0, p1);
     return SKY_OK;
 }
+
+GoUint32 SKY_cipher_ECDH(cipher__PubKey* p0, cipher__SecKey* p1, coin__UxArray* p2) {
+    ecdh(p1, p0, p2->data);
+    return SKY_OK;
+}
