@@ -203,7 +203,7 @@ test: ## Run all project test suites.
 
 tiny-firmware/vendor/libskycoin/Makefile: ## Download libskycoin for tests
 	go get -v -t github.com/simelo/libskycoin/...
-	ln -s $(GOPATH)/src/github.com/skycoin/libskycoin ./tiny-firmware/vendor/libskycoin
+	@if [ ! -d ./tiny-firmware/vendor/libskycoin ]; then ln -s $(GOPATH)/src/github.com/skycoin/libskycoin ./tiny-firmware/vendor/libskycoin; fi 
 	git -C tiny-firmware/vendor/libskycoin checkout stdevAlDen_t34_hardware-wallet_tests
 
 tiny-firmware/vendor/libskycoin/include/libskycoin.h: tiny-firmware/vendor/libskycoin/Makefile ## Generate libskycoin C library
