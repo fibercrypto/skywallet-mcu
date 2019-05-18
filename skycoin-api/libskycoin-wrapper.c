@@ -153,7 +153,7 @@ GoUint32 SKY_cipher_HashRipemd160(GoSlice p0, cipher__Ripemd160* p1) {
 }
 
 GoUint32 SKY_cipher_SHA256_Hex(cipher__SHA256* p0, GoString_* p1) {
-    tohex((char*)p0, (const uint8_t*)p1->p, sizeof(cipher__SHA256));
+    tohex((char*)p1->p, (const uint8_t*)p0, sizeof(cipher__SHA256));
     return SKY_OK;
 }
 
