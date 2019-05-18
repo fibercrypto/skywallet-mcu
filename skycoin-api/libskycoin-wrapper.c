@@ -224,3 +224,12 @@ GoUint32 SKY_cipher_ECDH(cipher__PubKey* p0, cipher__SecKey* p1, coin__UxArray* 
     ecdh(p1, p0, p2->data);
     return SKY_OK;
 }
+
+GoUint32 SKY_cipher_PubKeyFromSig(cipher__Sig* p0, cipher__SHA256* p1, cipher__PubKey* p2) {
+    int ret = recover_pubkey_from_signed_message(p1, p0, p2);
+    if (ret) {
+        return SKY_OK;
+    } else {
+        return !SKY_OK;
+    }
+}
