@@ -207,7 +207,7 @@ tiny-firmware/vendor/libskycoin/Makefile: ## Download libskycoin for tests
 
 test-cipher: tiny-firmware/vendor/libskycoin/Makefile ## Run linskycoin tests
 	make -C skycoin-api libskycoin-crypto-wrapper.a
-	make -C tiny-firmware/vendor/libskycoin install-deps-libc
+	make -C tiny-firmware/vendor/libskycoin install-deps-libc-linux
 	make -C tiny-firmware/vendor/libskycoin install-lib-curl
 	make -C tiny-firmware/vendor/libskycoin test-libc
 	HARDWARE_WALLET_ROOT_DIR=$(MKFILE_DIR) make -C tiny-firmware/vendor/libskycoin test-hw-crypto
