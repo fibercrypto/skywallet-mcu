@@ -11,6 +11,11 @@ matrix:
     - os: osx
 
 before_script:
+  - mkdir -p ~/bin
+  - curl -L -o ~/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
+  - chmod +x ~/bin/gimme
+  - gimme 1.12
+  - source ~/.gimme/envs/go1.12.env
   - sh "./tiny-firmware/protob/ci-scripts/install-${TRAVIS_OS_NAME}.sh" ;
   # Define env vars for Linux builds
   - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
