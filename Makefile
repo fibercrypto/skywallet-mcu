@@ -201,10 +201,14 @@ test: ## Run all project test suites.
 	make test-cipher
 
 tiny-firmware/vendor/libskycoin/Makefile: ## Download libskycoin for tests
-	git clone --branch=stdevAlDen_t34_hardware-wallet_tests --depth=50 https://github.com/simelo/libskycoin.git ./tiny-firmware/vendor/libskycoin
+	go get -v -u github.com/simelo/libskycoin
+	ln -s $(GOPATH)/src/github.com/skycoin/libskycoin ./tiny-firmware/vendor/libskycoin
+	git -C tiny-firmware/vendor/libskycoin checkout stdevAlDen_t34_hardware-wallet_tests
 
 test-cipher: tiny-firmware/vendor/libskycoin/Makefile ## Run linskycoin tests
 	make -C skycoin-api libskycoin-crypto-wrapper.a
+	make -C tiny-firmware/vendor/libskycoin install-deps-libc
+	make -C tiny-firmware/vendor/libskycoin install-lib-curl
 	make -C tiny-firmware/vendor/libskycoin test-libc
 	HARDWARE_WALLET_ROOT_DIR=$(MKFILE_DIR) make -C tiny-firmware/vendor/libskycoin test-hw-crypto
 
