@@ -60,7 +60,7 @@ GoUint32 SKY_cipher_Address_Verify(cipher__Address* p0, cipher__PubKey* p1) {
     }
     uint8_t hash[RIPEMD160_DIGEST_LENGTH] = {0};
     ripemd160((const uint8_t*)p1, sizeof(cipher__PubKey), hash);
-    if (strncmp((const char*)(p0->Key), (const char*)hash, sizeof(p0->Key))) {
+    if (memcmp((const char*)(p0->Key), (const char*)hash, sizeof(p0->Key))) {
         return SKY_ErrAddressInvalidPubKey;
     }
     return SKY_OK;
