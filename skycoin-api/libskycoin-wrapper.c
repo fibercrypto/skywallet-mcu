@@ -50,6 +50,7 @@ GoUint32 SKY_cipher_AddressFromPubKey(cipher__PubKey* p0, cipher__Address* p1) {
     size_t size_address = 0;
     generate_base58_address_from_pubkey(
                 (const uint8_t*)p0, (char *)p1->Key, &size_address);
+    p1->Version = 0;
     return SKY_OK;
 }
 
