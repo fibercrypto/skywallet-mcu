@@ -117,6 +117,9 @@ GoUint32 SKY_cipher_PubKey_Verify(cipher__PubKey* p0) {
 }
 
 GoUint32 SKY_cipher_AddressFromBytes(GoSlice p0, cipher__Address* p1) {
+    if (p0.len != 20+1+4) {
+        return SKY_ErrAddressInvalidLength;
+    }
     memcpy(p1->Key, (uint8_t*)(p0.data), 20);
     memcpy(&(p1->Version), (uint8_t*)p0.data + 20, 1);
     cipher__Checksum chs = {0};
