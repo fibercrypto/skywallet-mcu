@@ -84,7 +84,8 @@ GoUint32 SKY_cipher_Address_Bytes(cipher__Address* p0, coin__UxArray* p1) {
     cipher__Checksum chs = {0};
     SKY_cipher_Address_Checksum(p0, &chs);
     memcpy(&b[21], chs, sizeof(chs));
-    memcpy(p1, b, sizeof(b));
+    memcpy(p1->data, b, sizeof(b));
+    p1->len = sizeof(b);
     return SKY_OK;
 }
 
