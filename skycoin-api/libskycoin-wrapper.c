@@ -90,7 +90,7 @@ GoUint32 SKY_cipher_Address_Bytes(cipher__Address* p0, coin__UxArray* p1) {
 }
 
 GoUint32 SKY_base58_Encode(GoSlice p0, GoString_* p1) {
-    b58enc(p0.data, (size_t *)&(p0.len), p1->p, p1->n);
+    b58enc((char*)p1->p, (size_t *)&(p1->n), p0.data, p0.len);
     return SKY_OK;
 }
 
