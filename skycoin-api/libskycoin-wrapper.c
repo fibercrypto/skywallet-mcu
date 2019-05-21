@@ -21,7 +21,7 @@ GoUint32 SKY_cipher_SHA256FromHex(GoString p0, cipher__SHA256* p1) {
     if (p0.n != sizeof(cipher__SHA256) * 2) {
         return SKY_ErrInvalidHexLength;
     }
-    tobuff(p0.p, p1, p0.n/2);
+    tobuff(p0.p, (uint8_t*)p1, p0.n/2);
     return SKY_OK;
 }
 
@@ -47,10 +47,15 @@ GoUint32 SKY_cipher_GenerateDeterministicKeyPair(GoSlice p0, cipher__PubKey* p1,
 }
 
 GoUint32 SKY_cipher_AddressFromPubKey(cipher__PubKey* p0, cipher__Address* p1) {
-    size_t size_address = 0;
+    char address[256] = {0};
+    size_t size_address = sizeof(address);
     generate_base58_address_from_pubkey(
-                (const uint8_t*)p0, (char *)p1->Key, &size_address);
-    p1->Version = 0;
+                (const uint8_t*)p0, address, &size_address);
+    uint8_t decoded[256] = {0};
+    size_t bz = sizeof(decoded);
+    b58tobin(decoded, &bz, address);
+    memcpy(&(p1->Key), decoded, 20);
+    memcpy(&(p1->Version), &decoded[20], sizeof(p1->Version));
     return SKY_OK;
 }
 
