@@ -139,7 +139,7 @@ GoUint32 SKY_cipher_AddressFromBytes(GoSlice p0, cipher__Address* p1) {
 }
 
 GoUint32 SKY_cipher_NewPubKey(GoSlice p0, cipher__PubKey* p1) {
-    if (sizeof(p1) != p0.len) {
+    if (sizeof(*p1) != p0.len) {
         return SKY_ErrInvalidLengthPubKey;
     }
     memcpy(p1, p0.data, p0.len);
