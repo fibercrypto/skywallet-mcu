@@ -13,7 +13,7 @@
 #include "skycoin_check_signature.h"
 
 GoUint32 SKY_cipher_SumSHA256(GoSlice p0, cipher__SHA256* p1) {
-    compute_sha256sum(p0.data, (uint8_t*)p1, sizeof(p1));
+    compute_sha256sum(p0.data, (uint8_t*)p1, p0.len);
     return SKY_OK;
 }
 
