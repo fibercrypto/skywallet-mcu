@@ -159,7 +159,8 @@ GoUint32 SKY_cipher_DecodeBase58Address(GoString p0, cipher__Address* p1) {
 }
 
 GoUint32 SKY_base58_Hex2Base58(GoSlice p0, GoString_* p1) {
-    tobuff(p0.data, (uint8_t*)p1, p0.len/2);
+    tobuff(p0.data, (uint8_t*)(p1->p), p0.len/2);
+    p1->n = p0.len/2;
     return SKY_OK;
 }
 
