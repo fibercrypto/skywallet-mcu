@@ -200,7 +200,8 @@ GoUint32 SKY_cipher_PubKeyFromHex(GoString p0, cipher__PubKey* p1) {
 }
 
 GoUint32 SKY_cipher_PubKey_Hex(cipher__PubKey* p0, GoString_* p1) {
-    tohex((char*)p0, (const uint8_t*)p1->p, sizeof(cipher__SHA256));
+    tohex((char*)p1->p, (const uint8_t*)p0, sizeof(cipher__PubKey));
+    p1->n = sizeof(cipher__PubKey) * 2;
     return SKY_OK;
 }
 
