@@ -148,8 +148,14 @@ GoUint32 SKY_cipher_NewPubKey(GoSlice p0, cipher__PubKey* p1) {
 }
 
 GoUint32 SKY_cipher_DecodeBase58Address(GoString p0, cipher__Address* p1) {
-    bool ret = b58tobin((void*)p0.p, (size_t*)&(p0.n), (const char*)&(p1->Key));
-    return ret ? SKY_OK : !SKY_OK;
+    uint8_t decoded[256] = {0};
+    size_t bz = sizeof(decoded);
+    bool ret = b58tobin(decoded, &bz, p0.p);
+    if (!ret) {
+        return SKY_ERROR;
+    }
+    GoSlice sl = {.data = decoded, .len = bz};
+    return SKY_cipher_AddressFromBytes(sl, p1);
 }
 
 GoUint32 SKY_base58_Hex2Base58(GoSlice p0, GoString_* p1) {
