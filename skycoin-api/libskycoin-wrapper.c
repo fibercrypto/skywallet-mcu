@@ -126,10 +126,10 @@ GoUint32 SKY_cipher_AddressFromBytes(GoSlice p0, cipher__Address* p1) {
         return SKY_ErrAddressInvalidLength;
     }
     memcpy(p1->Key, (uint8_t*)(p0.data), 20);
-    memcpy(&(p1->Version), (uint8_t*)p0.data + 20, 1);
+    memcpy(&(p1->Version), &((uint8_t*)(p0.data))[20], sizeof(p1->Version));
     cipher__Checksum chs = {0};
     SKY_cipher_Address_Checksum(p1, &chs);
-    if (memcmp(chs, (uint8_t*)(p0.data) + 21, sizeof(chs))) {
+    if (memcmp(chs, &((uint8_t*)(p0.data))[21], sizeof(chs))) {
         return SKY_ErrAddressInvalidChecksum;
     }
     if (p1->Version != 0) {
