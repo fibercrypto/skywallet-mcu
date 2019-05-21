@@ -176,6 +176,9 @@ GoUint32 SKY_cipher_SHA256_Hex(cipher__SHA256* p0, GoString_* p1) {
 }
 
 GoUint32 SKY_cipher_SHA256_Set(cipher__SHA256* p0, GoSlice p1) {
+    if (sizeof(cipher__SHA256) != p1.len) {
+        return SKY_ErrInvalidLengthSHA256;
+    }
     memcpy(p0, p1.data, p1.len);
     return SKY_OK;
 }
