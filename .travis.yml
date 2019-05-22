@@ -35,6 +35,7 @@ before_script:
   - eval "./ci-scripts/install-${TRAVIS_OS_NAME}.sh"
   # Install linters
   - make install-linters
+  - ./tiny-firmware/vendor/libskycoin/ci-scripts/install-travis-gcc.sh
 
 script:
   - make check-protob
