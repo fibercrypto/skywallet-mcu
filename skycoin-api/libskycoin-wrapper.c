@@ -21,7 +21,9 @@ GoUint32 SKY_cipher_SHA256FromHex(GoString p0, cipher__SHA256* p1) {
     if (p0.n != sizeof(cipher__SHA256) * 2) {
         return SKY_ErrInvalidHexLength;
     }
-    tobuff(p0.p, (uint8_t*)p1, p0.n/2);
+    if (!tobuff(p0.p, (uint8_t*)p1, p0.n/2)) {
+        return SKY_ERROR;
+    }
     return SKY_OK;
 }
 
@@ -170,7 +172,9 @@ GoUint32 SKY_cipher_DecodeBase58Address(GoString p0, cipher__Address* p1) {
 }
 
 GoUint32 SKY_base58_Hex2Base58(GoSlice p0, GoString_* p1) {
-    tobuff(p0.data, (uint8_t*)(p1->p), p0.len/2);
+    if (!tobuff(p0.data, (uint8_t*)(p1->p), p0.len/2)) {
+        return SKY_ERROR;
+    }
     p1->n = p0.len/2;
     return SKY_OK;
 }
@@ -203,7 +207,9 @@ GoUint32 SKY_cipher_SHA256_Null(cipher__SHA256* p0, GoUint8* p1) {
 
 GoUint32 SKY_cipher_PubKeyFromHex(GoString p0, cipher__PubKey* p1) {
     uint8_t *buf = (uint8_t*)calloc(p0.n/2, sizeof(uint8_t));
-    tobuff(p0.p, buf, p0.n/2);
+    if (!tobuff(p0.p, buf, p0.n/2)) {
+        return SKY_ErrInvalidPubKey;
+    }
     GoSlice data = {.data = buf, .len = p0.n/2};
     GoUint32 ret = SKY_cipher_NewPubKey(data, p1);
     free(buf);
@@ -232,7 +238,9 @@ GoUint32 SKY_cipher_Sig_Hex(cipher__Sig* p0, GoString_* p1) {
 
 GoUint32 SKY_cipher_SigFromHex(GoString p0, cipher__Sig* p1) {
     uint8_t *buf = (uint8_t*)calloc(p0.n/2, sizeof(uint8_t));
-    tobuff(p0.p, buf, p0.n/2);
+    if (!tobuff(p0.p, buf, p0.n/2)) {
+        return SKY_ERROR;
+    }
     GoSlice s_buf = {.data = buf, .len = p0.n/2};
     GoUint32 ret = SKY_cipher_NewSig(s_buf, p1);
     free(buf);
