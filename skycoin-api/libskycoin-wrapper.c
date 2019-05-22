@@ -18,11 +18,11 @@ GoUint32 SKY_cipher_SumSHA256(GoSlice p0, cipher__SHA256* p1) {
 }
 
 GoUint32 SKY_cipher_SHA256FromHex(GoString p0, cipher__SHA256* p1) {
-    if (p0.n != sizeof(cipher__SHA256) * 2) {
-        return SKY_ErrInvalidHexLength;
-    }
     if (!tobuff(p0.p, (uint8_t*)p1, p0.n/2)) {
         return SKY_ERROR;
+    }
+    if (p0.n != sizeof(cipher__SHA256) * 2) {
+        return SKY_ErrInvalidHexLength;
     }
     return SKY_OK;
 }
