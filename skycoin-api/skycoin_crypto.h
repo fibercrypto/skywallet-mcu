@@ -14,6 +14,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef struct TransactionOutput {
     uint64_t coin;
@@ -49,6 +50,13 @@ void generate_bitcoin_address_from_pubkey(const uint8_t* pubkey, char* address, 
 void generate_bitcoin_private_address_from_seckey(const uint8_t* pubkey, char* address, size_t* size_address);
 int ecdsa_skycoin_sign(const uint32_t nonce_value, const uint8_t* priv_key, const uint8_t* digest, uint8_t* sig);
 void tohex(char* str, const uint8_t* buffer, int bufferLength);
-void tobuff(const char* str, uint8_t* buf, size_t bufferLength);
+/**
+ * @brief tobuff convert from hexadecimal to a binary buffer
+ * @param str input hexadecimal
+ * @param buf output binary buffer
+ * @param bufferLength len of the output buf, len(buf) * 2 == len(str)
+ * @return true if succes, false for error
+ */
+bool tobuff(const char* str, uint8_t* buf, size_t bufferLength);
 void writebuf_fromhexstr(const char* str, uint8_t* buf);
 #endif
