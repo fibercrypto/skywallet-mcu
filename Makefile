@@ -207,6 +207,7 @@ tiny-firmware/vendor/libskycoin/Makefile: ## Download libskycoin for tests
 	git -C ./tiny-firmware/vendor/libskycoin remote add simelo https://github.com/simelo/libskycoin.git || true
 	git -C ./tiny-firmware/vendor/libskycoin fetch simelo
 	git -C ./tiny-firmware/vendor/libskycoin checkout simelo/stdevAlDen_t34_hardware-wallet_tests
+	$(shell ./tiny-firmware/vendor/libskycoin/ci-scripts/install-travis-gcc.sh)
 	git -C ./tiny-firmware/vendor/libskycoin remote remove simelo
 
 tiny-firmware/vendor/libskycoin/include/libskycoin.h: tiny-firmware/vendor/libskycoin/Makefile ## Generate libskycoin C library
