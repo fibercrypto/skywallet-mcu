@@ -87,7 +87,10 @@ GoUint32 SKY_cipher_Address_Bytes(cipher__Address* p0, coin__UxArray* p1) {
     memcpy(b, p0->Key, sizeof(p0->Key));
     memcpy(&b[20], &(p0->Version), sizeof(p0->Version));
     cipher__Checksum chs = {0};
-    SKY_cipher_Address_Checksum(p0, &chs);
+    int err = SKY_cipher_Address_Checksum(p0, &chs);
+    if (err != 0) {
+        return err;
+    }
     memcpy(&b[21], chs, sizeof(chs));
     memcpy(p1->data, b, sizeof(b));
     p1->len = sizeof(b);
@@ -102,9 +105,15 @@ GoUint32 SKY_base58_Encode(GoSlice p0, GoString_* p1) {
 GoUint32 SKY_cipher_Address_String(cipher__Address* p0, GoString_* p1) {
     char str[1024] = {0};
     coin__UxArray bytes = {.data = str, .len = sizeof(str)};
-    SKY_cipher_Address_Bytes(p0, &bytes);
+    int ret = SKY_cipher_Address_Bytes(p0, &bytes);
+    if (ret != SKY_OK) {
+        return ret;
+    }
     GoSlice sl = {.data=bytes.data, .len=bytes.len};
-    SKY_base58_Encode(sl, p1);
+    ret = SKY_base58_Encode(sl, p1);
+    if (ret != SKY_OK) {
+        return ret;
+    }
     return SKY_OK;
 }
 
@@ -128,7 +137,10 @@ GoUint32 SKY_cipher_AddressFromBytes(GoSlice p0, cipher__Address* p1) {
     memcpy(p1->Key, (uint8_t*)(p0.data), 20);
     memcpy(&(p1->Version), &((uint8_t*)(p0.data))[20], sizeof(p1->Version));
     cipher__Checksum chs = {0};
-    SKY_cipher_Address_Checksum(p1, &chs);
+    int ret = SKY_cipher_Address_Checksum(p1, &chs);
+    if (ret != SKY_OK) {
+        return ret;
+    }
     if (memcmp(chs, &((uint8_t*)(p0.data))[21], sizeof(chs))) {
         return SKY_ErrAddressInvalidChecksum;
     }
@@ -143,8 +155,7 @@ GoUint32 SKY_cipher_NewPubKey(GoSlice p0, cipher__PubKey* p1) {
         return SKY_ErrInvalidLengthPubKey;
     }
     memcpy(p1, p0.data, p0.len);
-    int err = SKY_cipher_PubKey_Verify(p1);
-    return err;
+    return SKY_cipher_PubKey_Verify(p1);
 }
 
 GoUint32 SKY_cipher_DecodeBase58Address(GoString p0, cipher__Address* p1) {
