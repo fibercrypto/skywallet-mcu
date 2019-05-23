@@ -39,11 +39,12 @@ before_script:
   # Install linters
   - make install-linters
   # Install gcc 6 version, required for libskycoin
-  - if [[ $TRAVIS_TAG == 'osx' ]]; then #FIXME $TRAVIS_TAG != ''
-    make tiny-firmware/vendor/libskycoin/Makefile
-    ./tiny-firmware/vendor/libskycoin/ci-scripts/install-travis-gcc.sh
-    eval "CC=gcc-6 && CXX=g++-6"
-  - fi
+  #FIXME $TRAVIS_TAG != ''
+  - if [[ $TRAVIS_TAG == 'osx' ]]; then
+    make tiny-firmware/vendor/libskycoin/Makefile;
+    ./tiny-firmware/vendor/libskycoin/ci-scripts/install-travis-gcc.sh;
+    eval "CC=gcc-6 && CXX=g++-6";
+    fi
 
 script:
   - make check-protob
