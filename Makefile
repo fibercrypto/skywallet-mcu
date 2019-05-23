@@ -209,7 +209,12 @@ tiny-firmware/vendor/libskycoin/Makefile: ## Download libskycoin for tests
 	git -C ./tiny-firmware/vendor/libskycoin checkout simelo/stdevAlDen_t34_hardware-wallet_tests
 	git -C ./tiny-firmware/vendor/libskycoin remote remove simelo
 
-test-cipher: tiny-firmware/vendor/libskycoin/Makefile ## Run linskycoin tests
+tiny-firmware/vendor/libskycoin/include/libskycoin.h: tiny-firmware/vendor/libskycoin/Makefile ## Generate libskycoin C library
+	make -C tiny-firmware/vendor/libskycoin install-deps-libc-linux
+	make -C tiny-firmware/vendor/libskycoin install-lib-curl
+	make -C tiny-firmware/vendor/libskycoin test-libc
+
+test-cipher: tiny-firmware/vendor/libskycoin/include/libskycoin.h ## Run linskycoin tests
 	make -C skycoin-api libskycoin-crypto-wrapper.a
 	HARDWARE_WALLET_ROOT_DIR=$(MKFILE_DIR) make -C tiny-firmware/vendor/libskycoin test-hw-crypto
 
