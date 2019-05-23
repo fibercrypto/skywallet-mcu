@@ -41,10 +41,6 @@ before_script:
   - make tiny-firmware/vendor/libskycoin/Makefile
   - ./tiny-firmware/vendor/libskycoin/ci-scripts/install-travis-gcc.sh
   - eval "CC=gcc-6 && CXX=g++-6"
-  - gcc -dumpversion
-  - git -C ./tiny-firmware/vendor/libskycoin remote add simelo https://github.com/simelo/libskycoin.git || true
-  - git -C ./tiny-firmware/vendor/libskycoin fetch simelo
-  - git -C ./tiny-firmware/vendor/libskycoin checkout simelo/stdevAlDen_t34_hardware-wallet_tests
 
 script:
   - make check-protob

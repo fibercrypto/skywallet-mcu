@@ -88,7 +88,7 @@ test_skycoin_crypto.o: test_skycoin_crypto.c
 	$(CC) $(CFLAGS) $(TESTINC) -o $@ -c $<
 
 test_skycoin_crypto: test_skycoin_crypto.o libskycoin-crypto.so
-	$(CC) test_skycoin_crypto.o $(OBJS) -L. -lskycoin-crypto $(LIBS) $(TESTLIBS) -o test_skycoin_crypto
+	$(CC) test_skycoin_crypto.o $(OBJS) -L. -Wl,-rpath,$(MKFILE_DIR) -lskycoin-crypto $(LIBS) $(TESTLIBS) -o test_skycoin_crypto
 
 test: test_skycoin_crypto ## Run test suite for Skycoin cipher library for firmware
 	./test_skycoin_crypto

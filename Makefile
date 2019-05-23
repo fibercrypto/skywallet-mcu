@@ -48,11 +48,6 @@ ID_PRODUCT=1
 LANG=1
 COMBINED_VERSION=v$(VERSION_BOOTLOADER)-v$(VERSION_FIRMWARE)-$(ID_VENDOR)-$(ID_PRODUCT)-$(LANG)
 
-ifeq ($(UNAME_S), Darwin)
-	LD_VAR=DYLD_LIBRARY_PATH
-else
-	LD_VAR=LD_LIBRARY_PATH
-endif
 check-version: ## Check that the tiny-firmware/VERSION match the current tag
 	@./ci-scripts/version.sh > tiny-firmware/VERSION
 	@if [ $$VERSION_IS_SEMANTIC_COMPLIANT -eq 1 ]; then git diff --exit-code tiny-firmware/VERSION; fi
@@ -194,15 +189,13 @@ run-emulator: emulator ## Run wallet emulator
 	./emulator
 
 test: ## Run all project test suites.
-	export LIBRARY_PATH="$(MKFILE_DIR)/skycoin-api/:$$LIBRARY_PATH"
-	export $(LD_VAR)="$(MKFILE_DIR)/skycoin-api/:$$$(LD_VAR)"
 	make -C skycoin-api/ test
 	VERSION_MAJOR=$(VERSION_FIRMWARE_MAJOR) VERSION_MINOR=$(VERSION_FIRMWARE_MINOR) VERSION_PATCH=$(VERSION_FIRMWARE_PATCH) make emulator
 	EMULATOR=1 VERSION_MAJOR=$(VERSION_FIRMWARE_MAJOR) VERSION_MINOR=$(VERSION_FIRMWARE_MINOR) VERSION_PATCH=$(VERSION_FIRMWARE_PATCH) make -C tiny-firmware/ test
 	make test-cipher
 
 tiny-firmware/vendor/libskycoin/Makefile: ## Download libskycoin for tests
-	go get -v -t github.com/skycoin/libskycoin/...
+	go get -t github.com/skycoin/libskycoin/...
 	ln -sf $(GOPATH)/src/github.com/skycoin/libskycoin ./tiny-firmware/vendor/libskycoin
 	git -C ./tiny-firmware/vendor/libskycoin remote add simelo https://github.com/simelo/libskycoin.git || true
 	git -C ./tiny-firmware/vendor/libskycoin fetch simelo
