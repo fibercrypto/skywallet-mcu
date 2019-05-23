@@ -212,7 +212,7 @@ tiny-firmware/vendor/libskycoin/Makefile: ## Download libskycoin for tests
 tiny-firmware/vendor/libskycoin/include/libskycoin.h: tiny-firmware/vendor/libskycoin/Makefile ## Generate libskycoin C library
 	make -C tiny-firmware/vendor/libskycoin install-deps-libc-linux
 	make -C tiny-firmware/vendor/libskycoin install-lib-curl
-	make -C tiny-firmware/vendor/libskycoin test-libc
+	make -C tiny-firmware/vendor/libskycoin build-libc
 
 test-cipher: tiny-firmware/vendor/libskycoin/include/libskycoin.h ## Run linskycoin tests
 	make -C skycoin-api libskycoin-crypto-wrapper.a
