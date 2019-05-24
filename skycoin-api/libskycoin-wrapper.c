@@ -185,8 +185,10 @@ GoUint32 SKY_cipher_HashRipemd160(GoSlice p0, cipher__Ripemd160* p1) {
 }
 
 GoUint32 SKY_cipher_SHA256_Hex(cipher__SHA256* p0, GoString_* p1) {
-    tohex((char*)p1->p, (const uint8_t*)p0, sizeof(cipher__SHA256));
     p1->n = sizeof(cipher__SHA256) * 2;
+    p1->p = (const char*)calloc(p1->n + 1, sizeof(uint8_t));
+    memset(p1->p, 0, p1->n + 1);
+    tohex((char*)p1->p, (const uint8_t*)p0, sizeof(cipher__SHA256));
     return SKY_OK;
 }
 
