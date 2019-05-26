@@ -210,13 +210,15 @@ tiny-firmware/vendor/libskycoin/Makefile: ## Download libskycoin for tests
 	git -C ./tiny-firmware/vendor/libskycoin remote remove simelo
 
 tiny-firmware/vendor/libskycoin/include/libskycoin.h: tiny-firmware/vendor/libskycoin/Makefile ## Generate libskycoin C library
-	make -C tiny-firmware/vendor/libskycoin install-deps-libc-linux
-	make -C tiny-firmware/vendor/libskycoin install-lib-curl
+	make -C tiny-firmware/vendor/libskycoin install-deps-libc-$(UNAME_S)
 	make -C tiny-firmware/vendor/libskycoin build-libc
 
-test-cipher: tiny-firmware/vendor/libskycoin/include/libskycoin.h ## Run linskycoin tests
+test-libskycoin-against-this-api: tiny-firmware/vendor/libskycoin/include/libskycoin.h ## Run tests for hardware wallet crypto API
 	make -C skycoin-api libskycoin-crypto-wrapper.a
-	HARDWARE_WALLET_ROOT_DIR=$(MKFILE_DIR) make -C tiny-firmware/vendor/libskycoin test-hw-crypto
+	$(eval LIBSKYCOIN_DIR := $(MKFILE_DIR)tiny-firmware/vendor/libskycoin)
+	$(eval LIBSKYCOIN_LIB_DIR := $(LIBSKYCOIN_DIR)/lib)
+	$(CC) -o test_hardwarewallet $(LIBSKYCOIN_LIB_DIR)/cgo/tests/*.common.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/testutils/libsky_string.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/testutils/libsky_assert.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/testutils/common.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/test_main_hw.c -L$(MKFILE_DIR)skycoin-api -Wl,-rpath,$(MKFILE_DIR)skycoin-api -lskycoin-crypto-wrapper -lskycoin-crypto `pkg-config --cflags --libs check` -lpthread -I$(LIBSKYCOIN_LIB_DIR)/cgo -I$(LIBSKYCOIN_DIR)/include -I$(LIBSKYCOIN_DIR)/build/usr/include -I$(MKFILE_DIR)
+	./test_hardwarewallet
 
 st-flash: ## Deploy (flash) firmware on physical wallet
 	st-flash write $(FULL_FIRMWARE_PATH) 0x08000000
