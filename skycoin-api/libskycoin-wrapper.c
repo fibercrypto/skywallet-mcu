@@ -1,9 +1,8 @@
-#include "libskycoin.h"
-
 #include <stdint.h>
 #include <string.h>
 #include <time.h>
 
+#include "libskycoin.h"
 #include "skyerrors.h"
 
 #include "sha2.h"
@@ -107,7 +106,7 @@ GoUint32 SKY_base58_Encode(GoSlice p0, GoString_* p1) {
 GoUint32 SKY_cipher_Address_String(cipher__Address* p0, GoString_* p1) {
     char str[1024] = {0};
     coin__UxArray bytes = {.data = str, .len = sizeof(str)};
-    int ret = SKY_cipher_Address_Bytes(p0, &bytes);
+    GoUint32 ret = SKY_cipher_Address_Bytes(p0, &bytes);
     if (ret != SKY_OK) {
         return ret;
     }
@@ -162,7 +161,7 @@ GoUint32 SKY_cipher_NewPubKey(GoSlice p0, cipher__PubKey* p1) {
 
 GoUint32 SKY_cipher_DecodeBase58Address(GoString p0, cipher__Address* p1) {
     uint8_t decoded[256] = {0};
-    size_t bz = sizeof(decoded);
+    size_t bz = p0.n;
     bool ret = b58tobin(decoded, &bz, p0.p);
     if (!ret) {
         return SKY_ERROR;
@@ -187,7 +186,7 @@ GoUint32 SKY_cipher_HashRipemd160(GoSlice p0, cipher__Ripemd160* p1) {
 GoUint32 SKY_cipher_SHA256_Hex(cipher__SHA256* p0, GoString_* p1) {
     p1->n = sizeof(cipher__SHA256) * 2;
     p1->p = (const char*)calloc(p1->n + 1, sizeof(uint8_t));
-    memset(p1->p, 0, p1->n + 1);
+    memset((char*)(p1->p), 0, p1->n + 1);
     tohex((char*)p1->p, (const uint8_t*)p0, sizeof(cipher__SHA256));
     return SKY_OK;
 }
@@ -240,11 +239,14 @@ GoUint32 SKY_cipher_Sig_Hex(cipher__Sig* p0, GoString_* p1) {
 
 GoUint32 SKY_cipher_SigFromHex(GoString p0, cipher__Sig* p1) {
     uint8_t *buf = (uint8_t*)calloc(p0.n/2, sizeof(uint8_t));
+    GoUint32 ret;
     if (!tobuff(p0.p, buf, p0.n/2)) {
-        return SKY_ERROR;
+        ret = SKY_ERROR;
+        goto free_mem;
     }
     GoSlice s_buf = {.data = buf, .len = p0.n/2};
-    GoUint32 ret = SKY_cipher_NewSig(s_buf, p1);
+    ret = SKY_cipher_NewSig(s_buf, p1);
+free_mem:
     free(buf);
     return ret;
 }
