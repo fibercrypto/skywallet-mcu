@@ -199,7 +199,7 @@ test: ## Run all project test suites.
 	make -C skycoin-api/ test
 	VERSION_MAJOR=$(VERSION_FIRMWARE_MAJOR) VERSION_MINOR=$(VERSION_FIRMWARE_MINOR) VERSION_PATCH=$(VERSION_FIRMWARE_PATCH) make emulator
 	EMULATOR=1 VERSION_MAJOR=$(VERSION_FIRMWARE_MAJOR) VERSION_MINOR=$(VERSION_FIRMWARE_MINOR) VERSION_PATCH=$(VERSION_FIRMWARE_PATCH) make -C tiny-firmware/ test
-	make test-cipher
+	make test-libskycoin-against-this-api
 
 tiny-firmware/vendor/libskycoin/Makefile: ## Download libskycoin for tests
 	go get -t github.com/skycoin/libskycoin/...
