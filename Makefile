@@ -213,7 +213,7 @@ tiny-firmware/vendor/libskycoin/include/libskycoin.h: tiny-firmware/vendor/libsk
 	make -C tiny-firmware/vendor/libskycoin install-deps-libc-$(UNAME_S)
 	make -C tiny-firmware/vendor/libskycoin build-libc
 
-test-libskycoin-against-this-api: tiny-firmware/vendor/libskycoin/include/libskycoin.h ## Run tests for hardware wallet crypto API
+test-libskycoin-against-this-api: tiny-firmware/vendor/libskycoin/include/libskycoin.h ## Run libskycoin tests against hardware wallet crypto API
 	make -C skycoin-api libskycoin-crypto-wrapper.a
 	$(eval LIBSKYCOIN_DIR := $(MKFILE_DIR)tiny-firmware/vendor/libskycoin)
 	$(eval LIBSKYCOIN_LIB_DIR := $(LIBSKYCOIN_DIR)/lib)
