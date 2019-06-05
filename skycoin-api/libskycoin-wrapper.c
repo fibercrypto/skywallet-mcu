@@ -48,16 +48,12 @@ GoUint32 SKY_cipher_GenerateDeterministicKeyPair(GoSlice p0, cipher__PubKey* p1,
 }
 
 GoUint32 SKY_cipher_AddressFromPubKey(cipher__PubKey* p0, cipher__Address* p1) {
-    char address[256] = {0};
-    size_t size_address = sizeof(address);
+    char buff[256] = {0};
+    size_t size_address = sizeof(buff);
     generate_base58_address_from_pubkey(
-                (const uint8_t*)p0, address, &size_address);
-    uint8_t decoded[256] = {0};
-    size_t bz = sizeof(decoded);
-    b58tobin(decoded, &bz, address);
-    memcpy(&(p1->Key), decoded, 20);
-    memcpy(&(p1->Version), &decoded[20], sizeof(p1->Version));
-    return SKY_OK;
+                (const uint8_t*)p0, buff, &size_address);
+    GoString add = {.p = buff, .n = sizeof(buff)};
+    return SKY_cipher_DecodeBase58Address(add, p1);
 }
 
 GoUint32 SKY_cipher_Address_Verify(cipher__Address* p0, cipher__PubKey* p1) {
