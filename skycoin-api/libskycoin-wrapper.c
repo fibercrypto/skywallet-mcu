@@ -60,9 +60,13 @@ GoUint32 SKY_cipher_Address_Verify(cipher__Address* p0, cipher__PubKey* p1) {
     if (p0->Version != 0x00) {
         return SKY_ErrAddressInvalidVersion;
     }
-    uint8_t hash[RIPEMD160_DIGEST_LENGTH] = {0};
-    pub_key_ripemd160((const uint8_t*)p1, sizeof(cipher__PubKey), hash);
-    if (memcmp((const char*)(p0->Key), (const char*)hash, sizeof(p0->Key))) {
+    GoSlice gs1 = {.data = (void*)p1, .len = sizeof(cipher__PubKey)};
+    cipher__Ripemd160 rp;
+    GoUint32 ret = SKY_cipher_HashRipemd160(gs1, &rp);
+    if (ret != SKY_OK) {
+        return ret;
+    }
+    if (memcmp((const char*)(p0->Key), (const char*)rp, sizeof(p0->Key))) {
         return SKY_ErrAddressInvalidPubKey;
     }
     return SKY_OK;
@@ -174,18 +178,13 @@ GoUint32 SKY_base58_Hex2Base58(GoSlice p0, GoString_* p1) {
     return SKY_OK;
 }
 
-void pub_key_ripemd160(const uint8_t* msg, uint32_t msg_len, uint8_t hash[RIPEMD160_DIGEST_LENGTH]) {
+GoUint32 SKY_cipher_HashRipemd160(GoSlice p0, cipher__Ripemd160* p1) {
     cipher__SHA256 s1 = {0};
-    GoSlice gs1 = {.data = (void*)msg, .len = msg_len};
-    SKY_cipher_SumSHA256(gs1, &s1);
+    SKY_cipher_SumSHA256(p0, &s1);
     cipher__SHA256 s2 = {0};
     GoSlice gs2 = {.data = (void*)s1, .len = sizeof(cipher__SHA256)};
     SKY_cipher_SumSHA256(gs2, &s2);
-    ripemd160((const uint8_t*)s2, sizeof(cipher__SHA256), hash);
-}
-
-GoUint32 SKY_cipher_HashRipemd160(GoSlice p0, cipher__Ripemd160* p1) {
-    ripemd160(p0.data, p0.len, (uint8_t*)p1);
+    ripemd160((const uint8_t*)s2, sizeof(cipher__SHA256), p1);
     return SKY_OK;
 }
 
