@@ -126,8 +126,9 @@ GoUint32 SKY_cipher_Address_Null(cipher__Address* p0, GoUint8* p1) {
 }
 
 GoUint32 SKY_cipher_PubKey_Verify(cipher__PubKey* p0) {
-    // FIXME This should be implemented
-    (void)p0;
+    if (!verify_pub_key((const uint8_t*)p0)) {
+        return SKY_ErrInvalidPubKey;
+    }
     return SKY_OK;
 }
 
