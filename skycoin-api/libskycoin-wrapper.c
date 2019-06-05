@@ -290,6 +290,10 @@ GoUint32 SKY_cipher_NewSecKey(GoSlice p0, cipher__SecKey* p1) {
 }
 
 GoUint32 SKY_cipher_PubKeyFromSecKey(cipher__SecKey* p0, cipher__PubKey* p1) {
+    cipher__SecKey dumy = {0};
+    if (!memcmp(&dumy, p0, sizeof(cipher__SecKey))) {
+        return SKY_ErrPubKeyFromNullSecKey;
+    }
     generate_pubkey_from_seckey((uint8_t *)p0, (uint8_t *)p1);
     return SKY_OK;
 }
