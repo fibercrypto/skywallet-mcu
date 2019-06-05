@@ -103,6 +103,15 @@ GoUint32 SKY_base58_Encode(GoSlice p0, GoString_* p1) {
     return SKY_OK;
 }
 
+GoUint32 SKY_base58_Decode(GoString p0, coin__UxArray* p1) {
+    size_t sz = p0.n;
+    if (!b58tobin(p0.p, &sz, p1->data)) {
+        return SKY_ERROR;
+    }
+    p1->len = sz;
+    return SKY_OK;
+}
+
 GoUint32 SKY_cipher_Address_String(cipher__Address* p0, GoString_* p1) {
     char str[1024] = {0};
     coin__UxArray bytes = {.data = str, .len = sizeof(str)};
