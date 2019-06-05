@@ -267,7 +267,7 @@ GoUint32 SKY_cipher_SigFromHex(GoString p0, cipher__Sig* p1) {
     uint8_t *buf = (uint8_t*)calloc(p0.n/2, sizeof(uint8_t));
     GoUint32 ret;
     if (!tobuff(p0.p, buf, p0.n/2)) {
-        ret = SKY_ERROR;
+        ret = SKY_ErrInvalidSig;
         goto free_mem;
     }
     GoSlice s_buf = {.data = buf, .len = p0.n/2};
