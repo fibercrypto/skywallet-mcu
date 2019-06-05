@@ -160,8 +160,8 @@ GoUint32 SKY_cipher_NewPubKey(GoSlice p0, cipher__PubKey* p1) {
 }
 
 GoUint32 SKY_cipher_DecodeBase58Address(GoString p0, cipher__Address* p1) {
-    uint8_t decoded[256] = {0};
-    size_t bz = p0.n;
+    uint8_t decoded[25] = {0};
+    size_t bz = sizeof(decoded);
     bool ret = b58tobin(decoded, &bz, p0.p);
     if (!ret) {
         return SKY_ERROR;
