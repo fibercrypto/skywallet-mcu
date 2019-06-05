@@ -181,11 +181,21 @@ GoUint32 SKY_cipher_DecodeBase58Address(GoString p0, cipher__Address* p1) {
 }
 
 GoUint32 SKY_base58_Hex2Base58(GoSlice p0, GoString_* p1) {
-    if (!tobuff(p0.data, (uint8_t*)(p1->p), p0.len/2)) {
-        return SKY_ERROR;
+    GoSlice decoded = {
+        .data = calloc(p0.cap, sizeof(uint8_t)),
+        .cap = p0.cap,
+        .len = p0.len
+    };
+    GoUint32 ret = SKY_OK;
+    if (!tobuff(p0.data, (uint8_t*)(decoded.data), p0.len/2)) {
+        ret = SKY_ERROR;
+        goto free_mem;
     }
-    p1->n = p0.len/2;
-    return SKY_OK;
+    decoded.len = p0.len/2;
+    ret = SKY_base58_Encode(decoded, p1);
+free_mem:
+    free(decoded.data);
+    return ret;
 }
 
 GoUint32 SKY_cipher_HashRipemd160(GoSlice p0, cipher__Ripemd160* p1) {
