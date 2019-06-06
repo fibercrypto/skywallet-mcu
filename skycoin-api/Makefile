@@ -78,8 +78,8 @@ libskycoin-crypto.so: skycoin_crypto.o $(OBJS)
 libskycoin-crypto.a: skycoin_crypto.o $(OBJS)
 	$(AR) rcs libskycoin-crypto.a skycoin_crypto.o $(OBJS)
 
-libskycoin-wrapper.o:
-	$(CC) -std=c99 -I../tiny-firmware/vendor/libskycoin/include -Itools -o libskycoin-wrapper.o -c libskycoin-wrapper.c
+libskycoin-wrapper.o: libskycoin-wrapper.c
+	$(CC) -std=c99 -isystem../tiny-firmware/vendor/libskycoin/include -Itools -o libskycoin-wrapper.o -c libskycoin-wrapper.c
 
 libskycoin-crypto-wrapper.a: libskycoin-wrapper.o libskycoin-crypto.a
 	$(AR) rcs libskycoin-crypto-wrapper.a libskycoin-wrapper.o
