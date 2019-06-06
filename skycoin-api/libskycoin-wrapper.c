@@ -118,7 +118,7 @@ GoUint32 SKY_base58_Decode(GoString p0, coin__UxArray* p1) {
 }
 
 GoUint32 SKY_cipher_Address_String(cipher__Address* p0, GoString_* p1) {
-    char str[1024] = {0};
+    char str[25] = {0};
     coin__UxArray bytes = {.data = str, .len = sizeof(str)};
     GoUint32 ret = SKY_cipher_Address_Bytes(p0, &bytes);
     if (ret != SKY_OK) {
@@ -181,7 +181,7 @@ GoUint32 SKY_cipher_DecodeBase58Address(GoString p0, cipher__Address* p1) {
     if (!ret) {
         return SKY_ERROR;
     }
-    GoSlice sl = {.data = decoded, .len = bz};
+    GoSlice sl = {.data = decoded, .len = bz, .cap = bz};
     return SKY_cipher_AddressFromBytes(sl, p1);
 }
 
