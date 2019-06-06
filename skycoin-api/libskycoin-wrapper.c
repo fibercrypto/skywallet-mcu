@@ -35,7 +35,12 @@ GoUint32 SKY_cipher_AddSHA256(cipher__SHA256* p0, cipher__SHA256* p1, cipher__SH
 
 GoUint32 SKY_cipher_GenerateKeyPair(cipher__PubKey* p0, cipher__SecKey* p1) {
     uint8_t digest[SHA256_DIGEST_LENGTH] = {0};
-    srand(time(0));
+    static int always_wrowing = 0;
+    // always_wrowing ensure that srand receive a different value for each call,
+    // even if more than one SKY_cipher_GenerateKeyPair call is done almost at
+    // the same time, currently SKY_cipher_GenerateKeyPair is not called so many
+    // times to be required an integer overflow check in always_wrowing
+    srand(time(0) + ++always_wrowing);
     int seed = rand();
     compute_sha256sum((const uint8_t*)&seed, digest, sizeof(seed));
     generate_deterministic_key_pair(digest, sizeof(digest), (uint8_t*)p1, (uint8_t*)p0);
