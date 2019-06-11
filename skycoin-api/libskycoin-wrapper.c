@@ -110,7 +110,7 @@ GoUint32 SKY_base58_Encode(GoSlice p0, GoString_* p1) {
 
 GoUint32 SKY_base58_Decode(GoString p0, coin__UxArray* p1) {
     size_t sz = p0.n;
-    if (!b58tobin(p0.p, &sz, p1->data)) {
+    if (!b58tobin((void*)p0.p, &sz, p1->data)) {
         return SKY_ERROR;
     }
     p1->len = sz;
@@ -195,7 +195,7 @@ GoUint32 SKY_cipher_HashRipemd160(GoSlice p0, cipher__Ripemd160* p1) {
     cipher__SHA256 s2 = {0};
     GoSlice gs2 = {.data = (void*)s1, .len = sizeof(cipher__SHA256)};
     SKY_cipher_SumSHA256(gs2, &s2);
-    ripemd160((const uint8_t*)s2, sizeof(cipher__SHA256), p1);
+    ripemd160((const uint8_t*)s2, sizeof(cipher__SHA256), *p1);
     return SKY_OK;
 }
 
