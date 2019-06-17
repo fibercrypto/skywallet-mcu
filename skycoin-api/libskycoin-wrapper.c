@@ -12,7 +12,7 @@
 #include "skycoin_check_signature.h"
 
 GoUint32 SKY_cipher_SumSHA256(GoSlice p0, cipher__SHA256* p1) {
-    compute_sha256sum(p0.data, (uint8_t*)p1, p0.len);
+    compute_sha256sum(p0.data, *p1, p0.len);
     return SKY_OK;
 }
 
@@ -84,7 +84,7 @@ GoUint32 SKY_cipher_Address_Checksum(cipher__Address* p0, cipher__Checksum* p1) 
     cipher__SHA256 r2 = {0};
     GoSlice gr1 = {.data = r1, .len = sizeof(r1)};
     SKY_cipher_SumSHA256(gr1, &r2);
-    memcpy(p1, r2, sizeof(cipher__Checksum));
+    memcpy(*p1, r2, sizeof(cipher__Checksum));
     return SKY_OK;
 }
 
@@ -93,8 +93,8 @@ GoUint32 SKY_cipher_Address_Bytes(cipher__Address* p0, coin__UxArray* p1) {
     memcpy(b, p0->Key, sizeof(p0->Key));
     memcpy(&b[20], &(p0->Version), sizeof(p0->Version));
     cipher__Checksum chs = {0};
-    int err = SKY_cipher_Address_Checksum(p0, &chs);
-    if (err != 0) {
+    GoUint32 err = SKY_cipher_Address_Checksum(p0, &chs);
+    if (err != SKY_OK) {
         return err;
     }
     memcpy(&b[21], chs, sizeof(chs));
@@ -104,8 +104,7 @@ GoUint32 SKY_cipher_Address_Bytes(cipher__Address* p0, coin__UxArray* p1) {
 }
 
 GoUint32 SKY_base58_Encode(GoSlice p0, GoString_* p1) {
-    b58enc((char*)p1->p, (size_t *)&(p1->n), p0.data, p0.len);
-    return SKY_OK;
+    return b58enc((char*)p1->p, (size_t *)&(p1->n), p0.data, p0.len) ? SKY_OK : SKY_ERROR;
 }
 
 GoUint32 SKY_base58_Decode(GoString p0, coin__UxArray* p1) {
@@ -150,7 +149,7 @@ GoUint32 SKY_cipher_AddressFromBytes(GoSlice p0, cipher__Address* p1) {
     if (p0.len != 20+1+4) {
         return SKY_ErrAddressInvalidLength;
     }
-    memcpy(p1->Key, (uint8_t*)(p0.data), 20);
+    memcpy(p1->Key, (uint8_t*)(p0.data), sizeof(p1->Key));
     memcpy(&(p1->Version), &((uint8_t*)(p0.data))[20], sizeof(p1->Version));
     cipher__Checksum chs = {0};
     int ret = SKY_cipher_Address_Checksum(p1, &chs);
@@ -175,13 +174,12 @@ GoUint32 SKY_cipher_NewPubKey(GoSlice p0, cipher__PubKey* p1) {
 }
 
 GoUint32 SKY_cipher_DecodeBase58Address(GoString p0, cipher__Address* p1) {
-    uint8_t decoded[25] = {0};
+    uint8_t decoded[250] = {0};
     size_t bz = sizeof(decoded);
-    bool ret = b58tobin(decoded, &bz, p0.p);
-    if (!ret) {
+    if (!b58tobin(decoded, &bz, p0.p)) {
         return SKY_ERROR;
     }
-    GoSlice sl = {.data = decoded, .len = bz, .cap = bz};
+    GoSlice sl = {.data = &decoded[sizeof(decoded) - bz], .len = bz, .cap = bz};
     return SKY_cipher_AddressFromBytes(sl, p1);
 }
 
