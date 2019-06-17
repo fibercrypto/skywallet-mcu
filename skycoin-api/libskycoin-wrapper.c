@@ -55,7 +55,7 @@ GoUint32 SKY_cipher_GenerateDeterministicKeyPair(GoSlice p0, cipher__PubKey* p1,
 GoUint32 SKY_cipher_AddressFromPubKey(cipher__PubKey* p0, cipher__Address* p1) {
     char buff[256] = {0};
     size_t size_address = sizeof(buff);
-    generate_base58_address_from_pubkey(
+    generate_skycoin_address_from_pubkey(
                 (const uint8_t*)p0, buff, &size_address);
     GoString add = {.p = buff, .n = sizeof(buff)};
     return SKY_cipher_DecodeBase58Address(add, p1);
@@ -293,7 +293,7 @@ GoUint32 SKY_cipher_ECDH(cipher__PubKey* p0, cipher__SecKey* p1, coin__UxArray* 
 }
 
 GoUint32 SKY_cipher_PubKeyFromSig(cipher__Sig* p0, cipher__SHA256* p1, cipher__PubKey* p2) {
-    int ret = recover_pubkey_from_signed_message(
+    int ret = recover_pubkey_from_signed_digest(
                 (const char*)p1, (const uint8_t*)p0, (uint8_t *)p2);
     if (ret) {
         return SKY_OK;
