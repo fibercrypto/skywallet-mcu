@@ -47,7 +47,6 @@ CFLAGS += -I../tiny-firmware/vendor/libskycoin/include
 SRCS += skycoin_crypto.c
 SRCS += check_digest.c
 SRCS += skycoin_check_signature.c
-SRCS += skycoin_check_signature_tools.c
 SRCS += $(shell ls $(TOOLS_DIR)/*.c)
 
 OBJS   = $(SRCS:.c=.o)
@@ -55,7 +54,7 @@ OBJS   = $(SRCS:.c=.o)
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-LIBS_DARWIN += 
+LIBS_DARWIN +=
 TESTLIBS_DARWIN += -L$(CHECK_PATH)/lib -lcheck
 LIBS_LINUX += -L/usr/local/lib/ -lm -lrt
 TESTLIBS_LINUX += -L$(CHECK_PATH)/src -lcheck
