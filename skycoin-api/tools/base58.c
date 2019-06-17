@@ -160,7 +160,7 @@ static const int8_t b58digits_map[] = {
     -1,
 };
 
-Err_t b58tobin_err_detail(void* bin, size_t* binszp, const char* b58)
+bool b58tobin(void* bin, size_t* binszp, const char* b58)
 {
     size_t binsz = *binszp;
     const unsigned char* b58u = (const unsigned char*)b58;
@@ -176,13 +176,6 @@ Err_t b58tobin_err_detail(void* bin, size_t* binszp, const char* b58)
     size_t b58sz;
 
     b58sz = strlen(b58);
-//    i = 0;
-//    while (i < b58sz && binu[i] == ' ') {
-//        ++i; // count preceding whitespace
-//    }
-//    if (!i) {
-//        return ErrB58PrecWhitespace;
-//    }
 
     memset(outi, 0, outisz * sizeof(*outi));
 
@@ -193,10 +186,10 @@ Err_t b58tobin_err_detail(void* bin, size_t* binszp, const char* b58)
     for (; i < b58sz; ++i) {
         if (b58u[i] & 0x80)
             // High-bit set on invalid digit
-            return ErrB58InvalidDigit;
+            return false;
         if (b58digits_map[b58u[i]] == -1)
             // Invalid base58 digit
-            return ErrB58InvalidBaseDigit;
+            return false;
         c = (unsigned)b58digits_map[b58u[i]];
         for (j = outisz; j--;) {
             t = ((uint64_t)outi[j]) * 58 + c;
@@ -205,10 +198,10 @@ Err_t b58tobin_err_detail(void* bin, size_t* binszp, const char* b58)
         }
         if (c)
             // Output number too big (carry to the next int32)
-            return ErrB58NumberTooBigNextInt;
+            return false;
         if (outi[0] & zeromask)
             // Output number too big (last int32 filled too far)
-            return ErrB58NumberTooBigLastInt;
+            return false;
     }
 
     j = 0;
@@ -243,12 +236,7 @@ Err_t b58tobin_err_detail(void* bin, size_t* binszp, const char* b58)
     }
     *binszp += zerocount;
 
-    return ErrB58Ok;
-}
-
-bool b58tobin(void* bin, size_t* binszp, const char* b58)
-{
-    return b58tobin_err_detail(bin, binszp, b58) == ErrB58Ok;
+    return true;
 }
 
 int b58check(const void* bin, size_t binsz, HasherType hasher_type, const char* base58str)
