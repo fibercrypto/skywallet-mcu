@@ -78,6 +78,7 @@ enum ErrCode {
     ErrInitialized = ERROR_CODE(PkgStorage, ReasonUnknown),              /*!< Storage initialized */
     ErrMnemonicRequired = ERROR_CODE(PkgMnemonic, ReasonInvalidState),   /*!< Mnemonic required */
     ErrAddressGeneration = ERROR_CODE(PkgAddress, ErrInvalidValue),      /*!< Failed address generation */
+    ErrAddressProcurement = ERROR_CODE(PkgAddress, ErrInvalidArg),       /*!< ErrAddressProcurement address procurement */
     ErrTooManyAddresses = ERROR_CODE(PkgAddress, ReasonOutOfBounds),     /*!< Too many addresses to generate */
     ErrUnfinishedBackup = ERROR_CODE(PkgBackup, ReasonInvalidState),     /*!< Backup operation did not finish properly */
     ErrEntropyRequired = ERROR_CODE(PkgEntropy, ReasonExpired),          /*!< External entropy required */

@@ -232,7 +232,7 @@ START_TEST(test_msgSkycoinCheckMessageSignatureCanNotGetPubKey)
                 &checkMsg, &successRespCheck, &failRespCheck);
 
     // NOTE Then
-    ck_assert_int_eq(ErrInvalidSignature, err);
+    ck_assert_int_eq(ErrAddressProcurement, err);
 }
 END_TEST
 

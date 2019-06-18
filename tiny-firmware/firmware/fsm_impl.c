@@ -225,10 +225,10 @@ ErrCode_t msgSkycoinCheckMessageSignatureImpl(SkycoinCheckMessageSignature* msg,
     }
     tobuff(msg->signature, sign, sizeof(sign));
     ErrCode_t ret = recover_pubkey_from_signed_digest(digest, sign, pubkey) ? ErrOk : ErrFailed;
-    if (ret != ErrOk) {
+    if (ret != 0) {
         strncpy(failureResp->message, _("Unable to get pub key from signed message"), sizeof(failureResp->message));
         failureResp->has_message = true;
-        return ret;
+        return ErrAddressProcurement;
     }
     if (verify_pub_key(pubkey)) {
         // NOTE(): -1 because the end of string ('\0')
