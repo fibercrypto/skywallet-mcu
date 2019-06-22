@@ -18,6 +18,9 @@
  */
 
 #include "util.h"
+#include <libopencm3/cm3/nvic.h>
+
+char *criticalMessage = 0;
 
 inline void delay(uint32_t wait)
 {
@@ -66,4 +69,9 @@ uint32_t readprotobufint(uint8_t** ptr)
     }
     (*ptr)++;
     return result;
+}
+
+void panic(char *msg) {
+    criticalMessage = msg;
+    nvic_generate_software_interrupt(NVIC_EXTI0_IRQ);
 }
