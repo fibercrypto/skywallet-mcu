@@ -38,8 +38,8 @@
 #include "recovery.h"
 #include "reset.h"
 #include "rng.h"
-#include "skycoin_check_signature.h"
 #include "skycoin_crypto.h"
+#include "skycoin_signature.h"
 #include "skyparams.h"
 #include "skywallet.h"
 #include "storage.h"
@@ -144,7 +144,12 @@ void fsm_sendResponseFromErrCode(ErrCode_t err, const char* successMsg, const ch
         failure = FailureType_Failure_UnexpectedMessage;
         break;
     case ErrSignPreconditionFailed:
+        failure = FailureType_Failure_InvalidSignature;
+        break;
     case ErrInvalidSignature:
+        if (failMsg == NULL) {
+            failMsg = _("Invalid signature.");
+        }
         failure = FailureType_Failure_InvalidSignature;
         break;
     default:
@@ -309,22 +314,25 @@ void fsm_msgSkycoinCheckMessageSignature(SkycoinCheckMessageSignature* msg)
 {
     GET_MSG_POINTER(Success, successResp);
     GET_MSG_POINTER(Failure, failureResp);
+    uint16_t msg_id = MessageType_MessageType_Failure;
+    void *msg_ptr = failureResp;
     switch (msgSkycoinCheckMessageSignatureImpl(msg, successResp, failureResp)) {
-      case ErrOk:
-        msg_write(MessageType_MessageType_Success, successResp);
-        layoutRawMessage("Verification success");
-        return;
-      case ErrInvalidSignature:
-        failureResp->code = FailureType_Failure_InvalidSignature;
-        msg_write(MessageType_MessageType_Failure, failureResp);
-        layoutRawMessage("Wrong signature");
-        break;
-      default:
-        failureResp->code = FailureType_Failure_FirmwareError;
-        layoutHome();
-        break;
+        case ErrOk:
+            msg_id = MessageType_MessageType_Success;
+            msg_ptr = successResp;
+            layoutRawMessage("Verification success");
+            break;
+        case ErrAddressGeneration:
+        case ErrInvalidSignature:
+            failureResp->code = FailureType_Failure_InvalidSignature;
+            layoutRawMessage("Wrong signature");
+            break;
+        default:
+            strncpy(failureResp->message, _("Firmware error."), sizeof(failureResp->message));
+            layoutHome();
+            break;
     }
-    msg_write(MessageType_MessageType_Failure, failureResp);
+    msg_write(msg_id, msg_ptr);
 }
 
 ErrCode_t requestConfirmTransaction(char* strCoin, char* strHour, TransactionSign* msg, uint32_t i)
@@ -363,6 +371,7 @@ void fsm_msgTransactionSign(TransactionSign* msg)
 
 void fsm_msgSkycoinSignMessage(SkycoinSignMessage* msg)
 {
+    CHECK_MNEMONIC
     RESP_INIT(ResponseSkycoinSignMessage);
     CHECK_PIN_UNCACHED
 
@@ -376,8 +385,6 @@ void fsm_msgSkycoinSignMessage(SkycoinSignMessage* msg)
         layoutHome();
         return;
     }
-
-    CHECK_MNEMONIC
     layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("sign message using"), _("this address?"), respAddr.addresses[0], NULL, NULL);
     CHECK_BUTTON_PROTECT
 
