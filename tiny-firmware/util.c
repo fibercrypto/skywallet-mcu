@@ -18,7 +18,6 @@
  */
 
 #include "util.h"
-#include <libopencm3/cm3/nvic.h>
 
 char *criticalMessage = 0;
 
@@ -71,7 +70,19 @@ uint32_t readprotobufint(uint8_t** ptr)
     return result;
 }
 
+#if EMULATOR
+
+void panic(char *msg) {
+  (void) msg;
+}
+
+#else
+
+#include <libopencm3/cm3/nvic.h>
 void panic(char *msg) {
     criticalMessage = msg;
     nvic_generate_software_interrupt(NVIC_EXTI0_IRQ);
 }
+
+#endif
+
