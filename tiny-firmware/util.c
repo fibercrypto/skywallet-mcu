@@ -19,8 +19,6 @@
 
 #include "util.h"
 
-char *criticalMessage = 0;
-
 inline void delay(uint32_t wait)
 {
     while (--wait > 0)
@@ -78,10 +76,11 @@ void panic(char *msg) {
 
 #else
 
-#include <libopencm3/cm3/nvic.h>
+#include "setup_vector.h"
+
 void panic(char *msg) {
-    criticalMessage = msg;
-    nvic_generate_software_interrupt(NVIC_EXTI0_IRQ);
+    (void) msg;
+    nvic_generate_software_interrupt(FIRMWARE_PANIC_NVIC);
 }
 
 #endif

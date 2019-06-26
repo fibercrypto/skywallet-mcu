@@ -27,6 +27,7 @@
 
 #include "layout.h"
 #include "rng.h"
+#include "setup_vector.h"
 #include "util.h"
 
 uint32_t __stack_chk_guard;
@@ -52,11 +53,13 @@ void nmi_handler(void)
     }
 }
 
+void FIRMWARE_PANIC_ISR(void)
+{
+    fault_handler("Firmware panic");
+}
+
 void hard_fault_handler(void)
 {
-    if ( criticalMessage != NULL ) {
-        fault_handler(criticalMessage);
-    }
     fault_handler("Hard fault");
 }
 
@@ -125,6 +128,9 @@ void setup(void)
     rcc_periph_clock_enable(RCC_OTGFS);
     // clear USB OTG_FS peripheral dedicated RAM
     memset_reg((void*)0x50020000, (void*)0x50020500, 0);
+
+    // enable firmware panic software interrupt
+    nvic_enable_irq(FIRMWARE_PANIC_NVIC);
 }
 
 void setupApp(void)
