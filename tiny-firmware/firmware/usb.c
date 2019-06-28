@@ -241,3 +241,13 @@ void usbSleep(uint32_t millis)
         usbd_poll(usbd_dev);
     }
 }
+
+void usbFlush(void) {
+    static const uint8_t* flush_data;
+    while ((flush_data = msg_out_data()) != 0) {
+        while (usbd_ep_write_packet(usbd_dev, ENDPOINT_ADDRESS_IN, flush_data, 64) != 64) {
+            usbSleep(100);
+        }
+    }
+}
+

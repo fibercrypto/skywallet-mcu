@@ -78,9 +78,15 @@ void panic(char *msg) {
 
 #include "setup_vector.h"
 
+static char *panic_msg = 0;
+
 void panic(char *msg) {
-    (void) msg;
+    panic_msg = msg;
     nvic_generate_software_interrupt(FIRMWARE_PANIC_NVIC);
+}
+
+char *get_panic_msg(void) {
+    return panic_msg;
 }
 
 #endif

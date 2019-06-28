@@ -29,6 +29,11 @@
 #include "rng.h"
 #include "setup_vector.h"
 #include "util.h"
+#include "fsm_impl.h"
+#include "messages.pb.h"
+#include "messages.h"
+#include "string.h"
+#include "usb.h"
 
 uint32_t __stack_chk_guard;
 
@@ -53,14 +58,41 @@ void nmi_handler(void)
     }
 }
 
+// FIXME: Softw interrupt for firmware panic no triggering ISR ...
+/*
 void FIRMWARE_PANIC_ISR(void)
 {
+    char *panic_msg = get_panic_msg();
+    msg_out_panic(panic_msg)
     fault_handler("Firmware panic");
+}
+*/
+
+extern uint8_t msg_resp[MSG_OUT_SIZE] __attribute__((aligned));
+
+void msg_out_panic(const char *panic_msg) {
+    RESP_INIT(Failure)
+    resp->has_msg_type = false;
+    resp->has_code = true;
+    resp->code = FailureType_Failure_FirmwarePanic;
+    if (panic_msg != 0) {
+        resp->has_message = true;
+        strlcpy(resp->message, panic_msg, sizeof(resp->message));
+    }
+    msg_write(MessageType_MessageType_Failure, resp);
+    usbFlush();
 }
 
 void hard_fault_handler(void)
 {
-    fault_handler("Hard fault");
+    // FIXME: Remove panic logic once EXTI0 triggered correctly
+    char *panic_msg = get_panic_msg();
+    char *oled_msg  = "Hard fault";
+    if (panic_msg != 0) {
+        oled_msg = "Firmware panic";
+        msg_out_panic(panic_msg);
+    }
+    fault_handler(oled_msg);
 }
 
 void mem_manage_handler(void)

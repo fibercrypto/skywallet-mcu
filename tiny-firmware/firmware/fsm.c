@@ -235,6 +235,9 @@ void fsm_sendFailure(FailureType code, const char* text, MessageType* msgtype)
         case FailureType_Failure_FirmwareError:
             text = _("Firmware error");
             break;
+        case FailureType_Failure_FirmwarePanic:
+            text = _("Firmware panic");
+            break;
         case FailureType_Failure_AddressGeneration:
             text = _("Failed to generate address");
             break;

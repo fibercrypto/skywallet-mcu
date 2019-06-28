@@ -73,6 +73,7 @@ static inline void set_mode_unprivileged(void)
 }
 
 void panic(char *);
+char* get_panic_msg(void);
 
 #endif
 
