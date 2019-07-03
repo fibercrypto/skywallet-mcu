@@ -54,7 +54,7 @@ char *get_panic_msg(void) {
 #include <unistd.h>
 #include "oled.h"
 #include "layout2.h"
-void panic(char *msg) {
+void __attribute__((noreturn)) panic(char *msg) {
   layoutDialog(&bmp_icon_error, NULL, NULL, NULL, NULL, msg, "detected.", "Please unplug", "the device.", NULL);
   while (1) {
     oledRefresh();
