@@ -9,7 +9,6 @@
  *
  */
 
-#include "setup_vector.h"
 #include "firmware/fsm_impl.h"
 #include "messages.pb.h"
 #include "messages.h"
