@@ -28,5 +28,6 @@ void setup(void);
 void setupApp(void);
 
 void mpu_config(void);
+void __attribute__((noreturn)) fault_handler(const char* line1);
 
 #endif

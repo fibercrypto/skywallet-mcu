@@ -67,27 +67,3 @@ uint32_t readprotobufint(uint8_t** ptr)
     (*ptr)++;
     return result;
 }
-
-#if EMULATOR
-
-void panic(char *msg) {
-  (void) msg;
-}
-
-#else
-
-#include "setup_vector.h"
-
-static char *panic_msg = 0;
-
-void panic(char *msg) {
-    panic_msg = msg;
-    nvic_generate_software_interrupt(FIRMWARE_PANIC_NVIC);
-}
-
-char *get_panic_msg(void) {
-    return panic_msg;
-}
-
-#endif
-

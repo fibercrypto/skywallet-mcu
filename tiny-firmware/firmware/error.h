@@ -14,6 +14,10 @@
 
 #include <stdint.h>
 
+void panic(char *);
+char* get_panic_msg(void);
+
+
 /**
  * @brief The ErrMode enum represents the error modes.
  */
