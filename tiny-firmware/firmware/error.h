@@ -15,7 +15,6 @@
 #include <stdint.h>
 
 void panic(char *);
-char* get_panic_msg(void);
 
 
 /**

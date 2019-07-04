@@ -19,6 +19,7 @@
 
 #include <string.h>
 
+#include "options.h"
 #include "fsm.h"
 #include "gettext.h"
 #include "messages.h"

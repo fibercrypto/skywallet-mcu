@@ -10,6 +10,7 @@ OBJS += setup.o
 OBJS += supervise.o
 else
 OBJS += emulator/setup.o
+OBJS += emulator/error.o
 LDFLAGS  += -L$(TOP_DIR)emulator
 LDLIBS   += -lemulator
 LIBDEPS  += $(TOP_DIR)emulator/libemulator.a
@@ -21,7 +22,10 @@ OBJS += rng.o
 OBJS += util.o
 ifneq ($(BOOTLOADER),1)
 OBJS += memory.o
+OBJS += error_common.o
+ifneq ($(EMULATOR),1)
 OBJS += firmware/error.o
+endif
 OBJS += gen/bitmaps.o
 endif
 OBJS += gen/fonts.o
