@@ -31,7 +31,6 @@ OBJS += oled.o
 OBJS += rng.o
 OBJS += timer.o
 OBJS += udp.o
-OBJS += setup.o
 OBJS += error.o
 ifneq ($(UNAME_S),Darwin)
 OBJS += strl.o

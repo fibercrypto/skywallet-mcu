@@ -29,6 +29,7 @@
 #include "rng.h"
 #include "util.h"
 #ifndef BOOTLOADER
+#include "error_common.h"
 #include "setup_vector.h"
 #endif //  !BOOTLOADER
 
@@ -55,7 +56,18 @@ void nmi_handler(void)
 
 void hard_fault_handler(void)
 {
+#if BOOTLOADER != 1
+    // FIXME: Remove panic logic once EXTI0 triggered correctly
+    char *panic_msg = get_panic_msg();
+    char *oled_msg  = "Hard fault";
+    if (panic_msg != 0) {
+        oled_msg = "Firmware panic";
+        msg_out_panic(panic_msg);
+    }
+    fault_handler(oled_msg);
+#else //  BOOTLOADER
     fault_handler("Hard fault");
+#endif //  BOOTLOADER
 }
 
 void mem_manage_handler(void)

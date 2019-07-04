@@ -27,17 +27,17 @@ void FIRMWARE_PANIC_ISR(void)
 
 #include "setup_vector.h"
 void panic(char *msg) {
-  set_panic_msg(msg);
-  nvic_generate_software_interrupt(FIRMWARE_PANIC_NVIC);
+    set_panic_msg(msg);
+    nvic_generate_software_interrupt(FIRMWARE_PANIC_NVIC);
 }
 
 void hard_fault_handler(void) {
-  // FIXME: Remove panic logic once EXTI0 triggered correctly
-  char *panic_msg = get_panic_msg();
-  char *oled_msg = "Hard fault";
-  if (panic_msg != 0) {
-    oled_msg = "Firmware panic";
-    msg_out_panic(panic_msg);
-  }
-  fault_handler(oled_msg);
+    // FIXME: Remove panic logic once EXTI0 triggered correctly
+    char *panic_msg = get_panic_msg();
+    char *oled_msg = "Hard fault";
+    if (panic_msg != 0) {
+        oled_msg = "Firmware panic";
+        msg_out_panic(panic_msg);
+    }
+    fault_handler(oled_msg);
 }
