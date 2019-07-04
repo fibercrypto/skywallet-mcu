@@ -9,8 +9,6 @@ OBJS += timer.o
 OBJS += setup.o
 OBJS += supervise.o
 else
-OBJS += emulator/setup.o
-OBJS += emulator/error.o
 LDFLAGS  += -L$(TOP_DIR)emulator
 LDLIBS   += -lemulator
 LIBDEPS  += $(TOP_DIR)emulator/libemulator.a
