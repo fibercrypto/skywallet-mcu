@@ -71,10 +71,6 @@ static inline void set_mode_unprivileged(void)
     // http://infocenter.arm.com/help/topic/com.arm.doc.dui0552a/CHDBIBGJ.html
     __asm__ volatile("msr control, %0" ::"r"(0x1));
 }
-
-void panic(char *);
-char* get_panic_msg(void);
-
 #endif
 
 #endif

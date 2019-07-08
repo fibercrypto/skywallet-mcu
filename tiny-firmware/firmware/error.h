@@ -14,6 +14,8 @@
 
 #include <stdint.h>
 
+void panic(char *);
+
 /**
  * @brief The ErrMode enum represents the error modes.
  */

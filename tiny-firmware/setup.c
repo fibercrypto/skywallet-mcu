@@ -27,19 +27,15 @@
 
 #include "layout.h"
 #include "rng.h"
-#include "setup_vector.h"
 #include "util.h"
-#include "fsm_impl.h"
-#include "messages.pb.h"
-#include "messages.h"
-#include "string.h"
-#include "usb.h"
+#ifndef BOOTLOADER
+#include "error_common.h"
+#include "setup_vector.h"
+#endif //  !BOOTLOADER
 
 uint32_t __stack_chk_guard;
 
-extern char *criticalMessage;
-
-static inline void __attribute__((noreturn)) fault_handler(const char* line1)
+void __attribute__((noreturn)) fault_handler(const char* line1)
 {
     layoutDialog(&bmp_icon_error, NULL, NULL, NULL, line1, "detected.", NULL, "Please unplug", "the device.", NULL);
     for (;;) {} // loop forever
@@ -58,33 +54,9 @@ void nmi_handler(void)
     }
 }
 
-// FIXME: Softw interrupt for firmware panic no triggering ISR ...
-/*
-void FIRMWARE_PANIC_ISR(void)
-{
-    char *panic_msg = get_panic_msg();
-    msg_out_panic(panic_msg)
-    fault_handler("Firmware panic");
-}
-*/
-
-extern uint8_t msg_resp[MSG_OUT_SIZE] __attribute__((aligned));
-
-void msg_out_panic(const char *panic_msg) {
-    RESP_INIT(Failure)
-    resp->has_msg_type = false;
-    resp->has_code = true;
-    resp->code = FailureType_Failure_FirmwarePanic;
-    if (panic_msg != 0) {
-        resp->has_message = true;
-        strlcpy(resp->message, panic_msg, sizeof(resp->message));
-    }
-    msg_write(MessageType_MessageType_Failure, resp);
-    usbFlush();
-}
-
 void hard_fault_handler(void)
 {
+#if BOOTLOADER != 1
     // FIXME: Remove panic logic once EXTI0 triggered correctly
     char *panic_msg = get_panic_msg();
     char *oled_msg  = "Hard fault";
@@ -93,6 +65,9 @@ void hard_fault_handler(void)
         msg_out_panic(panic_msg);
     }
     fault_handler(oled_msg);
+#else //  BOOTLOADER
+    fault_handler("Hard fault");
+#endif //  BOOTLOADER
 }
 
 void mem_manage_handler(void)
@@ -161,8 +136,10 @@ void setup(void)
     // clear USB OTG_FS peripheral dedicated RAM
     memset_reg((void*)0x50020000, (void*)0x50020500, 0);
 
+#ifndef BOOTLOADER
     // enable firmware panic software interrupt
     nvic_enable_irq(FIRMWARE_PANIC_NVIC);
+#endif //  !BOOTLOADER
 }
 
 void setupApp(void)

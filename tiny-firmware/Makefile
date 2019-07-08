@@ -21,6 +21,10 @@ OBJS += rng.o
 OBJS += util.o
 ifneq ($(BOOTLOADER),1)
 OBJS += memory.o
+OBJS += error_common.o
+ifneq ($(EMULATOR),1)
+OBJS += firmware/error.o
+endif
 OBJS += gen/bitmaps.o
 endif
 OBJS += gen/fonts.o
