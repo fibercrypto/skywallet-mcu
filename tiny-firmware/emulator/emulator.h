@@ -25,7 +25,8 @@
 #include <stddef.h>
 
 #if !defined(__APPLE__) && !defined(TARGET_OS_MAC)
-#include "strl.h" // NOTE(): This file is not required by BSD family(Darwin)
+// NOTE: This file is not required by BSD family(Darwin)
+#include <bsd/string.h>
 #endif            // !defined(__APPLE__) && !defined(TARGET_OS_MAC)
 
 void emulatorPoll(void);
