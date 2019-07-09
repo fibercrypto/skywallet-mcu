@@ -30,7 +30,7 @@ CC       ?= gcc
 LD       := $(CC)
 ifneq ($(UNAME_S),Darwin)
 OBJCOPY  := objcopy
-LDFLAGS += $(pkg-config --libs libbsd)
+LDFLAGS += -lbsd
 endif
 OBJDUMP  := objdump
 AR       := ar
