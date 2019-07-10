@@ -56,7 +56,7 @@ void nmi_handler(void)
 
 void hard_fault_handler(void)
 {
-#if BOOTLOADER != 1
+#if !defined(BOOTLOADER) || BOOTLOADER != 1
     // FIXME: Remove panic logic once EXTI0 triggered correctly
     char *panic_msg = get_panic_msg();
     char *oled_msg  = "Hard fault";
@@ -65,9 +65,9 @@ void hard_fault_handler(void)
         msg_out_panic(panic_msg);
     }
     fault_handler(oled_msg);
-#else //  BOOTLOADER
+#else //  !defined(BOOTLOADER) || BOOTLOADER != 1
     fault_handler("Hard fault");
-#endif //  BOOTLOADER
+#endif //  !defined(BOOTLOADER) || BOOTLOADER != 1
 }
 
 void mem_manage_handler(void)
