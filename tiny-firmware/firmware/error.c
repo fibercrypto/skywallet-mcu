@@ -31,13 +31,18 @@ void panic(char *msg) {
     nvic_generate_software_interrupt(FIRMWARE_PANIC_NVIC);
 }
 
-void hard_fault_handler(void) {
+void hard_fault_handler(void)
+{
+#if !defined(BOOTLOADER) || BOOTLOADER != 1
     // FIXME: Remove panic logic once EXTI0 triggered correctly
     char *panic_msg = get_panic_msg();
-    char *oled_msg = "Hard fault";
+    char *oled_msg  = "Hard fault";
     if (panic_msg != 0) {
         oled_msg = "Firmware panic";
         msg_out_panic(panic_msg);
     }
     fault_handler(oled_msg);
+#else //  !defined(BOOTLOADER) || BOOTLOADER != 1
+    fault_handler("Hard fault");
+#endif //  !defined(BOOTLOADER) || BOOTLOADER != 1
 }
