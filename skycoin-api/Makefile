@@ -50,9 +50,16 @@ SRCS += check_digest.c
 SRCS += $(shell ls $(TOOLS_DIR)/*.c)
 
 OBJS   = $(SRCS:.c=.o)
+OBJS += emulator-error.o
 
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -o $@ -c $<
+
+skycoin_crypto.o: skycoin_crypto.c
+	$(CC) $(CFLAGS) -I$(MKFILE_DIR)../tiny-firmware -o skycoin_crypto.o -c skycoin_crypto.c
+
+emulator-error.o: $(MKFILE_DIR)../tiny-firmware/emulator/error.c
+	$(CC) $(CFLAGS) -DTESTING=1 -I$(MKFILE_DIR)../tiny-firmware -o emulator-error.o -c $(MKFILE_DIR)../tiny-firmware/emulator/error.c
 
 LIBS_DARWIN +=
 TESTLIBS_DARWIN += -L$(CHECK_PATH)/lib -lcheck
