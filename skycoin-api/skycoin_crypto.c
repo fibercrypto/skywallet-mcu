@@ -22,6 +22,7 @@
 #include "ecdsa.h"
 #include "ripemd160.h"
 #include "sha2.h"
+#include "firmware/error.h"
 
 extern void bn_print(const bignum256* a);
 
@@ -126,7 +127,7 @@ int deterministic_key_pair_iterator_step(const uint8_t* digest, uint8_t* seckey,
 
         skycoin_pubkey_from_seckey(seckey, pubkey);
         if (!pubkey_is_valid(curve->params, pubkey)) {
-            // TODO: if pubkey is invalid, FAIL/PANIC
+            panic("hard constraint, crypto failed\n");
             return -1;
         }
 
@@ -177,7 +178,7 @@ int secp256k1sum(const uint8_t* seed, const size_t seed_length, uint8_t* digest)
 
     // seckey, _ = deterministic_key_pair_iterator_step(hash)
     if (0 != deterministic_key_pair_iterator_step(hash, seckey, pubkey)) {
-        // TODO: abort() on failure
+        panic("hard constraint, crypto failed\n");
         return -1;
     }
 
@@ -185,7 +186,7 @@ int secp256k1sum(const uint8_t* seed, const size_t seed_length, uint8_t* digest)
     // This value usually equals the seckey generated above, but not always (1^-128 probability)
     sha256sum(hash, hash2, sizeof(hash));
     if (0 != deterministic_key_pair_iterator_step(hash2, dummy_seckey, pubkey)) {
-        // TODO: abort() on failure
+        panic("hard constraint, crypto failed\n");
         return -2;
     }
 
@@ -193,7 +194,7 @@ int secp256k1sum(const uint8_t* seed, const size_t seed_length, uint8_t* digest)
     // Note: we don't care if the ecdh_key is a valid public key, we're only
     // using the bytes to salt the hash
     if (0 != ecdh(pubkey, seckey, ecdh_key)) {
-        // TODO: abort() on failure
+        panic("hard constraint, crypto failed\n");
         return -3;
     }
 
@@ -261,7 +262,7 @@ int skycoin_ecdsa_sign_digest(const uint8_t* priv_key, const uint8_t* digest, ui
     uint8_t recid = 0;
     ret = ecdsa_sign_digest(curve->params, priv_key, digest, sig, &recid, NULL);
     if (recid > 4) {
-        // This should never happen; we can abort() here, as a sanity check
+        panic("hard constraint, crypto failed\n");
         return -3;
     }
     sig[64] = recid;
@@ -356,7 +357,7 @@ void transaction_addInput(Transaction* self, uint8_t* address)
 {
     memcpy(&self->inAddress[self->nbIn], address, 32);
     self->nbIn++;
-};
+}
 
 void transaction_addOutput(Transaction* self, uint32_t coin, uint32_t hour, char* address)
 {
