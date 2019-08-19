@@ -1,5 +1,5 @@
 /*
- * This file is part of the Skycoin project, https://skycoin.net/ 
+ * This file is part of the Skycoin project, https://skycoin.net/
  *
  * Copyright (C) 2014 Pavol Rusnak <stick@satoshilabs.com>
  * Copyright (C) 2018-2019 Skycoin Project
@@ -90,9 +90,9 @@ extern uint8_t* emulator_flash_base;
 #define FLASH_META_SIGINDEX2 (FLASH_META_START + 0x0009)
 #define FLASH_META_SIGINDEX3 (FLASH_META_START + 0x000A)
 #define FLASH_META_FLAGS (FLASH_META_START + 0x000B)
-#define FLASH_META_SIG1 (FLASH_META_START + 0x0040)
-#define FLASH_META_SIG2 (FLASH_META_START + 0x0080)
-#define FLASH_META_SIG3 (FLASH_META_START + 0x00C0)
+#define FLASH_META_SIG1 (FLASH_META_START + 0x003D)
+#define FLASH_META_SIG2 (FLASH_META_START + 0x007E)
+#define FLASH_META_SIG3 (FLASH_META_START + 0x00BF)
 
 #define FLASH_META_DESC_LEN (0x100)
 
@@ -127,12 +127,12 @@ static inline void flash_write8(uint32_t addr, uint8_t byte)
 }
 
 /**
- * @brief rdp_level 	Reference STM32F205 Flash programming manual
+ * @brief memory_rdp_level	Reference STM32F205 Flash programming manual
  * revision 5 http://www.st.com/resource/en/programming_manual/cd00233952.pdf
  * Section 2.6 Option bytes
  * @return 0, 1, 2 as described in the manual for RDP level
  * [2.6.3 Read protection (RDP)](https://www.st.com/content/ccc/resource/technical/document/programming_manual/f7/7e/b9/a8/31/58/41/7b/CD00233952.pdf/files/CD00233952.pdf/jcr:content/translations/en.CD00233952.pdf)
  */
-void set_up_rdp_level(void);
+uint8_t memory_rdp_level(void);
 
 #endif

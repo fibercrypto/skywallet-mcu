@@ -9,13 +9,7 @@
  *
  */
 
-/* Code inspired by
- * https://github.com/kokke/tiny-regex-c/blob/master/re.c
- * */
+#include <check.h>
 
-#ifndef __SKYCOINAPI_CHECKDIGEST_H__
-#define __SKYCOINAPI_CHECKDIGEST_H__
+TCase *add_reset_tests(TCase *tc);
 
-int is_sha256_digest_hex(char* digest);
-
-#endif // __SKYCOINAPI_CHECKDIGEST_H__

@@ -9,13 +9,14 @@
  *
  */
 
-/* Code inspired by
- * https://github.com/kokke/tiny-regex-c/blob/master/re.c
- * */
+#include "protect.h"
 
-#ifndef __SKYCOINAPI_CHECKDIGEST_H__
-#define __SKYCOINAPI_CHECKDIGEST_H__
+extern char* TEST_PIN1;
+extern char* TEST_PIN2;
 
-int is_sha256_digest_hex(char* digest);
+const char* pin_reader_ok(PinMatrixRequestType pinReqType, const char* text);
 
-#endif // __SKYCOINAPI_CHECKDIGEST_H__
+const char* pin_reader_alt(PinMatrixRequestType pinReqType, const char* text);
+
+const char* pin_reader_wrong(PinMatrixRequestType pinReqType, const char* text);
+

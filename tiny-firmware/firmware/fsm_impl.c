@@ -14,7 +14,6 @@
 #include <libopencm3/stm32/flash.h>
 
 
-#include "base58.h"
 #include "bip32.h"
 #include "bip39.h"
 #include "check_digest.h"
@@ -32,8 +31,9 @@
 #include "recovery.h"
 #include "reset.h"
 #include "rng.h"
-#include "skycoin_check_signature.h"
+#include "skycoin_constants.h"
 #include "skycoin_crypto.h"
+#include "skycoin_signature.h"
 #include "skyparams.h"
 #include "skywallet.h"
 #include "storage.h"
@@ -56,6 +56,9 @@ ErrCode_t msgEntropyAckImpl(EntropyAck* msg)
 {
     _Static_assert(EXTERNAL_ENTROPY_MAX_SIZE == sizeof(msg->entropy.bytes),
         "External entropy size does not match.");
+    if (msg->entropy.size > sizeof(msg->entropy.bytes)) {
+      return ErrInvalidArg;
+    }
     if (!msg->has_entropy) {
         return ErrEntropyNotNeeded;
     }
@@ -103,6 +106,9 @@ ErrCode_t msgGenerateMnemonicImpl(GenerateMnemonic* msg, void (*random_buffer_fu
 
 ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage* msg, ResponseSkycoinSignMessage* resp)
 {
+    // NOTE: twise the SKYCOIN_SIG_LEN because the hex format
+    _Static_assert(sizeof(resp->signed_message) >= 2 * SKYCOIN_SIG_LEN,
+                   "hex SKYCOIN_SIG_LEN do not fit in the response");
     CHECK_MNEMONIC_RET_ERR_CODE
     uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};
     uint8_t seckey[SKYCOIN_SECKEY_LEN] = {0};
@@ -111,15 +117,15 @@ ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage* msg, ResponseSkycoinSign
     if (fsm_getKeyPairAtIndex(1, pubkey, seckey, NULL, msg->address_n) != ErrOk) {
         return ErrInvalidValue;
     }
-    if (is_sha256_hash_hex(msg->message)) {
+    if (is_sha256_digest_hex(msg->message)) {
         writebuf_fromhexstr(msg->message, digest);
     } else {
-        compute_sha256sum((const uint8_t *)msg->message, digest, strlen(msg->message));
+        sha256sum((const uint8_t *)msg->message, digest, strlen(msg->message));
     }
-    int res = ecdsa_skycoin_sign(seckey, digest, signature);
+    int res = skycoin_ecdsa_sign_digest(seckey, digest, signature);
     if (res == -2) {
-    	// Fail due to empty digest
-    	return ErrInvalidArg;
+        // Fail due to empty digest
+        return ErrInvalidArg;
     } else if (res) {
         // Too many retries without a valid signature
         // -> fail with an error
@@ -141,10 +147,10 @@ ErrCode_t msgSignTransactionMessageImpl(uint8_t* message_digest, uint32_t index,
     if (res != ErrOk) {
         return res;
     }
-    int signres = ecdsa_skycoin_sign(seckey, message_digest, signature);
+    int signres = skycoin_ecdsa_sign_digest(seckey, message_digest, signature);
     if (signres == -2) {
-    	// Fail due to empty digest
-    	return ErrInvalidArg;
+        // Fail due to empty digest
+        return ErrInvalidArg;
     } else if (res) {
         // Too many retries without a valid signature
         // -> fail with an error
@@ -163,22 +169,39 @@ ErrCode_t fsm_getKeyPairAtIndex(uint32_t nbAddress, uint8_t* pubkey, uint8_t* se
     uint8_t seed[33] = {0};
     uint8_t nextSeed[SHA256_DIGEST_LENGTH] = {0};
     size_t size_address = 36;
+    _Static_assert(
+            sizeof(respSkycoinAddress->addresses[0]) == 36,
+            "invalid address bffer size");
     if (mnemo == NULL || nbAddress == 0) {
         return ErrInvalidArg;
     }
-    generate_deterministic_key_pair_iterator((const uint8_t*)mnemo, strlen(mnemo), nextSeed, seckey, pubkey);
+    if (0 != deterministic_key_pair_iterator((const uint8_t*)mnemo, strlen(mnemo), nextSeed, seckey, pubkey)) {
+        return ErrFailed;
+    }
     if (respSkycoinAddress != NULL && start_index == 0) {
-        generate_skycoin_address_from_pubkey(pubkey, respSkycoinAddress->addresses[0], &size_address);
+        if (!skycoin_address_from_pubkey(pubkey, respSkycoinAddress->addresses[0], &size_address)) {
+            return ErrFailed;
+        }
         respSkycoinAddress->addresses_count++;
     }
     memcpy(seed, nextSeed, 32);
+    size_t max_addresses =
+            sizeof(respSkycoinAddress->addresses)
+            / sizeof(respSkycoinAddress->addresses[0]);
+    if (nbAddress + start_index - 1 > max_addresses) {
+        return ErrInvalidArg;
+    }
     for (uint32_t i = 0; i < nbAddress + start_index - 1; ++i) {
-        generate_deterministic_key_pair_iterator(seed, 32, nextSeed, seckey, pubkey);
+        if (0 != deterministic_key_pair_iterator(seed, 32, nextSeed, seckey, pubkey)) {
+            return ErrFailed;
+        }
         memcpy(seed, nextSeed, 32);
         seed[32] = 0;
         if (respSkycoinAddress != NULL && ((i + 1) >= start_index)) {
             size_address = 36;
-            generate_skycoin_address_from_pubkey(pubkey, respSkycoinAddress->addresses[respSkycoinAddress->addresses_count], &size_address);
+            if (!skycoin_address_from_pubkey(pubkey, respSkycoinAddress->addresses[respSkycoinAddress->addresses_count], &size_address)) {
+                return ErrFailed;
+            }
             respSkycoinAddress->addresses_count++;
         }
     }
@@ -210,43 +233,46 @@ ErrCode_t msgSkycoinCheckMessageSignatureImpl(SkycoinCheckMessageSignature* msg,
 {
     // NOTE(): -1 because the end of string ('\0')
     // /2 because the hex to buff conversion.
-    // TODO - why is this size dynamic? It is always 65 (SKYCOIN_SIG_LEN) bytes?
-    uint8_t sign[(sizeof(msg->signature) - 1) / 2];
-    uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};
+    _Static_assert((sizeof(msg->message) - 1) / 2 == SHA256_DIGEST_LENGTH,
+                   "Invalid buffer size for message");
+    _Static_assert((sizeof(msg->signature) - 1) / 2 == SKYCOIN_SIG_LEN,
+                    "Invalid buffer size for signature");
+    uint8_t sig[SKYCOIN_SIG_LEN] = {0};
     // NOTE(): -1 because the end of string ('\0')
-    // /2 because the hex to buff conversion.
-    // TODO - why is this size dynamic? It is always 32 (SHA256_DIGEST_LENGTH) bytes?
-    uint8_t digest[(sizeof(msg->message) - 1) / 2] = {0};
-    //     RESP_INIT(Success);
-    if (is_sha256_hash_hex(msg->message)) {
+    char address[sizeof(msg->address) - 1];
+    uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};
+    uint8_t digest[SHA256_DIGEST_LENGTH] = {0};
+    if (is_sha256_digest_hex(msg->message)) {
         tobuff(msg->message, digest, MIN(sizeof(digest), sizeof(msg->message)));
     } else {
-        compute_sha256sum((const uint8_t *)msg->message, digest, strlen(msg->message));
+        sha256sum((const uint8_t *)msg->message, digest, strlen(msg->message));
     }
-    tobuff(msg->signature, sign, sizeof(sign));
-    ErrCode_t ret = recover_pubkey_from_signed_digest(digest, sign, pubkey) ? ErrOk : ErrFailed;
-    if (ret != 0) {
-        strncpy(failureResp->message, _("Unable to get pub key from signed message"), sizeof(failureResp->message));
+    tobuff(msg->signature, sig, sizeof(sig));
+    ErrCode_t ret = (skycoin_ecdsa_verify_digest_recover(sig, digest, pubkey) == 0) ? ErrOk : ErrInvalidSignature;
+    if (ret != ErrOk) {
+        strncpy(failureResp->message, _("Address recovery failed"), sizeof(failureResp->message));
         failureResp->has_message = true;
-        return ErrAddressProcurement;
+        return ErrInvalidSignature;
     }
-    if (verify_pub_key(pubkey)) {
-        // NOTE(): -1 because the end of string ('\0')
-        char pubkeybase58[sizeof(msg->address) - 1];
-        size_t pubkeybase58_size = sizeof(pubkeybase58);
-        generate_skycoin_address_from_pubkey(pubkey, pubkeybase58, &pubkeybase58_size);
-        if (memcmp(pubkeybase58, msg->address, pubkeybase58_size)) {
-            strncpy(failureResp->message, _("Address does not match"), sizeof(failureResp->message));
-            failureResp->has_message = true;
-            return ErrAddressGeneration;
-        }
-        memcpy(successResp->message, pubkeybase58, pubkeybase58_size);
-        successResp->has_message = true;
-        return ErrOk;
+    if (!verify_pub_key(pubkey)) {
+        strncpy(failureResp->message, _("Can not verify pub key"), sizeof(failureResp->message));
+        failureResp->has_message = true;
+        return ErrAddressGeneration;
     }
-    strncpy(failureResp->message, _("Address verification failed"), sizeof(failureResp->message));
-    failureResp->has_message = true;
-    return ErrInvalidPubKey;
+    size_t address_size = sizeof(address);
+    if (!skycoin_address_from_pubkey(pubkey, address, &address_size)) {
+        strncpy(failureResp->message, _("Can not verify pub key"), sizeof(failureResp->message));
+        failureResp->has_message = true;
+        return ErrAddressGeneration;
+    }
+    if (memcmp(address, msg->address, address_size)) {
+        strncpy(failureResp->message, _("Address does not match"), sizeof(failureResp->message));
+        failureResp->has_message = true;
+        return ErrInvalidSignature;
+    }
+    memcpy(successResp->message, address, address_size);
+    successResp->has_message = true;
+    return ErrOk;
 }
 
 ErrCode_t verifyLanguage(char* lang)
@@ -280,7 +306,7 @@ ErrCode_t msgApplySettingsImpl(ApplySettings* msg)
 }
 
 #if !defined(EMULATOR) || !EMULATOR
-extern uint8_t rdp_level;
+#include "memory.h"
 #endif
 ErrCode_t msgGetFeaturesImpl(Features* resp)
 {
@@ -335,7 +361,7 @@ ErrCode_t msgGetFeaturesImpl(Features* resp)
 #if defined(EMULATOR) && EMULATOR
     resp->firmware_features |= FirmwareFeatures_IsEmulator;
 #else
-    resp->firmware_features |= (uint32_t)(rdp_level << FirmwareFeatures_IsEmulator);
+    resp->firmware_features |= (uint32_t)(memory_rdp_level() << FirmwareFeatures_IsEmulator);
 #endif
 
 #if DISABLE_GETENTROPY_CONFIRM
@@ -350,6 +376,12 @@ ErrCode_t msgGetFeaturesImpl(Features* resp)
 
 ErrCode_t msgTransactionSignImpl(TransactionSign* msg, ErrCode_t (*funcConfirmTxn)(char*, char*, TransactionSign*, uint32_t), ResponseTransactionSign* resp)
 {
+    if (msg->nbIn > sizeof(msg->transactionIn)/sizeof(*msg->transactionIn)) {
+        return ErrInvalidArg;
+    }
+    if (msg->nbOut > sizeof(msg->transactionOut)/sizeof(*msg->transactionOut)) {
+        return ErrInvalidArg;
+    }
 #if EMULATOR
     printf("%s: %d. nbOut: %d\n",
         _("Transaction signed nbIn"),
@@ -391,8 +423,13 @@ ErrCode_t msgTransactionSignImpl(TransactionSign* msg, ErrCode_t (*funcConfirmTx
             uint8_t seckey[32] = {0};
             size_t size_address = 36;
             char address[36] = {0};
-            fsm_getKeyPairAtIndex(1, pubkey, seckey, NULL, msg->transactionOut[i].address_index);
-            generate_skycoin_address_from_pubkey(pubkey, address, &size_address);
+            ErrCode_t ret = fsm_getKeyPairAtIndex(1, pubkey, seckey, NULL, msg->transactionOut[i].address_index);
+            if (ret != ErrOk) {
+                return ret;
+            }
+            if (!skycoin_address_from_pubkey(pubkey, address, &size_address)) {
+                return ErrAddressGeneration;
+            }
             if (strcmp(msg->transactionOut[i].address, address) != 0) {
 // fsm_sendFailure(FailureType_Failure_AddressGeneration, _("Wrong return address"));
 #if EMULATOR
@@ -422,6 +459,11 @@ ErrCode_t msgTransactionSignImpl(TransactionSign* msg, ErrCode_t (*funcConfirmTx
                 //layoutHome();
                 return ErrInvalidSignature;
             }
+        } else {
+            // Null sig
+            uint8_t signature[65];
+            memset(signature, 0, sizeof(signature));
+            tohex(resp->signatures[resp->signatures_count], signature, sizeof(signature));
         }
         resp->signatures_count++;
 #if EMULATOR
@@ -539,9 +581,12 @@ ErrCode_t msgBackupDeviceImpl(BackupDevice* msg, ErrCode_t (*funcConfirmBackup)(
         //fsm_sendFailure(FailureType_Failure_UnexpectedMessage, _("Seed already backed up"));
         return ErrUnexpectedMessage;
     }
-    reset_backup(true);
+    ErrCode_t err = reset_backup(true);
+    if (err != ErrOk) {
+      return err;
+    }
 
-    ErrCode_t err = funcConfirmBackup();
+    err = funcConfirmBackup();
     if (err != ErrOk) {
         return err;
     }
@@ -574,12 +619,15 @@ ErrCode_t msgRecoveryDeviceImpl(RecoveryDevice* msg, ErrCode_t (*funcConfirmReco
             return err;
         }
     }
+    char current_label[DEVICE_LABEL_SIZE];
+    strncpy(current_label, storage_getLabel(), sizeof(current_label));
+
     recovery_init(
         msg->has_word_count ? msg->word_count : 12,
         msg->has_passphrase_protection && msg->passphrase_protection,
         msg->has_pin_protection && msg->pin_protection,
         msg->has_language ? msg->language : 0,
-        msg->has_label ? msg->label : 0,
+        (msg->has_label && strlen(msg->label) > 0)? msg->label: current_label,
         dry_run);
     return ErrOk;
 }

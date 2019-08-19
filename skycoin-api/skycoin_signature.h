@@ -9,12 +9,16 @@
  *
  */
 
+#ifndef SKYCOIN_SIGNATURE_H
+#define SKYCOIN_SIGNATURE_H
 
-#ifndef SKYCOIN_CHECK_SIGNATURE_H
-#define SKYCOIN_CHECK_SIGNATURE_H
-
+#include <stddef.h>
 #include <stdint.h>
 
-int recover_pubkey_from_signed_digest(const uint8_t* message, const uint8_t* signature, uint8_t* pubkey);
+#include "ecdsa.h"
+
+int skycoin_ecdsa_verify_digest_recover(const uint8_t* sig, const uint8_t* digest, uint8_t* pub_key);
+void compress_pubkey(const uint8_t* long_pub_key, uint8_t* pub_key);
+int pubkey_is_valid(const ecdsa_curve *curve, const uint8_t* pub_key);
 
 #endif

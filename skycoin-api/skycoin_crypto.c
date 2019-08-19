@@ -14,6 +14,8 @@
 #include <stdio.h> //sprintf
 #include <string.h>
 
+#include "skycoin_constants.h"
+#include "skycoin_signature.h"
 #include "base58.h"
 #include "secp256k1.h"
 #include "curves.h"
@@ -81,152 +83,215 @@ void writebuf_fromhexstr(const char* str, uint8_t* buf)
     tobuff(str, buf, len);
 }
 
-void generate_pubkey_from_seckey(const uint8_t* seckey, uint8_t* pubkey)
+void skycoin_pubkey_from_seckey(const uint8_t* seckey, uint8_t* pubkey)
 {
-	/*
-	SKYCOIN CIPHER AUDIT
-	Compare to function: secp256k1.PubkeyFromSeckey
-	*/
+    /*
+    SKYCOIN CIPHER AUDIT
+    Compare to function: secp256k1.SkycoinPubkeyFromSeckey
+    */
     const curve_info* curve = get_curve_by_name(SECP256K1_NAME);
     ecdsa_get_public_key33(curve->params, seckey, pubkey);
 }
 
-void generate_deterministic_key_pair(const uint8_t* seed, const size_t seed_length, uint8_t* seckey, uint8_t* pubkey)
+// returns 0 if valid
+int seckey_is_valid(const ecdsa_curve* curve, const uint8_t* seckey)
 {
-	/*
-	SKYCOIN CIPHER AUDIT
-	Compare to function: secp256k1.GenerateDeterministicKeyPair
-	Note: Does not conform to secp256k1.GenerateDeterministicKeyPair
-		- Needs to check secret key for validity
-		- Needs to have retry logic to brute force a valid secret and public key
-	*/
-    compute_sha256sum(seed, seckey, seed_length);
-    generate_pubkey_from_seckey(seckey, pubkey);
+    /*
+    SKYCOIN CIPHER AUDIT
+    Compare to function: SeckeyIsValid
+
+    Note: In SeckeyIsValid, it checks that seckey is not a negative value.
+    This isn't necessary here because seckey can never be valid; bignum256 is unsigned.
+    */
+    bignum256 z;
+
+    bn_read_be(seckey, &z);
+
+    // must not be zero
+    if (bn_is_zero(&z)) {
+        return -1;
+    }
+
+    // must be less than order of curve
+    if (!bn_is_less(&z, &curve->order)) {
+        return -2;
+    }
+
+    return 0;
+}
+
+/*
+Internal use only.
+
+Returns 0 on success
+*/
+int deterministic_key_pair_iterator_step(const uint8_t* digest, uint8_t* seckey, uint8_t* pubkey)
+{
+    /*
+    SKYCOIN CIPHER AUDIT
+    Compare to function: secp256k1.GenerateDeterministicKeyPair
+    */
+
+    const curve_info* curve = get_curve_by_name(SECP256K1_NAME);
+
+    memcpy(seckey, digest, SHA256_DIGEST_LENGTH);
+    while (1) {
+        sha256sum(seckey, seckey, SHA256_DIGEST_LENGTH);
+        if (0 != seckey_is_valid(curve->params, seckey)) {
+            continue;
+        }
+
+        skycoin_pubkey_from_seckey(seckey, pubkey);
+        if (!pubkey_is_valid(curve->params, pubkey)) {
+            // TODO: if pubkey is invalid, FAIL/PANIC
+            return -1;
+        }
+
+        break;
+    }
+
+    return 0;
 }
 
 /*
 secret_key: 32 bytes
 remote_public_key: SKYCOIN_PUBKEY_LEN bytes (compressed public key)
 ecdh_key: SKYCOIN_PUBKEY_LEN bytes (compressed public key)
-*/
-void ecdh(const uint8_t* secret_key, const uint8_t* remote_public_key, uint8_t* ecdh_key)
-{
-    uint8_t mult[SKYCOIN_SIG_LEN] = {0};
-    const curve_info* curve = get_curve_by_name(SECP256K1_NAME);
-    ecdh_multiply(curve->params, secret_key, remote_public_key, mult); // 65
 
-    // Compress public key
-    memcpy(&ecdh_key[1], &mult[1], SKYCOIN_PUBKEY_LEN-1);
-    if (mult[64] % 2 == 0) {
-        ecdh_key[0] = 0x02;
-    } else {
-        ecdh_key[0] = 0x03;
+Returns a nonzero value if arguments are invalid.
+Caller should verify that the ecdh_key is a valid pubkey.
+*/
+int ecdh(const uint8_t* pub_key, const uint8_t* sec_key, uint8_t* ecdh_key)
+{
+    uint8_t long_pub_key[65] = {0};
+    const curve_info* curve = get_curve_by_name(SECP256K1_NAME);
+    int ret = ecdh_multiply(curve->params, sec_key, pub_key, long_pub_key);
+    if (ret != 0) {
+        return ret;
     }
+    compress_pubkey(long_pub_key, ecdh_key);
+    return 0;
 }
 
 /*
-secret_key: 32 bytes
-remote_public_key: SKYCOIN_PUBKEY_LEN bytes (compressed public key)
-shared_secret: 32 bytes (sha256 hash)
-
-Equivalent to:
-sha256(ecdh(secret, public))
+Returns 0 on success
 */
-void ecdh_shared_secret(const uint8_t* secret_key, const uint8_t* remote_public_key, uint8_t* shared_secret)
+int secp256k1sum(const uint8_t* seed, const size_t seed_length, uint8_t* digest)
 {
-	/*
-	SKYCOIN CIPHER AUDIT
-	Compare to function: UNKNOWN
-	Does this function have any purpose?
-	*/
-    uint8_t ecdh_key[SKYCOIN_PUBKEY_LEN] = {0};
-    ecdh(secret_key, remote_public_key, ecdh_key);
-    compute_sha256sum(ecdh_key, shared_secret, SKYCOIN_PUBKEY_LEN);
-}
-
-void secp256k1sum(const uint8_t* seed, const size_t seed_length, uint8_t* digest)
-{
-	/*
-	SKYCOIN CIPHER AUDIT
-	Compare to function: secp256k1.Secp256k1Hash
-	*/
-    uint8_t seckey[SKYCOIN_SECKEY_LEN] = {0};							// generateKey(sha256(seed))
+    /*
+    SKYCOIN CIPHER AUDIT
+    Compare to function: secp256k1.Secp256k1Hash
+    */
+    uint8_t seckey[SKYCOIN_SECKEY_LEN] = {0};                           // generateKey(sha256(seed))
     uint8_t dummy_seckey[SKYCOIN_SECKEY_LEN] = {0};
-    uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};							// generateKey(sha256(sha256(seed))
-    uint8_t hash[SHA256_DIGEST_LENGTH] = {0};							// sha256(seed)
-    uint8_t hash2[SHA256_DIGEST_LENGTH] = {0};							// sha256(sha256(seed))
-    uint8_t ecdh_key[SKYCOIN_PUBKEY_LEN] = {0};							// ecdh(pubkey, seckey)
-    uint8_t hash_ecdh[SHA256_DIGEST_LENGTH + SKYCOIN_PUBKEY_LEN] = {0}; // sha256(sha256(seed)+ecdh)
+    uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};                           // generateKey(sha256(sha256(seed))
+    uint8_t hash[SHA256_DIGEST_LENGTH] = {0};                           // sha256(seed)
+    uint8_t hash2[SHA256_DIGEST_LENGTH] = {0};                          // sha256(sha256(seed))
+    uint8_t ecdh_key[SKYCOIN_PUBKEY_LEN] = {0};                         // ecdh(pubkey, seckey)
 
     // hash = sha256(seed)
-    compute_sha256sum(seed, hash, seed_length);
+    sha256sum(seed, hash, seed_length);
 
-    // seckey = deriveSecKey(hash)
-    // AUDIT: This should be deterministicKeyPairIteratorStep(), which performs sha256() in a loop,
-    // each time checking that the resulting secret key is valid. This code is missing that.
-    compute_sha256sum(hash, seckey, sizeof(hash));
+    // seckey, _ = deterministic_key_pair_iterator_step(hash)
+    if (0 != deterministic_key_pair_iterator_step(hash, seckey, pubkey)) {
+        // TODO: abort() on failure
+        return -1;
+    }
 
-    // pubkey = derivePubKey(sha256(hash))
-    compute_sha256sum(hash, hash2, sizeof(hash));
-    generate_deterministic_key_pair(hash2, SHA256_DIGEST_LENGTH, dummy_seckey, pubkey);
+    // _, pubkey = deterministic_key_pair_iterator_step(sha256(hash))
+    // This value usually equals the seckey generated above, but not always (1^-128 probability)
+    sha256sum(hash, hash2, sizeof(hash));
+    if (0 != deterministic_key_pair_iterator_step(hash2, dummy_seckey, pubkey)) {
+        // TODO: abort() on failure
+        return -2;
+    }
 
     // ecdh_key = ECDH(pubkey, seckey)
-    ecdh(seckey, pubkey, ecdh_key);
+    // Note: we don't care if the ecdh_key is a valid public key, we're only
+    // using the bytes to salt the hash
+    if (0 != ecdh(pubkey, seckey, ecdh_key)) {
+        // TODO: abort() on failure
+        return -3;
+    }
 
     // sha256(hash + ecdh_key)
-    memcpy(hash_ecdh, hash, sizeof(hash));
-    memcpy(&hash_ecdh[SHA256_DIGEST_LENGTH], ecdh_key, sizeof(ecdh_key));
-    compute_sha256sum(hash_ecdh, digest, sizeof(hash_ecdh));
+    sha256sum_two(hash, SHA256_DIGEST_LENGTH, ecdh_key, SKYCOIN_PUBKEY_LEN, digest);
+
+    return 0;
 }
 
-// next_seed should be 32 bytes (size of a secp256k1sum digest)
-void generate_deterministic_key_pair_iterator(const uint8_t* seed, const size_t seed_length, uint8_t* next_seed, uint8_t* seckey, uint8_t* pubkey)
+#define DEBUG_DETERMINISTIC_KEY_PAIR_ITERATOR 0
+
+/*
+next_seed should be 32 bytes (size of a secp256k1sum digest)
+
+Returns 0 on success
+*/
+int deterministic_key_pair_iterator(const uint8_t* seed, const size_t seed_length, uint8_t* next_seed, uint8_t* seckey, uint8_t* pubkey)
 {
-	/*
-	SKYCOIN CIPHER AUDIT
-	Compare to function: secp254k1.DeterministicKeyPairIterator
-	*/
-    uint8_t seed1[SHA256_DIGEST_LENGTH] = {0};
+    /*
+    SKYCOIN CIPHER AUDIT
+    Compare to function: secp254k1.DeterministicKeyPairIterator
+    */
     uint8_t seed2[SHA256_DIGEST_LENGTH] = {0};
 
-    // AUDIT: Why 256 here? seed can be any length in the skycoin cipher code.
-    // If there are length restrictions imposed here, they must be enforced with a check
-    uint8_t keypair_seed[256] = {0};
+    if (0 != secp256k1sum(seed, seed_length, next_seed)) {
+        return -1;
+    }
 
-    secp256k1sum(seed, seed_length, seed1);
+    #if DEBUG_DETERMINISTIC_KEY_PAIR_ITERATOR
+    char buf[256];
+    tohex(buf, seed, seed_length);
+    printf("seedIn: %s\n", buf);
+    tohex(buf, next_seed, SHA256_DIGEST_LENGTH);
+    printf("next_seed: %s\n", buf);
+    #endif
 
-    // AUDIT: buffer overflow if seed_length > 256 - SHA256_DIGEST_LENGTH
-    memcpy(keypair_seed, seed, seed_length);
-    memcpy(&keypair_seed[seed_length], seed1, SHA256_DIGEST_LENGTH);
-    memcpy(next_seed, seed1, SHA256_DIGEST_LENGTH);
+    sha256sum_two(seed, seed_length, next_seed, SHA256_DIGEST_LENGTH, seed2);
 
-    compute_sha256sum(keypair_seed, seed2, seed_length + sizeof(seed1));
-    generate_deterministic_key_pair(seed2, SHA256_DIGEST_LENGTH, seckey, pubkey);
+    #if DEBUG_DETERMINISTIC_KEY_PAIR_ITERATOR
+    tohex(buf, seed2, SHA256_DIGEST_LENGTH);
+    printf("seed2: %s\n", buf);
+    #endif
+
+    if (0 != deterministic_key_pair_iterator_step(seed2, seckey, pubkey)) {
+        return -1;
+    }
+
+    #if DEBUG_DETERMINISTIC_KEY_PAIR_ITERATOR
+    tohex(buf, seckey, SKYCOIN_SECKEY_LEN);
+    printf("seckey: %s\n", buf);
+    tohex(buf, pubkey, SKYCOIN_PUBKEY_LEN);
+    printf("pubkey: %s\n", buf);
+    #endif
+
+    return 0;
 }
 
 // priv_key 32 bytes private key
 // digest 32 bytes sha256 hash
 // sig 65 bytes compact recoverable signature
-int ecdsa_skycoin_sign(const uint8_t* priv_key, const uint8_t* digest, uint8_t* sig) {
-	int ret;
-	const curve_info* curve = get_curve_by_name(SECP256K1_NAME);
-	uint8_t recid = 0;
-	ret = ecdsa_sign_digest(curve->params, priv_key, digest, sig, &recid, NULL);
-	if (recid > 4) {
-		// This should never happen; we can abort() here, as a sanity check
-		return -3;
-	}
-	sig[64] = recid;
-	return ret;
+int skycoin_ecdsa_sign_digest(const uint8_t* priv_key, const uint8_t* digest, uint8_t* sig)
+{
+    int ret;
+    const curve_info* curve = get_curve_by_name(SECP256K1_NAME);
+    uint8_t recid = 0;
+    ret = ecdsa_sign_digest(curve->params, priv_key, digest, sig, &recid, NULL);
+    if (recid > 4) {
+        // This should never happen; we can abort() here, as a sanity check
+        return -3;
+    }
+    sig[64] = recid;
+    return ret;
 }
 
 /**
- * @brief compute_sha256sum hash over buffer
+ * @brief sha256sum hash over buffer
  * @param buffer in data
  * @param buffer_len in data len
  * @param out_digest out sha256 data
  */
-void compute_sha256sum(const uint8_t* data, uint8_t* out_digest /*size SHA256_DIGEST_LENGTH*/, size_t data_length)
+void sha256sum(const uint8_t* data, uint8_t* out_digest /*size SHA256_DIGEST_LENGTH*/, size_t data_length)
 {
     SHA256_CTX ctx;
     sha256_Init(&ctx);
@@ -235,14 +300,14 @@ void compute_sha256sum(const uint8_t* data, uint8_t* out_digest /*size SHA256_DI
 }
 
 /**
- * @brief add_sha256 make the sum of msg2 and to msg1
+ * @brief sha256sum_two compute sha256(msg1 + msg2)
  * @param msg1 buffer content
- * @param msg1_len buffer conttn len
+ * @param msg1_len buffer content len
  * @param msg2 buffer content
  * @param msg2_len buffer content len
  * @param out_digest sum_sha256 of msg1 appened to mag2
  */
-void add_sha256(const uint8_t* msg1, size_t msg1_len, const uint8_t* msg2, size_t msg2_len, uint8_t* out_digest)
+void sha256sum_two(const uint8_t* msg1, size_t msg1_len, const uint8_t* msg2, size_t msg2_len, uint8_t* out_digest)
 {
     SHA256_CTX ctx;
     sha256_Init(&ctx);
@@ -256,23 +321,31 @@ pubkey is the SKYCOIN_PUBKEY_LEN byte compressed pubkey
 
 address_size is the size of the allocated address buffer, it will be overwritten by the computed address size
 The address_size must be at least 36 bytes and the address buffer must be at least that large.
-*/
-void generate_skycoin_address_from_pubkey(const uint8_t* pubkey, char* b58address, size_t* size_b58address)
-{
-	/*
-	SKYCOIN CIPHER AUDIT
-	https://github.com/skycoin/skycoin/wiki/Technical-background-of-version-0-Skycoin-addresses
 
-	address = ripemd160(sha256(sha256(pubkey))
-	checksum = sha256(address+version)
-	*/
+Returns 0 if the address cannot fit into the b58address array or if the pubkey is not valid
+*/
+int skycoin_address_from_pubkey(const uint8_t* pubkey, char* b58address, size_t* size_b58address)
+{
+    /*
+    SKYCOIN CIPHER AUDIT
+    https://github.com/skycoin/skycoin/wiki/Technical-background-of-version-0-Skycoin-addresses
+
+    address = ripemd160(sha256(sha256(pubkey))
+    checksum = sha256(address+version)
+    */
+    const curve_info* curve = get_curve_by_name(SECP256K1_NAME);
+
+    if (!pubkey_is_valid(curve->params, pubkey)) {
+        return 0;
+    }
+
     uint8_t address[RIPEMD160_DIGEST_LENGTH + 1 + 4] = {0};
     uint8_t r1[SHA256_DIGEST_LENGTH] = {0};
     uint8_t r2[SHA256_DIGEST_LENGTH] = {0};
 
     // ripemd160(sha256(sha256(pubkey))
-    compute_sha256sum(pubkey, r1, SKYCOIN_PUBKEY_LEN);
-    compute_sha256sum(r1, r2, sizeof(r1));
+    sha256sum(pubkey, r1, SKYCOIN_PUBKEY_LEN);
+    sha256sum(r1, r2, sizeof(r1));
     ripemd160(r2, SHA256_DIGEST_LENGTH, address);
 
     // compute base58 address
@@ -280,10 +353,13 @@ void generate_skycoin_address_from_pubkey(const uint8_t* pubkey, char* b58addres
     address[RIPEMD160_DIGEST_LENGTH] = 0; // version byte
 
     // checksum
-    compute_sha256sum(address, digest, RIPEMD160_DIGEST_LENGTH + 1);
+    sha256sum(address, digest, RIPEMD160_DIGEST_LENGTH + 1);
     memcpy(&address[RIPEMD160_DIGEST_LENGTH + 1], digest, SKYCOIN_ADDRESS_CHECKSUM_LENGTH);
 
-    b58enc(b58address, size_b58address, address, sizeof(address));
+    if (b58enc(b58address, size_b58address, address, sizeof(address))) {
+        return 1;
+    }
+    return 0;
 }
 
 void transaction_initZeroTransaction(Transaction* self)

@@ -1,3 +1,5 @@
+![hardware-wallet-logo](https://user-images.githubusercontent.com/8619106/56054900-b1f9b680-5d75-11e9-8deb-cf657cfd0c55.png)
+
 # Skycoin hardware wallet
 
 [![Build Status](https://travis-ci.com/skycoin/hardware-wallet.svg?branch=develop)](https://travis-ci.com/skycoin/hardware-wallet)
@@ -5,8 +7,9 @@
 ## Table of contents
 
 <!-- MarkdownTOC levels="1,2,3,4,5" autolink="true" bracket="round" -->
+
 - [Overview](#overview)
-- [FAQ](#FAQ)
+- [FAQ](#faq)
 - [Install tools](#install-tools)
 - [Build instructions:](#build-instructions)
   - [Build and run emulator](#build-and-run-emulator)
@@ -23,13 +26,15 @@
     - [Versioning combined binary builds](#versioning-combined-binary-builds)
     - [Versioning libraries](#versioning-libraries)
   - [Running tests](#running-tests)
-  - [Validate the TRNG](#Validate-the-TRNG)
-    - [Files description](#Files-description)
+    - [Generating tests code coverage](#generating-tests-code-coverage)
+  - [Validate the TRNG](#validate-the-trng)
+      - [Files description](#files-description)
   - [Releases](#releases)
     - [Skycoin firmware releases](#skycoin-firmware-releases)
     - [Update the version](#update-the-version)
     - [Pre-release testing](#pre-release-testing)
     - [Creating release builds](#creating-release-builds)
+
 <!-- /MarkdownTOC -->
 
 ## Overview
@@ -178,6 +183,11 @@ The project includes a test suite. In order to run it just execute the following
 ```
 make clean && make test
 ```
+
+#### Generating tests code coverage
+
+To generate code coverage html report you need to have `lcov` available in your `PATH`, in a debian based system you can run `apt install lcov`, lcov can be available using `brew` on osx too, but in the most general case you can follow the the official [install instructions](https://github.com/linux-test-project/lcov/blob/4ff2ed639ec25c271eb9aa2fcdadd30bfab33e4b/README).
+After having this tool you can run `make check-coverage`, if not errors found you can find the result in `coverage/index.html`.
 
 ### Validate the TRNG
 
@@ -353,3 +363,4 @@ sub   cv25519 2017-09-01 [E] [expires: 2023-03-18]
 ```
 
 Keybase.io account: https://keybase.io/gzc
+

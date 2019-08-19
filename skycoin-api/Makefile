@@ -5,6 +5,7 @@ UNAME_S     ?= $(shell uname -s)
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 MKFILE_DIR  := $(dir $(MKFILE_PATH))
 TOOLS_DIR   := $(MKFILE_DIR)/tools
+COVERAGE ?= 0
 
 CC       ?= gcc
 
@@ -45,8 +46,8 @@ CFLAGS += -I$(MKFILE_DIR) $(INC)
 CFLAGS += -I../tiny-firmware/vendor/libskycoin/include
 
 SRCS += skycoin_crypto.c
+SRCS += skycoin_signature.c
 SRCS += check_digest.c
-SRCS += skycoin_check_signature.c
 SRCS += $(shell ls $(TOOLS_DIR)/*.c)
 
 OBJS   = $(SRCS:.c=.o)
@@ -62,6 +63,10 @@ TESTLIBS_LINUX += -L$(CHECK_PATH)/src -lcheck
 ifeq ($(UNAME_S), Linux)
 	LIBS=$(LIBS_LINUX)
 	TESTLIBS=$(TESTLIBS_LINUX)
+endif
+ifeq ($(COVERAGE), 1)
+	CFLAGS += -fprofile-arcs -ftest-coverage
+	TESTLIBS+=-lgcov --coverage
 endif
 ifeq ($(UNAME_S), Darwin)
 	LIBS=$(LIBS_DARWIN)
@@ -91,6 +96,7 @@ test_skycoin_crypto: test_skycoin_crypto.o libskycoin-crypto.so
 
 test: test_skycoin_crypto ## Run test suite for Skycoin cipher library for firmware
 	./test_skycoin_crypto
+	./test_skycoin_crypto.py
 
 clean: ## Delete all temporary files
 	rm -f $(MKFILE_DIR)/*.o test_skycoin_crypto
@@ -98,6 +104,9 @@ clean: ## Delete all temporary files
 	rm -f $(TOOLS_DIR)/*.o
 	rm -f $(MKFILE_DIR)/tools/*.o
 	rm -f $(MKFILE_DIR)/*.a
+
+coverage: test_skycoin_crypto
+	gcov -n -b $(SRCS) test_skycoin_crypto.c
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
