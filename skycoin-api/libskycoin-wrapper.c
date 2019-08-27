@@ -9,10 +9,9 @@
 #include "skycoin_crypto.h"
 #include "ripemd160.h"
 #include "base58.h"
-#include "skycoin_check_signature.h"
 
 GoUint32 SKY_cipher_SumSHA256(GoSlice p0, cipher__SHA256* p1) {
-    compute_sha256sum(p0.data, *p1, p0.len);
+    sha256sum(p0.data, *p1, p0.len);
     return SKY_OK;
 }
 
@@ -27,7 +26,7 @@ GoUint32 SKY_cipher_SHA256FromHex(GoString p0, cipher__SHA256* p1) {
 }
 
 GoUint32 SKY_cipher_AddSHA256(cipher__SHA256* p0, cipher__SHA256* p1, cipher__SHA256* p2) {
-    add_sha256((const uint8_t*)p0, sizeof(cipher__SHA256)/sizeof(uint8_t),
+    sha256sum_two((const uint8_t*)p0, sizeof(cipher__SHA256)/sizeof(uint8_t),
                (const uint8_t*)p1, sizeof(cipher__SHA256)/sizeof(uint8_t),
                (uint8_t*)p2);
     return SKY_OK;
@@ -42,20 +41,22 @@ GoUint32 SKY_cipher_GenerateKeyPair(cipher__PubKey* p0, cipher__SecKey* p1) {
     // times to be required an integer overflow check in always_wrowing
     srand(time(0) + ++always_wrowing);
     int seed = rand();
-    compute_sha256sum((const uint8_t*)&seed, digest, sizeof(seed));
-    generate_deterministic_key_pair(digest, sizeof(digest), (uint8_t*)p1, (uint8_t*)p0);
+    uint8_t nextSeed[SHA256_DIGEST_LENGTH] = {0};
+    sha256sum((const uint8_t*)&seed, digest, sizeof(seed));
+    deterministic_key_pair_iterator(digest, sizeof(digest), nextSeed, (uint8_t*)p1, (uint8_t*)p0);
     return SKY_OK;
 }
 
 GoUint32 SKY_cipher_GenerateDeterministicKeyPair(GoSlice p0, cipher__PubKey* p1, cipher__SecKey* p2) {
-    generate_deterministic_key_pair(p0.data, p0.len, (uint8_t *)p2, (uint8_t*)p1);
+    uint8_t nextSeed[SHA256_DIGEST_LENGTH] = {0};
+    deterministic_key_pair_iterator(p0.data, p0.len, nextSeed, (uint8_t *)p2, (uint8_t*)p1);
     return SKY_OK;
 }
 
 GoUint32 SKY_cipher_AddressFromPubKey(cipher__PubKey* p0, cipher__Address* p1) {
     char buff[256] = {0};
     size_t size_address = sizeof(buff);
-    generate_skycoin_address_from_pubkey(
+    skycoin_address_from_pubkey(
                 (const uint8_t*)p0, buff, &size_address);
     GoString add = {.p = buff, .n = sizeof(buff)};
     return SKY_cipher_DecodeBase58Address(add, p1);
@@ -88,7 +89,7 @@ GoUint32 SKY_cipher_Address_Checksum(cipher__Address* p0, cipher__Checksum* p1) 
     return SKY_OK;
 }
 
-GoUint32 SKY_cipher_Address_Bytes(cipher__Address* p0, coin__UxArray* p1) {
+GoUint32 SKY_cipher_Address_Bytes(cipher__Address* p0, GoSlice_* p1) {
     uint8_t b[20 + 1 + 4] = {0};
     memcpy(b, p0->Key, sizeof(p0->Key));
     memcpy(&b[20], &(p0->Version), sizeof(p0->Version));
@@ -107,7 +108,7 @@ GoUint32 SKY_base58_Encode(GoSlice p0, GoString_* p1) {
     return b58enc((char*)p1->p, (size_t *)&(p1->n), p0.data, p0.len) ? SKY_OK : SKY_ERROR;
 }
 
-GoUint32 SKY_base58_Decode(GoString p0, coin__UxArray* p1) {
+GoUint32 SKY_base58_Decode(GoString p0, GoSlice_* p1) {
     size_t sz = p0.n;
     if (!b58tobin((void*)p0.p, &sz, p1->data)) {
         return SKY_ERROR;
@@ -118,7 +119,7 @@ GoUint32 SKY_base58_Decode(GoString p0, coin__UxArray* p1) {
 
 GoUint32 SKY_cipher_Address_String(cipher__Address* p0, GoString_* p1) {
     char str[25] = {0};
-    coin__UxArray bytes = {.data = str, .len = sizeof(str)};
+    GoSlice_ bytes = {.data = str, .len = sizeof(str)};
     GoUint32 ret = SKY_cipher_Address_Bytes(p0, &bytes);
     if (ret != SKY_OK) {
         return ret;
@@ -283,18 +284,17 @@ GoUint32 SKY_cipher_PubKeyFromSecKey(cipher__SecKey* p0, cipher__PubKey* p1) {
     if (!memcmp(&dumy, p0, sizeof(cipher__SecKey))) {
         return SKY_ErrPubKeyFromNullSecKey;
     }
-    generate_pubkey_from_seckey((uint8_t *)p0, (uint8_t *)p1);
+    skycoin_pubkey_from_seckey((uint8_t *)p0, (uint8_t *)p1);
     return SKY_OK;
 }
 
-GoUint32 SKY_cipher_ECDH(cipher__PubKey* p0, cipher__SecKey* p1, coin__UxArray* p2) {
-    ecdh((const uint8_t *)p1, (const uint8_t *)p0, p2->data);
-    return SKY_OK;
+GoUint32 SKY_cipher_ECDH(cipher__PubKey* p0, cipher__SecKey* p1, GoSlice_* p2) {
+    return ecdh((const uint8_t *)p1, (const uint8_t *)p0, p2->data) ? SKY_ERROR : SKY_OK;
 }
 
 GoUint32 SKY_cipher_PubKeyFromSig(cipher__Sig* p0, cipher__SHA256* p1, cipher__PubKey* p2) {
-    int ret = recover_pubkey_from_signed_digest(
-                (const char*)p1, (const uint8_t*)p0, (uint8_t *)p2);
+    int ret = skycoin_ecdsa_sign_digest(
+                (const char*)p0, (const uint8_t*)p1, (uint8_t *)p2);
     if (ret) {
         return SKY_OK;
     } else {
