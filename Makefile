@@ -224,21 +224,22 @@ test: ## Run all project test suites.
 	make -C skycoin-api/ test
 	VERSION_MAJOR=$(VERSION_FIRMWARE_MAJOR) VERSION_MINOR=$(VERSION_FIRMWARE_MINOR) VERSION_PATCH=$(VERSION_FIRMWARE_PATCH) make emulator
 	EMULATOR=1 VERSION_MAJOR=$(VERSION_FIRMWARE_MAJOR) VERSION_MINOR=$(VERSION_FIRMWARE_MINOR) VERSION_PATCH=$(VERSION_FIRMWARE_PATCH) make -C tiny-firmware/ test
-	make test-libskycoin-against-this-api
+	make test-libsky-compat
 
 tiny-firmware/vendor/libskycoin/Makefile: ## Download libskycoin for tests
-	go get -t github.com/skycoin/libskycoin/...
-	ln -sf $(GOPATH)/src/github.com/skycoin/libskycoin ./tiny-firmware/vendor/libskycoin
-	git -C ./tiny-firmware/vendor/libskycoin remote add simelo https://github.com/simelo/libskycoin.git || true
+	go get -v -t github.com/skycoin/libskycoin/...
+	ln -sf $(GOPATH)/src/github.com/skycoin/libskycoin ./tiny-firmware/vendor/
+	git -C ./tiny-firmware/vendor/libskycoin remote add simelo git@github.com:simelo/libskycoin.git || true
 	git -C ./tiny-firmware/vendor/libskycoin fetch simelo
 	git -C ./tiny-firmware/vendor/libskycoin checkout simelo/stdevAlDen_t34_hardware-wallet_tests
+	git -C ./tiny-firmware/vendor/libskycoin submodule update --recursive
 	git -C ./tiny-firmware/vendor/libskycoin remote remove simelo
 
 tiny-firmware/vendor/libskycoin/include/libskycoin.h: tiny-firmware/vendor/libskycoin/Makefile ## Generate libskycoin C library
 	make -C tiny-firmware/vendor/libskycoin install-deps-libc-$(UNAME_S)
 	make -C tiny-firmware/vendor/libskycoin build-libc
 
-test-libskycoin-against-this-api: tiny-firmware/vendor/libskycoin/include/libskycoin.h ## Run libskycoin tests against hardware wallet crypto API
+test-libsky-compat: tiny-firmware/vendor/libskycoin/include/libskycoin.h ## Run libskycoin tests against hardware wallet crypto API
 	make -C skycoin-api libskycoin-crypto-wrapper.a
 	$(eval LIBSKYCOIN_DIR := $(MKFILE_DIR)tiny-firmware/vendor/libskycoin)
 	$(eval LIBSKYCOIN_LIB_DIR := $(LIBSKYCOIN_DIR)/lib)
