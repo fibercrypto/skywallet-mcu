@@ -242,7 +242,7 @@ test-libskycoin-against-this-api: tiny-firmware/vendor/libskycoin/include/libsky
 	make -C skycoin-api libskycoin-crypto-wrapper.a
 	$(eval LIBSKYCOIN_DIR := $(MKFILE_DIR)tiny-firmware/vendor/libskycoin)
 	$(eval LIBSKYCOIN_LIB_DIR := $(LIBSKYCOIN_DIR)/lib)
-	$(CC) -o test_hardwarewallet $(LIBSKYCOIN_LIB_DIR)/cgo/tests/*.common.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/testutils/libsky_string.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/testutils/libsky_assert.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/testutils/common.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/test_main_hw.c -L$(MKFILE_DIR)skycoin-api -Wl,-rpath,$(MKFILE_DIR)skycoin-api -lskycoin-crypto-wrapper -lskycoin-crypto `pkg-config --cflags --libs check` -lpthread -I$(LIBSKYCOIN_LIB_DIR)/cgo -I$(LIBSKYCOIN_DIR)/include -I$(LIBSKYCOIN_DIR)/build/usr/include -I$(MKFILE_DIR)
+	$(CC) -o test_hardwarewallet $(MKFILE_DIR)tiny-firmware/test_libskycoin_fake_functions.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/*.common.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/testutils/libsky_string.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/testutils/libsky_assert.common.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/testutils/common.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/test_main_hw.c -L$(MKFILE_DIR)skycoin-api -Wl,-rpath,$(MKFILE_DIR)skycoin-api -lskycoin-crypto-wrapper -lskycoin-crypto `pkg-config --cflags --libs check` -lpthread -I$(LIBSKYCOIN_LIB_DIR)/cgo -I$(LIBSKYCOIN_DIR)/include -I$(LIBSKYCOIN_DIR)/build/usr/include -I$(MKFILE_DIR)
 	./test_hardwarewallet
 
 st-flash: ## Deploy (flash) firmware on physical wallet
