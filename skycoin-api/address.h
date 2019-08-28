@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2016 Jochen Hoenicke
+ * Copyright (c) 2016 Daira Hopwood
+ * Copyright (c) 2016 Pavol Rusnak
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the "Software"),
@@ -20,22 +21,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __CURVES_H__
-#define __CURVES_H__
+#ifndef __ADDRESS_H__
+#define __ADDRESS_H__
 
 #include "options.h"
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
-extern const char SECP256K1_NAME[];
-extern const char SECP256K1_DECRED_NAME[];
-extern const char SECP256K1_GROESTL_NAME[];
-extern const char SECP256K1_SMART_NAME[];
-extern const char NIST256P1_NAME[];
-extern const char ED25519_NAME[];
-extern const char ED25519_CARDANO_NAME[];
-extern const char ED25519_SHA3_NAME[];
-#if USE_KECCAK
-extern const char ED25519_KECCAK_NAME[];
+size_t address_prefix_bytes_len(uint32_t address_type);
+void address_write_prefix_bytes(uint32_t address_type, uint8_t* out);
+bool address_check_prefix(const uint8_t* addr, uint32_t address_type);
+#if USE_ETHEREUM
+void ethereum_address_checksum(const uint8_t* addr, char* address, bool rskip60, uint32_t chain_id);
 #endif
-extern const char CURVE25519_NAME[];
 
 #endif

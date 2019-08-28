@@ -75,8 +75,12 @@
 #endif
 
 // add way how to mark confidential data
+#ifdef USE_CONFIDENTIAL_SECTION
+#define CONFIDENTIAL __attribute__((section("confidential")))
+#else
 #ifndef CONFIDENTIAL
 #define CONFIDENTIAL
 #endif
+#endif // USE_CONFIDENTIAL_SECTION
 
 #endif

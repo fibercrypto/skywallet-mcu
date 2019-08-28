@@ -38,10 +38,12 @@ void usbInit(void)
 #endif
 
 extern bool simulateButtonPress;
+#include <unistd.h>
 extern int buttonPressType;
 
 void usbPoll(void)
 {
+    usleep(500);
     emulatorPoll();
 
     static uint8_t buffer[64];

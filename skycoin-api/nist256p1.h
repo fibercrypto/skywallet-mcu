@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2016 Jochen Hoenicke
+ * Copyright (c) 2013-2014 Tomas Dzetkulic
+ * Copyright (c) 2013-2014 Pavol Rusnak
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the "Software"),
@@ -20,22 +21,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __CURVES_H__
-#define __CURVES_H__
+#ifndef __NIST256P1_H__
+#define __NIST256P1_H__
 
-#include "options.h"
+#include <stdint.h>
 
-extern const char SECP256K1_NAME[];
-extern const char SECP256K1_DECRED_NAME[];
-extern const char SECP256K1_GROESTL_NAME[];
-extern const char SECP256K1_SMART_NAME[];
-extern const char NIST256P1_NAME[];
-extern const char ED25519_NAME[];
-extern const char ED25519_CARDANO_NAME[];
-extern const char ED25519_SHA3_NAME[];
-#if USE_KECCAK
-extern const char ED25519_KECCAK_NAME[];
-#endif
-extern const char CURVE25519_NAME[];
+#include "bip32.h"
+#include "ecdsa.h"
+
+extern const ecdsa_curve nist256p1;
+extern const curve_info nist256p1_info;
 
 #endif

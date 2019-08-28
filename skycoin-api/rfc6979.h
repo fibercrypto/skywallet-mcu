@@ -1,5 +1,7 @@
 /**
- * Copyright (c) 2016 Jochen Hoenicke
+ * Copyright (c) 2013-2014 Tomas Dzetkulic
+ * Copyright (c) 2013-2014 Pavol Rusnak
+ * Copyright (c) 2015-2017 Jochen Hoenicke
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the "Software"),
@@ -20,22 +22,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __CURVES_H__
-#define __CURVES_H__
+#ifndef __RFC6979_H__
+#define __RFC6979_H__
 
-#include "options.h"
+#include "bignum.h"
+#include <stdint.h>
 
-extern const char SECP256K1_NAME[];
-extern const char SECP256K1_DECRED_NAME[];
-extern const char SECP256K1_GROESTL_NAME[];
-extern const char SECP256K1_SMART_NAME[];
-extern const char NIST256P1_NAME[];
-extern const char ED25519_NAME[];
-extern const char ED25519_CARDANO_NAME[];
-extern const char ED25519_SHA3_NAME[];
-#if USE_KECCAK
-extern const char ED25519_KECCAK_NAME[];
-#endif
-extern const char CURVE25519_NAME[];
+// rfc6979 pseudo random number generator state
+typedef struct {
+    uint8_t v[32], k[32];
+} rfc6979_state;
+
+void init_rfc6979(const uint8_t* priv_key, const uint8_t* hash, rfc6979_state* rng);
+void generate_rfc6979(uint8_t rnd[32], rfc6979_state* rng);
+void generate_k_rfc6979(bignum256* k, rfc6979_state* rng);
 
 #endif

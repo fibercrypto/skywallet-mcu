@@ -42,13 +42,34 @@ ifeq ($(UNAME_S), Darwin)
 endif
 endif
 INC += -I$(TOOLS_DIR)
+INC += -I../tiny-firmware/vendor/libskycoin/include
 CFLAGS += -I$(MKFILE_DIR) $(INC)
-CFLAGS += -I../tiny-firmware/vendor/libskycoin/include
+CFLAGS += -DUSE_CARDANO=0 -DUSE_CARDANO=0 -DUSE_BIP32_25519_CURVES=0 -DUSE_MONERO=0
 
 SRCS += skycoin_crypto.c
 SRCS += skycoin_signature.c
 SRCS += check_digest.c
-SRCS += $(shell ls $(TOOLS_DIR)/*.c)
+# --hide="*test_*"
+SRCS += $(shell ls $(TOOLS_DIR)/*.c | grep -v test_)
+SRCS += sha3.o
+SRCS += blake2b.o
+SRCS += groestl.o
+SRCS += address.o
+SRCS += aes/aes_modes.o
+SRCS += aes/aescrypt.o
+SRCS += aes/aeskey.o
+SRCS += aes/aestab.o
+#SRCS += aes/aestst.o
+SRCS += ed25519-donna/curve25519-donna-32bit.o
+SRCS += ed25519-donna/curve25519-donna-helpers.o
+SRCS += ed25519-donna/curve25519-donna-scalarmult-base.o
+SRCS += ed25519-donna/ed25519-donna-32bit-tables.o
+SRCS += ed25519-donna/ed25519-donna-basepoint-table.o
+SRCS += ed25519-donna/ed25519-donna-impl-base.o
+SRCS += ed25519-donna/ed25519-keccak.o
+SRCS += ed25519-donna/ed25519-sha3.o
+SRCS += ed25519-donna/ed25519.o
+SRCS += ed25519-donna/modm-donna-32bit.o
 
 OBJS   = $(SRCS:.c=.o)
 
@@ -91,8 +112,11 @@ libskycoin-crypto-wrapper.a: libskycoin-wrapper.o libskycoin-crypto.a
 test_skycoin_crypto.o: test_skycoin_crypto.c
 	$(CC) $(CFLAGS) $(TESTINC) -o $@ -c $<
 
-test_skycoin_crypto: test_skycoin_crypto.o libskycoin-crypto.so
-	$(CC) test_skycoin_crypto.o $(OBJS) -L. -Wl,-rpath,$(MKFILE_DIR) -lskycoin-crypto $(LIBS) $(TESTLIBS) -o test_skycoin_crypto
+tools/test_bip32.o: tools/test_bip32.c	
+	$(CC) $(CFLAGS) $(TESTINC) -o $@ -c $<
+
+test_skycoin_crypto: test_skycoin_crypto.o tools/test_bip32.o libskycoin-crypto.so
+	$(CC) test_skycoin_crypto.o $(OBJS) -L. -Wl,-rpath,$(MKFILE_DIR) -lskycoin-crypto $(LIBS) $(TESTLIBS) -o test_skycoin
 
 test: test_skycoin_crypto ## Run test suite for Skycoin cipher library for firmware
 	./test_skycoin_crypto
