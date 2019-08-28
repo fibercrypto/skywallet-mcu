@@ -48,6 +48,8 @@ endif
 DEBUG_LINK ?= 0
 CFLAGS += -Wno-sequence-point
 CFLAGS += -I$(TOP_DIR)protob/nanopb/vendor/nanopb -I$(TOP_DIR)protob/c -DPB_FIELD_16BIT=1
+CFLAGS += -I$(TOP_DIR)vendor/skycoin-crypto/tools
+CFLAGS += -Itools
 # CFLAGS += -DQR_MAX_VERSION=0
 CFLAGS += -DDEBUG_LINK=$(DEBUG_LINK)
 CFLAGS += -DDEBUG_LOG=$(DEBUG_LOG)
@@ -104,6 +106,25 @@ OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/secp256k1.o
 OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/bip39.o
 OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/pbkdf2.o
 OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/entropypool.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/sha3.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/blake2b.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/groestl.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/address.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/aes/aes_modes.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/aes/aescrypt.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/aes/aeskey.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/aes/aestab.o
+#OBJS += aes/aestst.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/curve25519-donna-32bit.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/curve25519-donna-helpers.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/curve25519-donna-scalarmult-base.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519-donna-32bit-tables.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519-donna-basepoint-table.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519-donna-impl-base.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519-keccak.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519-sha3.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/modm-donna-32bit.o
 #end skycoin-crypto
 
 ifeq ($(REVERSE_SCREEN),1)
