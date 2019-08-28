@@ -37,6 +37,7 @@ TEST_OBJS += firmware/test_reset.o
 TEST_OBJS += firmware/test_main.o
 TEST_OBJS += firmware/test_many_address_golden.o
 TEST_OBJS += firmware/test_protect.o
+TEST_OBJS += firmware/test_bip32.o
 #end test_skyhw
 
 ifneq ($(EMULATOR),1)
