@@ -57,7 +57,7 @@ START_TEST(TestBip32TestVectors)
     // Note: the 2nd link lacks the detailed values of test vector 3
     testChildKey children1[] = {
         {
-            path : "m/0'",
+            .path = "m/0'",
             .privKey = "xprv9uHRZZhk6KAJC1avXpDAp4MDc3sQKNxDiPvvkX8Br5ngLNv1TxvUxt4cV1rGL5hj6KCesnDYUhd7oWgT11eZG7XnxHrnYeSvkzY7d2bhkJ7",
             .pubKey = "xpub68Gmy5EdvgibQVfPdqkBBCHxA5htiqg55crXYuXoQRKfDBFA1WEjWgP6LHhwBZeNK1VTsfTFUHCdrfp1bgwQ9xv5ski8PX9rL2dZXvgGDnw",
             .fingerprint = "5c1bd648",
@@ -102,8 +102,8 @@ START_TEST(TestBip32TestVectors)
             .chainCode = "cfb71883f01676f587d023cc53a35bc7f88f724b1f8c2892ac1275ac822a3edd",
             .hexPubKey = "02e8445082a72f29b75ca48748a914df60622a609cacfce8ed0e35804560741d29",
             .wifPrivKey = "KwjQsVuMjbCP2Zmr3VaFaStav7NvevwjvvkqrWd5Qmh1XVnCteBR",
-            childNumber : 2,
-            depth : 4,
+            .childNumber = 2,
+            .depth = 4,
         },
         {
             .path = "m/0'/1/2'/2/1000000000",
