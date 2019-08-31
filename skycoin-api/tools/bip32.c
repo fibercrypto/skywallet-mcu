@@ -199,7 +199,7 @@ uint32_t hdnode_fingerprint(HDNode* node)
 
     hdnode_fill_public_key(node);
     hasher_Raw(node->curve->hasher_pubkey, node->public_key, 33, digest);
-    fingerprint = ((uint32_t)digest[0] << 24) + (digest[1] << 16) + (digest[2] << 8) + digest[3];
+    memcpy(&fingerprint, digest, sizeof(fingerprint));
     memzero(digest, sizeof(digest));
     return fingerprint;
 }
