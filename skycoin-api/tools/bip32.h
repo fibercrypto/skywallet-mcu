@@ -42,7 +42,7 @@ typedef struct {
 } curve_info;
 
 typedef struct {
-    uint32_t depth;
+    uint8_t depth;
     uint32_t child_num;
     uint8_t chain_code[32];
 
