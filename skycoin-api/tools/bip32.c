@@ -51,6 +51,12 @@
 #include "hasher.h"
 #include "memzero.h"
 
+// private_wallet_version is the version flag for serialized private keys ("xpriv")
+uint8_t private_wallet_version[] = {0x04, 0x88, 0xAD, 0xE4};
+
+// public_wallet_version is the version flag for serialized public keys ("xpub")
+uint8_t public_wallet_version[] = {0x04, 0x88, 0xB2, 0x1E};
+
 const curve_info ed25519_info = {
     .bip32_name = "ed25519 seed",
     .params = NULL,
@@ -775,13 +781,29 @@ static int hdnode_serialize(const HDNode* node, uint32_t fingerprint, uint32_t v
     return ret;
 }
 
+static void reverse_buffer(uint8_t *in, uint8_t *out, size_t len) {
+    for (size_t i = 0; i < len; ++i) {
+        memcpy(&out[i], &in[len - i - 1], 1);
+    }
+}
+
 int hdnode_serialize_public(const HDNode* node, uint32_t fingerprint, uint32_t version, char* str, int strsize)
 {
+    // FIXME: Make use of the version argument, skycoin link
+    // Version:           PrivateWalletVersion,
+    uint8_t buf[sizeof(public_wallet_version)] = {0};
+    reverse_buffer(public_wallet_version, buf, sizeof(buf));
+    memcpy(&version, buf, sizeof(version));
     return hdnode_serialize(node, fingerprint, version, 1, str, strsize);
 }
 
 int hdnode_serialize_private(const HDNode* node, uint32_t fingerprint, uint32_t version, char* str, int strsize)
 {
+    // FIXME: Make use of the version argument, skycoin link
+    // Version:           PrivateWalletVersion,
+    uint8_t buf[sizeof(private_wallet_version)] = {0};
+    reverse_buffer(private_wallet_version, buf, sizeof(buf));
+    memcpy(&version, buf, sizeof(version));
     return hdnode_serialize(node, fingerprint, version, 0, str, strsize);
 }
 
