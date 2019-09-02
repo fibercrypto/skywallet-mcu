@@ -114,7 +114,7 @@ ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage* msg, ResponseSkycoinSign
     uint8_t seckey[SKYCOIN_SECKEY_LEN] = {0};
     uint8_t digest[SHA256_DIGEST_LENGTH] = {0};
     uint8_t signature[SKYCOIN_SIG_LEN];
-    if (fsm_getKeyPairAtIndex(1, pubkey, seckey, NULL, msg->address_n) != ErrOk) {
+    if (fsm_getKeyPairAtIndex(1, pubkey, seckey, NULL, msg->address_n, true) != ErrOk) {
         return ErrInvalidValue;
     }
     if (is_sha256_digest_hex(msg->message)) {
@@ -138,12 +138,12 @@ ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage* msg, ResponseSkycoinSign
     return ErrOk;
 }
 
-ErrCode_t msgSignTransactionMessageImpl(uint8_t* message_digest, uint32_t index, char* signed_message)
+ErrCode_t msgSignTransactionMessageImpl(uint8_t* message_digest, uint32_t index, char* signed_message, bool with_passphrase)
 {
     uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};
     uint8_t seckey[SKYCOIN_SECKEY_LEN] = {0};
     uint8_t signature[SKYCOIN_SIG_LEN];
-    ErrCode_t res = fsm_getKeyPairAtIndex(1, pubkey, seckey, NULL, index);
+    ErrCode_t res = fsm_getKeyPairAtIndex(1, pubkey, seckey, NULL, index, with_passphrase);
     if (res != ErrOk) {
         return res;
     }
@@ -163,9 +163,9 @@ ErrCode_t msgSignTransactionMessageImpl(uint8_t* message_digest, uint32_t index,
     return res;
 }
 
-ErrCode_t fsm_getKeyPairAtIndex(uint32_t nbAddress, uint8_t* pubkey, uint8_t* seckey, ResponseSkycoinAddress* respSkycoinAddress, uint32_t start_index)
+ErrCode_t fsm_getKeyPairAtIndex(uint32_t nbAddress, uint8_t* pubkey, uint8_t* seckey, ResponseSkycoinAddress* respSkycoinAddress, uint32_t start_index, bool with_passphrase)
 {
-    const char* mnemo = storage_getFullSeed();
+    const char* mnemo = with_passphrase ? storage_getFullSeed() : storage_getMnemonic();
     uint8_t seed[33] = {0};
     uint8_t nextSeed[SHA256_DIGEST_LENGTH] = {0};
     size_t size_address = 36;
@@ -220,7 +220,7 @@ ErrCode_t msgSkycoinAddressImpl(SkycoinAddress* msg, ResponseSkycoinAddress* res
 
     CHECK_MNEMONIC_RET_ERR_CODE
 
-    if (fsm_getKeyPairAtIndex(msg->address_n, pubkey, seckey, resp, start_index) != ErrOk) {
+    if (fsm_getKeyPairAtIndex(msg->address_n, pubkey, seckey, resp, start_index, true) != ErrOk) {
         return ErrAddressGeneration;
     }
     if (msg->address_n == 1 && msg->has_confirm_address && msg->confirm_address) {
@@ -397,6 +397,7 @@ ErrCode_t msgTransactionSignImpl(TransactionSign* msg, ErrCode_t (*funcConfirmTx
             msg->transactionOut[i].address, msg->transactionOut[i].address_index);
     }
 #endif
+    bool with_passphrase = msg->has_use_passphrase && msg->use_passphrase;
     Transaction transaction;
     transaction_initZeroTransaction(&transaction);
     for (uint32_t i = 0; i < msg->nbIn; ++i) {
@@ -423,7 +424,7 @@ ErrCode_t msgTransactionSignImpl(TransactionSign* msg, ErrCode_t (*funcConfirmTx
             uint8_t seckey[32] = {0};
             size_t size_address = 36;
             char address[36] = {0};
-            ErrCode_t ret = fsm_getKeyPairAtIndex(1, pubkey, seckey, NULL, msg->transactionOut[i].address_index);
+            ErrCode_t ret = fsm_getKeyPairAtIndex(1, pubkey, seckey, NULL, msg->transactionOut[i].address_index, with_passphrase);
             if (ret != ErrOk) {
                 return ret;
             }
@@ -454,7 +455,7 @@ ErrCode_t msgTransactionSignImpl(TransactionSign* msg, ErrCode_t (*funcConfirmTx
         transaction_msgToSign(&transaction, i, digest);
         // Only sign inputs owned by Skywallet device
         if (msg->transactionIn[i].has_index) {
-            if (msgSignTransactionMessageImpl(digest, msg->transactionIn[i].index, resp->signatures[resp->signatures_count]) != ErrOk) {
+            if (msgSignTransactionMessageImpl(digest, msg->transactionIn[i].index, resp->signatures[resp->signatures_count], with_passphrase) != ErrOk) {
                 //fsm_sendFailure(FailureType_Failure_InvalidSignature, NULL);
                 //layoutHome();
                 return ErrInvalidSignature;

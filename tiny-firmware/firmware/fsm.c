@@ -385,7 +385,7 @@ void fsm_msgSkycoinSignMessage(SkycoinSignMessage* msg)
     ResponseSkycoinAddress respAddr;
     uint8_t seckey[32] = {0};
     uint8_t pubkey[33] = {0};
-    ErrCode_t err = fsm_getKeyPairAtIndex(1, pubkey, seckey, &respAddr, msg->address_n);
+    ErrCode_t err = fsm_getKeyPairAtIndex(1, pubkey, seckey, &respAddr, msg->address_n, true);
     if (err != ErrOk) {
         fsm_sendResponseFromErrCode(err, NULL, _("Unable to get keys pair"), &msgtype);
         layoutHome();
