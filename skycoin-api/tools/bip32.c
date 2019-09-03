@@ -192,6 +192,51 @@ int hdnode_from_seed(const uint8_t* seed, int seed_len, const char* curve, HDNod
     return 1;
 }
 
+static inline const char *begin_of_next_range(const char *in_str, char spl) {
+    size_t i = 0;
+    while (in_str[i] != spl && in_str[i] != '\0') {
+        ++i;
+    }
+    if (in_str[i] != '\0') {
+        while (in_str[i] == spl) ++i;
+    }
+    return &in_str[i];
+}
+
+static void split_str(const char *in_str, char spl, char const *out[]) {
+    size_t index = 0, out_index = 0;
+    out[out_index++] = &in_str[index];
+    size_t str_len = strlen(in_str);
+    while (index < str_len) {
+        const char *bonr = begin_of_next_range(&in_str[index], spl);
+        if (*bonr == '\0') {
+            return;
+        }
+        out[out_index] = bonr;
+        index += (size_t)(bonr - &in_str[index]);
+        ++out_index;
+    }
+}
+
+static inline int number_from_node(const char *str, uint32_t *out) {
+    size_t digits = 0;
+    if (str[0] < '0' || str[0] > '9') {
+        return -1;
+    }
+    while (str[digits] >= '0' && str[digits] <= '9') {
+        ++digits;
+    }
+    char buf[11] = {0}; // 2^32 as max
+    digits = digits > sizeof(buf) - 1 ? 10 : digits;
+    memcpy(buf, str, digits);
+    *out = (uint32_t)atol(buf);
+    if (str[digits] == '\'') {
+        // i ≥ 2^31 (whether the child is a hardened key)
+        *out += 0x80000000;
+    }
+    return 0;
+}
+
 uint32_t hdnode_fingerprint(HDNode* node)
 {
     uint8_t digest[32];
