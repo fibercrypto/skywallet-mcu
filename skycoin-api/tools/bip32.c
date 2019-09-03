@@ -237,6 +237,30 @@ static inline int number_from_node(const char *str, uint32_t *out) {
     return 0;
 }
 
+int hdnode_from_path(const char *path, const uint8_t* seed, int seed_len, const char* curve, HDNode* out) {
+    int ret = hdnode_from_seed(seed, seed_len, curve, out);
+    if (!ret) {
+        return ret;
+    }
+    const char *path_indexes[256] = {0};
+    split_str(path, '/', path_indexes);
+    uint32_t children_index = 0;
+    if (!number_from_node(path_indexes[0], &children_index)) {
+        return -1;
+    }
+    for (size_t i = 1; path_indexes[i]; ++i) {
+        ret = number_from_node(path_indexes[i], &children_index);
+        if (ret) {
+            return ret;
+        }
+        ret = hdnode_private_ckd(out, children_index);
+        if (ret != 1) {
+            return ret;
+        }
+    }
+    return 1;
+}
+
 uint32_t hdnode_fingerprint(HDNode* node)
 {
     uint8_t digest[32];
