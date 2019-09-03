@@ -886,10 +886,12 @@ int hdnode_deserialize(const char* str, uint32_t version_public, uint32_t versio
         return -1;
     }
     uint32_t version = read_be(node_data);
-    if (version == version_public) {
+    uint32_t rversion = 0;
+    reverse_buffer((uint8_t*)&version, (uint8_t*)&rversion, sizeof(version));
+    if (rversion == version_public) {
         memzero(node->private_key, sizeof(node->private_key));
         memcpy(node->public_key, node_data + 45, 33);
-    } else if (version == version_private) { // private node
+    } else if (rversion == version_private) { // private node
         if (node_data[45]) {                 // invalid data
             return -2;
         }
