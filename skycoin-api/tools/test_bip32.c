@@ -5,6 +5,10 @@
 
 #include <skycoin_crypto.h>
 
+#include "bip32.h"
+#include "curves.h"
+#include "base58.h"
+
 //package bip32
 
 //import (
@@ -267,86 +271,118 @@ START_TEST(TestBip32TestVectors)
     };
 
     testMasterKey vector[] = {vector1, vector2, vector3, vector4};
-    for (size_t i = 0; i < sizeof(vector) / sizeof(*vector); ++i) {
-        testVectorKeyPairs(vector[i]);
-    }
+    (void)vector;
+//    for (size_t i = 0; i < sizeof(vector) / sizeof(*vector); ++i) {
+        testVectorKeyPairs(/*vector[i]*/vector1);
+//    }
 }
 END_TEST
 
 void testVectorKeyPairs(testMasterKey vector)
 {
+    printf("testVectorKeyPairs\n");
     // Decode master seed into hex
-    uint8_t seed[sizeof(vector.seed - 1) / 2] = {0};
-    tobuff(vector.seed, seed, sizeof(seed));
+    uint8_t seed[32 / 2] = {0};  // strlen(vector.seed) --> 32
+    bool ret = tobuff(vector.seed, seed, sizeof(seed));
+    ck_assert_int_eq(true, ret);
 
-    	// Generate a master private and public key
-//    	privKey, err := NewMasterKey(seed)
-    //	require.NoError(t, err)
+    // Generate a master private and public key
+    HDNode master_node;
+    ret = hdnode_from_seed(seed, sizeof(seed), SECP256K1_NAME, &master_node);
+    ck_assert_int_eq(ret, 1);
+    ck_assert_int_eq(vector.depth, master_node.depth);
+    ck_assert_int_eq(vector.childNumber, master_node.child_num);
+    char xpriv_b58_ser[132] = {0};
+    // parent fingerprint is 0x00000000 if master key
+    ret = hdnode_serialize_private(&master_node, 0, 0, xpriv_b58_ser, sizeof(xpriv_b58_ser));
+    ck_assert_int_gt(ret, 0);
+    ck_assert_str_eq(vector.privKey, xpriv_b58_ser);
 
-    //	pubKey := privKey.PublicKey()
+    char xpub_b58_ser[132] = {0};
+    // parent fingerprint is 0x00000000 if master key
+    ret = hdnode_serialize_public(&master_node, 0, 0, xpub_b58_ser, sizeof(xpub_b58_ser));
+    ck_assert_int_gt(ret, 0);
+    ck_assert_mem_eq(vector.pubKey, xpub_b58_ser, sizeof(vector.pubKey));
 
-    //	require.Equal(t, byte(0), privKey.Depth)
-    //	require.Equal(t, byte(0), pubKey.Depth)
 
-    //	require.Equal(t, uint32(0), privKey.ChildNumber())
-    //	require.Equal(t, uint32(0), pubKey.ChildNumber())
-
-    //	require.Equal(t, vector.privKey, privKey.String())
-    //	require.Equal(t, vector.pubKey, pubKey.String())
-
-    //	require.Equal(t, vector.hexPubKey, hex.EncodeToString(pubKey.Key))
-
+    //    TODO
     //	wif := cipher.BitcoinWalletImportFormatFromSeckey(cipher.MustNewSecKey(privKey.Key))
     //	require.Equal(t, vector.wifPrivKey, wif)
 
-    //	require.Equal(t, vector.chainCode, hex.EncodeToString(privKey.ChainCode))
-    //	require.Equal(t, vector.chainCode, hex.EncodeToString(pubKey.ChainCode))
+    char chain_code[sizeof(master_node.chain_code) * 2] = {0};
+    tohex(chain_code, master_node.chain_code, sizeof(master_node.chain_code));
+    ck_assert_str_eq(vector.chainCode, chain_code);
 
-    //	require.Equal(t, vector.fingerprint, hex.EncodeToString(privKey.Fingerprint()))
-    //	require.Equal(t, vector.fingerprint, hex.EncodeToString(pubKey.Fingerprint()))
+    uint32_t fp = hdnode_fingerprint(&master_node);
+    char finger_print[sizeof(master_node) * 2] = {0};
+    tohex(finger_print, (uint8_t*)&fp, sizeof(fp));
+    //    TODO
+    ck_assert_str_eq(vector.fingerprint, finger_print);
 
+//    TODO
     //	require.Equal(t, vector.identifier, hex.EncodeToString(privKey.Identifier()))
     //	require.Equal(t, vector.identifier, hex.EncodeToString(pubKey.Identifier()))
 
-    //	require.Equal(t, vector.depth, privKey.Depth)
-    //	require.Equal(t, vector.depth, pubKey.Depth)
-
-    //	require.Equal(t, vector.childNumber, privKey.ChildNumber())
-    //	require.Equal(t, vector.childNumber, pubKey.ChildNumber())
-
+//    TODO
     //	// Serialize and deserialize both keys and ensure they're the same
     //	assertPrivateKeySerialization(t, privKey, vector.privKey)
     //	assertPublicKeySerialization(t, pubKey, vector.pubKey)
 
-    //	b58pk, err := base58.Decode(vector.privKey)
-    //	require.NoError(t, err)
-    //	privKey2, err := DeserializePrivateKey(b58pk)
-    //	require.NoError(t, err)
-    //	require.Equal(t, privKey, privKey2)
+    extern uint8_t private_wallet_version[], public_wallet_version[];
+    uint32_t xpriv = 0, xpub = 0;
+    memcpy(&xpriv, private_wallet_version, sizeof(xpriv));
+    memcpy(&xpub, public_wallet_version, sizeof(xpub));
+    uint32_t fingerprint = 0;
+    int rret = hdnode_deserialize(
+                xpriv_b58_ser,
+                xpriv,
+                xpub,
+                SECP256K1_NAME,
+                &master_node,
+                &fingerprint);
+    printf("aaaaaaaaa1111111\n");
+    ck_assert_int_eq(rret, 0);
+    ret = hdnode_deserialize(
+                xpub_b58_ser,
+                xpriv,
+                xpub,
+                SECP256K1_NAME,
+                &master_node,
+                &fingerprint);
+    ck_assert_int_eq(ret, 0);
 
-    //	// Test that DeserializeEncodedPrivateKey
-    //	// is equivalent to DeserializePrivateKey(base58.Decode(key))
-    //	privKey3, err := DeserializeEncodedPrivateKey(vector.privKey)
-    //	require.NoError(t, err)
-    //	require.Equal(t, privKey2, privKey3)
-
-    //	// Iterate over the entire child chain and test the given keys
-    //	for _, testChildKey := range vector.children {
+    	// Iterate over the entire child chain and test the given keys
+    printf("vector.childrenCount %lu\n", vector.childrenCount);
+//    for (size_t i = 0; i < vector.childrenCount; ++i) {
+        testChildKey testChildkey = vector.children[/*i*/0];
     //		t.Run(testChildKey.path, func(t *testing.T) {
     //			// Get the private key at the given key tree path
     //			privKey, err := NewPrivateKeyFromPath(seed, testChildKey.path)
-    //			require.NoError(t, err)
+        HDNode child_node;
+        ret = hdnode_from_path(testChildkey.path, seed, sizeof(seed), SECP256K1_NAME, &child_node);
+        ck_assert_int_eq(ret, 1);
+//        for (size_t j = 0; i < sizeof(child_node.private_key); ++i) {
+//            printf("[%d]\n", child_node.private_key[j]);
+//        }
+        ck_assert_int_eq(0, 1);
 
-    //			// Get this private key's public key
-    //			pubKey := privKey.PublicKey()
+//        TODO
+    			// Get this private key's public key
+//    			pubKey := privKey.PublicKey()
 
     //			// Test DeserializePrivateKey
     //			ppk, err := base58.Decode(testChildKey.privKey)
     //			require.NoError(t, err)
     //			xx, err := DeserializePrivateKey(ppk)
     //			require.NoError(t, err)
-
     //			require.Equal(t, xx, privKey)
+//        size_t bin_priv_key[sizeof(child_node.private_key) * 2] = {0};
+//        size_t bin_priv_key_sz = sizeof(bin_priv_key);
+//        ret = b58tobin(child_node.private_key, 
+//                       &bin_priv_key_sz, 
+//                       (char*)child_node.private_key);
+//        ck_assert_int_eq(ret, true);
+//        ck_assert_str_eq("aaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbb");
 
     //			// Assert correctness
     //			require.Equal(t, testChildKey.privKey, privKey.String())
@@ -371,7 +407,7 @@ void testVectorKeyPairs(testMasterKey vector)
     //			assertPrivateKeySerialization(t, privKey, testChildKey.privKey)
     //			assertPublicKeySerialization(t, pubKey, testChildKey.pubKey)
     //		})
-    //	}
+//    	}
 }
 
 //func TestParentPublicChildDerivation(t *testing.T) {
