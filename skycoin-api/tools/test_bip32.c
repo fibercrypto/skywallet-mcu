@@ -36,6 +36,7 @@ typedef struct {
 typedef struct {
     char* seed;
     testChildKey* children;
+    size_t childrenCount;
     char* privKey;
     char* pubKey;
     char* hexPubKey;
@@ -129,6 +130,7 @@ START_TEST(TestBip32TestVectors)
         .childNumber = 0,
         .depth = 0,
         .children = children1,
+        .childrenCount = sizeof(children1)/sizeof(*children1),
     };
 
     testChildKey children2[] = {
@@ -205,6 +207,7 @@ START_TEST(TestBip32TestVectors)
         .hexPubKey = "03cbcaa9c98c877a26977d00825c956a238e8dddfbd322cce4f74b0b5bd6ace4a7",
         .wifPrivKey = "KyjXhyHF9wTphBkfpxjL8hkDXDUSbE3tKANT94kXSyh6vn6nKaoy",
         .children = children2,
+        .childrenCount = sizeof(children2)/sizeof(*children2),
     };
 
     testChildKey children3[] = {
@@ -231,6 +234,7 @@ START_TEST(TestBip32TestVectors)
         .hexPubKey = "03683af1ba5743bdfc798cf814efeeab2735ec52d95eced528e692b8e34c4e5669",
         .wifPrivKey = "KwFPqAq9SKx1sPg15Qk56mqkHwrfGPuywtLUxoWPkiTSBoxCs8am",
         .children = children3,
+        .childrenCount = sizeof(children3)/sizeof(*children3),
     };
 
     testChildKey children4[] = {
@@ -259,6 +263,7 @@ START_TEST(TestBip32TestVectors)
         .hexPubKey = "0298ccc720d5dea817c7077605263bae52bca083cf8888fee77ff4c1b4797ee180",
         .wifPrivKey = "KwDiCU5bs8xQwsRgxjhkcJcVuR7NE4Mei8X9uSAVviVTE7JmMoS6",
         .children = children4,
+        .childrenCount = sizeof(children4)/sizeof(*children4),
     };
 
     testMasterKey vector[] = {vector1, vector2, vector3, vector4};
