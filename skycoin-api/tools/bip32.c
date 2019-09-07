@@ -835,12 +835,20 @@ int hdnode_get_shared_key(const HDNode* node, const uint8_t* peer_public_key, ui
     }
 }
 
+static void reverse_buffer(uint8_t *in, uint8_t *out, size_t len) {
+    for (size_t i = 0; i < len; ++i) {
+        memcpy(&out[i], &in[len - i - 1], 1);
+    }
+}
+
 static int hdnode_serialize(const HDNode* node, uint32_t fingerprint, uint32_t version, char use_public, char* str, int strsize)
 {
     uint8_t node_data[78];
     write_be(node_data, version);
     node_data[4] = node->depth;
-    write_be(node_data + 5, fingerprint);
+    uint32_t rfingerprint = 0;
+    reverse_buffer((uint8_t*)&fingerprint, (uint8_t*)&rfingerprint, sizeof(rfingerprint));
+    write_be(node_data + 5, rfingerprint);
     write_be(node_data + 9, node->child_num);
     memcpy(node_data + 13, node->chain_code, 32);
     if (use_public) {
@@ -849,15 +857,15 @@ static int hdnode_serialize(const HDNode* node, uint32_t fingerprint, uint32_t v
         node_data[45] = 0;
         memcpy(node_data + 46, node->private_key, 32);
     }
+    // FIXME: https://github.com/skycoin/skycoin/blob/d7e4b2f3e31ea96bdcaba595507fde42baa156b9/src/cipher/bip32/bip32.go#L498
+    // void sha256sum(const uint8_t* seed, uint8_t* digest, size_t seed_length);
+    // uint8_t t[32] = {0};
+    // sha256sum(node_data, t, sizeof(t));
+    // uint8_t tt[sizeof(t)] = {0};
+    // sha256sum(t, tt, sizeof(tt));
     int ret = base58_encode_check(node_data, sizeof(node_data), node->curve->hasher_base58, str, strsize);
     memzero(node_data, sizeof(node_data));
     return ret;
-}
-
-static void reverse_buffer(uint8_t *in, uint8_t *out, size_t len) {
-    for (size_t i = 0; i < len; ++i) {
-        memcpy(&out[i], &in[len - i - 1], 1);
-    }
 }
 
 int hdnode_serialize_public(const HDNode* node, uint32_t fingerprint, uint32_t version, char* str, int strsize)
