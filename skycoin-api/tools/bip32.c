@@ -57,6 +57,9 @@ uint8_t private_wallet_version[] = {0x04, 0x88, 0xAD, 0xE4};
 // public_wallet_version is the version flag for serialized public keys ("xpub")
 uint8_t public_wallet_version[] = {0x04, 0x88, 0xB2, 0x1E};
 
+// FirstHardenedChild is the index of the firxt "hardened" child key as per the bip32 spec
+uint32_t first_hardened_child = 0x80000000;
+
 const curve_info ed25519_info = {
     .bip32_name = "ed25519 seed",
     .params = NULL,
@@ -234,7 +237,7 @@ static inline int number_from_node(const char *str, uint32_t *out) {
     *out = (uint32_t)atol(buf);
     if (str[digits] == '\'') {
         // i ≥ 2^31 (whether the child is a hardened key)
-        *out += 0x80000000;
+        *out += first_hardened_child;
     }
     return 0;
 }
@@ -282,7 +285,7 @@ int hdnode_private_ckd(HDNode* inout, uint32_t i)
     static CONFIDENTIAL bignum256 a, b;
 
     const uint32_t parent_fingerprint = hdnode_fingerprint(inout);
-    if (i & 0x80000000) { // private derivation
+    if (i & first_hardened_child) { // private derivation
         data[0] = 0;
         memcpy(data + 1, inout->private_key, 32);
     } else { // public derivation
@@ -369,7 +372,7 @@ int hdnode_private_ckd_cardano(HDNode* inout, uint32_t index)
 {
     // checks for hardened/non-hardened derivation, keysize 32 means we are dealing with public key and thus non-h, keysize 64 is for private key
     int keysize = 32;
-    if (index & 0x80000000) {
+    if (index & first_hardened_child) {
         keysize = 64;
     }
 
@@ -467,7 +470,7 @@ int hdnode_public_ckd_cp(const ecdsa_curve* curve, const curve_point* parent, co
     uint8_t I[32 + 32];
     bignum256 c;
 
-    if (i & 0x80000000) { // private derivation
+    if (i & first_hardened_child) { // private derivation
         return 0;
     }
 
