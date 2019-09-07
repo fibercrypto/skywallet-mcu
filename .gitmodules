@@ -1,4 +1,4 @@
 [submodule "tiny-firmware/protob"]
 	path = tiny-firmware/protob
-	url = http://github.com/skycoin/hardware-wallet-protob.git
-	branch = master
+	url = http://github.com/simelo/skycoin-hardware-wallet-protob.git
+	branch = stdevAdrianPaez_t63_edit_tx_messages_for_passphrase_option
