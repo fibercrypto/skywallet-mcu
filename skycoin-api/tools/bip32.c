@@ -188,6 +188,8 @@ int hdnode_from_seed(const uint8_t* seed, int seed_len, const char* curve, HDNod
     memcpy(out->private_key, I, 32);
     memcpy(out->chain_code, I + 32, 32);
     memzero(out->public_key, sizeof(out->public_key));
+    // parent fingerprint is 0x00000000 if master key
+    out->parent_fingerprint = 0;
     memzero(I, sizeof(I));
     return 1;
 }
@@ -279,6 +281,7 @@ int hdnode_private_ckd(HDNode* inout, uint32_t i)
     static CONFIDENTIAL uint8_t I[32 + 32];
     static CONFIDENTIAL bignum256 a, b;
 
+    const uint32_t parent_fingerprint = hdnode_fingerprint(inout);
     if (i & 0x80000000) { // private derivation
         data[0] = 0;
         memcpy(data + 1, inout->private_key, 32);
@@ -330,6 +333,7 @@ int hdnode_private_ckd(HDNode* inout, uint32_t i)
     memcpy(inout->chain_code, I + 32, 32);
     inout->depth++;
     inout->child_num = i;
+    inout->parent_fingerprint = parent_fingerprint;
     memzero(inout->public_key, sizeof(inout->public_key));
 
     // making sure to wipe our memory
@@ -901,8 +905,9 @@ int hdnode_deserialize(const char* str, uint32_t version_public, uint32_t versio
         return -3; // invalid version
     }
     node->depth = node_data[4];
+    node->parent_fingerprint = read_be(node_data + 5);
     if (fingerprint) {
-        *fingerprint = read_be(node_data + 5);
+        *fingerprint = node->parent_fingerprint;
     }
     node->child_num = read_be(node_data + 9);
     memcpy(node->chain_code, node_data + 13, 32);

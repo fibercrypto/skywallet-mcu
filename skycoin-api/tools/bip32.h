@@ -51,6 +51,7 @@ typedef struct {
 
     uint8_t public_key[33];
     const curve_info* curve;
+    uint32_t parent_fingerprint;
 } HDNode;
 
 int hdnode_from_xpub(uint32_t depth, uint32_t child_num, const uint8_t* chain_code, const uint8_t* public_key, const char* curve, HDNode* out);
