@@ -237,7 +237,7 @@ tiny-firmware/vendor/libskycoin/Makefile: ## Download libskycoin for tests
 	ln -sf $(GOPATH)/src/github.com/skycoin/libskycoin ./tiny-firmware/vendor/
 	git -C ./tiny-firmware/vendor/libskycoin remote add simelo https://github.com/simelo/libskycoin.git || true
 	git -C ./tiny-firmware/vendor/libskycoin fetch simelo
-	git -C ./tiny-firmware/vendor/libskycoin checkout simelo/stdevAlDen_t34_hardware-wallet_tests
+	git -C ./tiny-firmware/vendor/libskycoin checkout simelo/stdevHan_t105_update_submodule_0.27.0
 	git -C ./tiny-firmware/vendor/libskycoin submodule update --recursive
 	git -C ./tiny-firmware/vendor/libskycoin remote remove simelo
 
