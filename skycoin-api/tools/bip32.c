@@ -295,6 +295,14 @@ int hdnode_private_ckd_from_path(const char *path, HDNode* out) {
     return 1;
 }
 
+int hdnode_private_ckd_from_path_with_seed(const char *path, const uint8_t* seed, int seed_len, const char* curve, HDNode* out) {
+    int ret = hdnode_from_seed(seed, seed_len, curve, out);
+    if (!ret) {
+        return ret;
+    }
+    return hdnode_private_ckd_from_path(path, out);
+}
+
 uint32_t hdnode_fingerprint(HDNode* node)
 {
     uint8_t digest[32];
