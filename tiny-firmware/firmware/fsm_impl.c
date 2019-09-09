@@ -701,7 +701,7 @@ ErrCode_t reqConfirmTransaction(uint64_t coins, uint64_t hours,char* address){
 
 ErrCode_t msgTxAckImpl(TxAck *msg, TxRequest *resp) {
     TxSignContext *ctx = TxSignCtx_Get();
-    if (ctx->state != Start && ctx->state != InnerHashInputs && ctx->state != InnerHashOutputs && ctx->state != Signature) {
+    if (ctx->state != Start && ctx->state != InnerHashInputs && ctx->state != InnerHashOutputs && ctx->state != Signature_) {
         TxSignCtx_Destroy(ctx);
         return ErrInvalidArg;
     }
@@ -713,7 +713,7 @@ ErrCode_t msgTxAckImpl(TxAck *msg, TxRequest *resp) {
         case InnerHashOutputs:
             printf("-> Inner Hash outputs\n");
             break;
-        case Signature:
+        case Signature_:
             printf("-> Signatures\n");
             break;
         default:
@@ -784,12 +784,12 @@ ErrCode_t msgTxAckImpl(TxAck *msg, TxRequest *resp) {
                 resp->request_type = TxRequest_RequestType_TXOUTPUT;
             } else {
                 TxSignCtx_finishInnerHash(ctx);
-                ctx->state = Signature;
+                ctx->state = Signature_;
                 ctx->current_nbIn = 0;
                 resp->request_type = TxRequest_RequestType_TXINPUT;
             }
             break;
-        case Signature:
+        case Signature_:
             if (!msg->tx.inputs_count || msg->tx.outputs_count) {
                 TxSignCtx_Destroy(ctx);
                 return ErrInvalidArg;
