@@ -1,15 +1,15 @@
 #include "tools/test_bip32.h"
 
 #include <check.h>
-#include <stdio.h>
 
 #include <skycoin_crypto.h>
 
+#include "base58.h"
 #include "bip32.h"
 #include "curves.h"
-#include "base58.h"
 
 extern uint32_t first_hardened_child;
+extern uint8_t private_wallet_version[], public_wallet_version[];
 
 typedef struct {
   char* path;
@@ -385,7 +385,6 @@ void testVectorKeyPairs(testMasterKey vector) {
   //	assertPrivateKeySerialization(t, privKey, vector.privKey)
   //	assertPublicKeySerialization(t, pubKey, vector.pubKey)
 
-  extern uint8_t private_wallet_version[], public_wallet_version[];
   uint32_t xpriv = 0, xpub = 0;
   memcpy(&xpriv, private_wallet_version, sizeof(xpriv));
   memcpy(&xpub, public_wallet_version, sizeof(xpub));
@@ -404,8 +403,8 @@ void testVectorKeyPairs(testMasterKey vector) {
     //		t.Run(testChildKey.path, func(t *testing.T) {
     //			// Get the private key at the given key tree path
     HDNode child_node;
-    ret = hdnode_from_path(testChildkey.path, seed, seed_len, SECP256K1_NAME,
-                           &child_node);
+    ret = hdnode_private_ckd_from_path_with_seed(testChildkey.path, seed, seed_len,
+                                       SECP256K1_NAME, &child_node);
     ck_assert_int_eq(ret, 1);
 
     //        TODO
@@ -452,216 +451,206 @@ void testVectorKeyPairs(testMasterKey vector) {
     ck_assert_int_eq(testChildkey.childNumber, child_node.child_num);
 
     //        TODO
-    //			// Serialize and deserialize both keys and ensure they're
-    //the same 			assertPrivateKeySerialization(t, privKey,
-    // testChildKey.privKey) 			assertPublicKeySerialization(t, pubKey,
-    // testChildKey.pubKey)
+    //			// Serialize and deserialize both keys and ensure
+    // they're the same 			assertPrivateKeySerialization(t,
+    // privKey,
+    // testChildKey.privKey) 			assertPublicKeySerialization(t,
+    // pubKey, testChildKey.pubKey)
     //		})
   }
   //  ck_assert_str_eq("aaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbbb");
 }
 
-// func TestParentPublicChildDerivation(t *testing.T) {
-//	// Generated using https://iancoleman.github.io/bip39/
-//	// Root key:
-//	//
-// xprv9s21ZrQH143K2Cfj4mDZBcEecBmJmawReGwwoAou2zZzG45bM6cFPJSvobVTCB55L6Ld2y8RzC61CpvadeAnhws3CHsMFhNjozBKGNgucYm
-//	// Derivation Path m/44'/60'/0'/0:
-//	//
-// xprv9zy5o7z1GMmYdaeQdmabWFhUf52Ytbpe3G5hduA4SghboqWe7aDGWseN8BJy1GU72wPjkCbBE1hvbXYqpCecAYdaivxjNnBoSNxwYD4wHpW
-//	//
-// xpub6DxSCdWu6jKqr4isjo7bsPeDD6s3J4YVQV1JSHZg12Eagdqnf7XX4fxqyW2sLhUoFWutL7tAELU2LiGZrEXtjVbvYptvTX5Eoa4Mamdjm9u
+START_TEST(TestParentPublicChildDerivation) {
+  // Generated using https://iancoleman.github.io/bip39/
+  // Root key:
+  // xprv9s21ZrQH143K2Cfj4mDZBcEecBmJmawReGwwoAou2zZzG45bM6cFPJSvobVTCB55L6Ld2y8RzC61CpvadeAnhws3CHsMFhNjozBKGNgucYm
+  // Derivation Path m/44'/60'/0'/0:
+  // xprv9zy5o7z1GMmYdaeQdmabWFhUf52Ytbpe3G5hduA4SghboqWe7aDGWseN8BJy1GU72wPjkCbBE1hvbXYqpCecAYdaivxjNnBoSNxwYD4wHpW
+  // xpub6DxSCdWu6jKqr4isjo7bsPeDD6s3J4YVQV1JSHZg12Eagdqnf7XX4fxqyW2sLhUoFWutL7tAELU2LiGZrEXtjVbvYptvTX5Eoa4Mamdjm9u
 
-//	extendedMasterPublicBytes, err :=
-// base58.Decode("xpub6DxSCdWu6jKqr4isjo7bsPeDD6s3J4YVQV1JSHZg12Eagdqnf7XX4fxqyW2sLhUoFWutL7tAELU2LiGZrEXtjVbvYptvTX5Eoa4Mamdjm9u")
-//	require.NoError(t, err)
+  uint32_t xpriv = 0, xpub = 0;
+  memcpy(&xpub, public_wallet_version, sizeof(xpub));
+  memcpy(&xpriv, private_wallet_version, sizeof(xpriv));
+  HDNode extendedMasterPublic;
+  uint32_t fingerprint = 0;
+  int ret = hdnode_deserialize(
+      "xpub6DxSCdWu6jKqr4isjo7bsPeDD6s3J4YVQV1JSHZg12Eagdqnf7XX4fxqyW2sLhUoFWut"
+      "L7tAELU2LiGZrEXtjVbvYptvTX5Eoa4Mamdjm9u",
+      xpub, xpriv, SECP256K1_NAME, &extendedMasterPublic, &fingerprint);
+  ck_assert_int_eq(0, ret);
 
-//	extendedMasterPublic, err :=
-// DeserializePublicKey(extendedMasterPublicBytes) 	require.NoError(t, err)
+  HDNode extendedMasterPrivate;
+  fingerprint = 0;
+  ret = hdnode_deserialize(
+      "xprv9zy5o7z1GMmYdaeQdmabWFhUf52Ytbpe3G5hduA4SghboqWe7aDGWseN8BJy1GU72wPj"
+      "kCbBE1hvbXYqpCecAYdaivxjNnBoSNxwYD4wHpW",
+      xpub, xpriv, SECP256K1_NAME, &extendedMasterPrivate, &fingerprint);
+  ck_assert_int_eq(0, ret);
 
-//	extendedMasterPrivateBytes, err :=
-// base58.Decode("xprv9zy5o7z1GMmYdaeQdmabWFhUf52Ytbpe3G5hduA4SghboqWe7aDGWseN8BJy1GU72wPjkCbBE1hvbXYqpCecAYdaivxjNnBoSNxwYD4wHpW")
-//	require.NoError(t, err)
+  testChildKey expectedChildren[] = {
+      {
+          .path = "m/0",
+          .hexPubKey = "0243187e1a2ba9ba824f5f81090650c8f4faa82b7baf93060d10b81"
+                       "f4b705afd46",
+          .wifPrivKey = "KyNPkzzaQ9xa7d2iFacTBgjP4rM3SydTzUZW7uwDh6raePWRJkeM",
+      },
+      {
+          .path = "m/1",
+          .hexPubKey = "023790d11eb715c4320d8e31fba3a09b700051dc2cdbcce03f44b11"
+                       "c274d1e220b",
+          .wifPrivKey = "KwVyk5XXaamsPPiGLHciv6AjhUV88CM7xTto7sRMCEy12GfwZzZQ",
+      },
+      {
+          .path = "m/2",
+          .hexPubKey = "0302c5749c3c75cea234878ae3f4d8f65b75d584bcd7ed0943b016d"
+                       "6f6b59a2bad",
+          .wifPrivKey = "L1o7CpgTjkcBYmbeuNigVpypgJ9GKq87WNqz8QDjWMqdKVKFf826",
+      },
+      {
+          .path = "m/3",
+          .hexPubKey = "03f0440c94e5b14ea5b15875934597afff541bec287c6e65dc1102c"
+                       "afc07f69699",
+          .wifPrivKey = "KzmYqf8WSUNzf2LhAWJjxv7pYX34XhFeLLxSoaSD8y9weJ4j6Z7q",
+      },
+      {
+          .path = "m/4",
+          .hexPubKey = "026419d0d8996707605508ac44c5871edc7fe206a79ef615b74f2ee"
+                       "a09c5852e2b",
+          .wifPrivKey = "KzezMKd7Yc4jwJd6ASji2DwXX8jB8XwNTggLoAJU78zPAfXhzRLD",
+      },
+      {
+          .path = "m/5",
+          .hexPubKey = "02f63c6f195eea98bdb163c4a094260dea71d264b21234bed4df389"
+                       "9236e6c2298",
+          .wifPrivKey = "Kwxik5cHiQCZYy5g9gdfQmr7c3ivLDhFjpSF7McHKHeox6iu6MjL",
+      },
+      {
+          .path = "m/6",
+          .hexPubKey = "02d74709cd522081064858f393d009ead5a0ecd43ede3a1f57befcc"
+                       "942025cb5f9",
+          .wifPrivKey = "KwGhZYHovZoczyfupFRgZcr2xz1nHTSKx79uZuWhuzDSU7L7LrxE",
+      },
+      {
+          .path = "m/7",
+          .hexPubKey = "03e54bb92630c943d38bbd8a4a2e65fca7605e672d30a0e545a7198"
+                       "cbb60729ceb",
+          .wifPrivKey = "L4iGJ3JCfnMU1ia2bMQeF88hs6tkkS9QrmLbWPsj1ULHrUJid4KT",
+      },
+      {
+          .path = "m/8",
+          .hexPubKey = "027e9d5acd14d39c4938697fba388cd2e8f31fc1c5dc02fafb93a10"
+                       "a280de85199",
+          .wifPrivKey = "L3xfynMTDMR8vs6G5VxxjoKLBQyihvtcBHF4KHY5wvFMwevLjZKU",
+      },
+      {
+          .path = "m/9",
+          .hexPubKey = "02a167a9f0d57468fb6abf2f3f7967e2cadf574314753a06a9ef29b"
+                       "c76c54638d2",
+          .wifPrivKey = "KxiUV7CcdCuF3bLajqaP6qMFERQFvzsRj9aeCCf3TNWXioLwwJAm",
+      },
+      {
+          .path = "m/100",
+          .hexPubKey = "020db9ba00ddf68428e3f5bfe54252bbcd75b21e42f51bf3bfc4172"
+                       "bf0e5fa7905",
+          .wifPrivKey = "L5ipKgExgKZYaxsQPEmyjrhoSepoxuSAxSWgK1GX5kaTUN3zGCU7",
+      },
+      {
+          .path = "m/101",
+          .hexPubKey = "0299e3790956570737d6164e6fcda5a3daa304065ca95ba46bc73d4"
+                       "36b84f34d46",
+          .wifPrivKey = "L1iUjHWpYSead5vYZycMdMzCZDFQzveG3S6NviAi5BvvGdnuQbi6",
+      },
+      {
+          .path = "m/102",
+          .hexPubKey = "0202e0732c4c5d2b1036af173640e01957998cfd4f9cdaefab6ffe7"
+                       "6eb869e2c59",
+          .wifPrivKey = "KybjnK4e985dgzxL5pgXTfq8YFagG8gB9HWAjLimagR4pdodCSNo",
+      },
+      {
+          .path = "m/103",
+          .hexPubKey = "03d050adbd996c0c5d737ff638402dfbb8c08e451fef10e6d62fb57"
+                       "887c1ac6cb2",
+          .wifPrivKey = "Kx9bf5cyf29fp7uuMVnqn47692xRwXStVmnL75w9i1sLQDjbFHP5",
+      },
+      {
+          .path = "m/104",
+          .hexPubKey = "038d466399e2d68b4b16043ad4d88893b3b2f84fc443368729a973d"
+                       "f1e66f4f530",
+          .wifPrivKey = "L5myg7MNjKHcgVMS9ytmHgBftiWAi1awGpeC6p9dygsEQV9ZRvpz",
+      },
+      {
+          .path = "m/105",
+          .hexPubKey = "034811e2f0c8c50440c08c2c9799b99c911c036e877e8325386ff61"
+                       "723ae3ffdce",
+          .wifPrivKey = "L1KHrLBPhaJnvysjKUYk5QwkyWDb6uHgDM8EmE4eKtfqyJ13a7HC",
+      },
+      {
+          .path = "m/106",
+          .hexPubKey = "026339fd5842921888e711a6ba9104a5f0c94cc0569855273cf5fae"
+                       "fdfbcd3cc29",
+          .wifPrivKey = "Kz4WPV43po7LRkatwHf9YGknGZRYfvo7TkvojinzxoFRXRYXyfDn",
+      },
+      {
+          .path = "m/107",
+          .hexPubKey = "02833705c1069fab2aa92c6b0dac27807290d72e9f52378d493ac44"
+                       "849ca003b22",
+          .wifPrivKey = "L3PxeN4w336kTk1becdFsAnR8ihh8SeMYXRHEzSmRNQTjtmcUjr9",
+      },
+      {
+          .path = "m/108",
+          .hexPubKey = "032d2639bde1eb7bdf8444bd4f6cc26a9d1bdecd8ea15fac3b992c3"
+                       "da68d9d1df5",
+          .wifPrivKey = "L2wf8FYiA888qrhDzHkFkZ3ZRBntysjtJa1QfcxE1eFiyDUZBRSi",
+      },
+      {
+          .path = "m/109",
+          .hexPubKey = "02479c6d4a64b93a2f4343aa862c938fbc658c99219dd7bebb48303"
+                       "07cbd76c9e9",
+          .wifPrivKey = "L5A5hcupWnYTNJTLTWDDfWyb3hnrJgdDgyN7c4PuF17bsY1tNjxS",
+      },
+  };
 
-//	extendedMasterPrivate, err :=
-// DeserializePrivateKey(extendedMasterPrivateBytes) 	require.NoError(t, err)
+  for (size_t i = 0; i < sizeof(expectedChildren) / sizeof(*expectedChildren);
+       ++i) {
+    testChildKey chield = expectedChildren[i];
+    HDNode pubKey;
+    memcpy(&pubKey, &extendedMasterPublic, sizeof(pubKey));
+    ret = hdnode_public_ckd_from_path(chield.path, &pubKey);
+    ck_assert_int_eq(ret, 0);
+    //        TODO
+    //			path, err := ParsePath(child.path)
+    //			require.NoError(t, err)
+    //			require.Len(t, path.Elements, 2)
 
-//	expectedChildren := []testChildKey{
-//		{
-//			path:       "m/0",
-//			hexPubKey:
-//"0243187e1a2ba9ba824f5f81090650c8f4faa82b7baf93060d10b81f4b705afd46",
-//			wifPrivKey:
-//"KyNPkzzaQ9xa7d2iFacTBgjP4rM3SydTzUZW7uwDh6raePWRJkeM",
-//		},
-//		{
-//			path:       "m/1",
-//			hexPubKey:
-//"023790d11eb715c4320d8e31fba3a09b700051dc2cdbcce03f44b11c274d1e220b",
-//			wifPrivKey:
-//"KwVyk5XXaamsPPiGLHciv6AjhUV88CM7xTto7sRMCEy12GfwZzZQ",
-//		},
-//		{
-//			path:       "m/2",
-//			hexPubKey:
-//"0302c5749c3c75cea234878ae3f4d8f65b75d584bcd7ed0943b016d6f6b59a2bad",
-//			wifPrivKey:
-//"L1o7CpgTjkcBYmbeuNigVpypgJ9GKq87WNqz8QDjWMqdKVKFf826",
-//		},
-//		{
-//			path:       "m/3",
-//			hexPubKey:
-//"03f0440c94e5b14ea5b15875934597afff541bec287c6e65dc1102cafc07f69699",
-//			wifPrivKey:
-//"KzmYqf8WSUNzf2LhAWJjxv7pYX34XhFeLLxSoaSD8y9weJ4j6Z7q",
-//		},
-//		{
-//			path:       "m/4",
-//			hexPubKey:
-//"026419d0d8996707605508ac44c5871edc7fe206a79ef615b74f2eea09c5852e2b",
-//			wifPrivKey:
-//"KzezMKd7Yc4jwJd6ASji2DwXX8jB8XwNTggLoAJU78zPAfXhzRLD",
-//		},
-//		{
-//			path:       "m/5",
-//			hexPubKey:
-//"02f63c6f195eea98bdb163c4a094260dea71d264b21234bed4df3899236e6c2298",
-//			wifPrivKey:
-//"Kwxik5cHiQCZYy5g9gdfQmr7c3ivLDhFjpSF7McHKHeox6iu6MjL",
-//		},
-//		{
-//			path:       "m/6",
-//			hexPubKey:
-//"02d74709cd522081064858f393d009ead5a0ecd43ede3a1f57befcc942025cb5f9",
-//			wifPrivKey:
-//"KwGhZYHovZoczyfupFRgZcr2xz1nHTSKx79uZuWhuzDSU7L7LrxE",
-//		},
-//		{
-//			path:       "m/7",
-//			hexPubKey:
-//"03e54bb92630c943d38bbd8a4a2e65fca7605e672d30a0e545a7198cbb60729ceb",
-//			wifPrivKey:
-//"L4iGJ3JCfnMU1ia2bMQeF88hs6tkkS9QrmLbWPsj1ULHrUJid4KT",
-//		},
-//		{
-//			path:       "m/8",
-//			hexPubKey:
-//"027e9d5acd14d39c4938697fba388cd2e8f31fc1c5dc02fafb93a10a280de85199",
-//			wifPrivKey:
-//"L3xfynMTDMR8vs6G5VxxjoKLBQyihvtcBHF4KHY5wvFMwevLjZKU",
-//		},
-//		{
-//			path:       "m/9",
-//			hexPubKey:
-//"02a167a9f0d57468fb6abf2f3f7967e2cadf574314753a06a9ef29bc76c54638d2",
-//			wifPrivKey:
-//"KxiUV7CcdCuF3bLajqaP6qMFERQFvzsRj9aeCCf3TNWXioLwwJAm",
-//		},
+    char buf[1000] = {0};
+    tohex(buf, pubKey.public_key, sizeof(pubKey.public_key));
+    ck_assert_str_eq(chield.hexPubKey, buf);
 
-//		{
-//			path:       "m/100",
-//			hexPubKey:
-//"020db9ba00ddf68428e3f5bfe54252bbcd75b21e42f51bf3bfc4172bf0e5fa7905",
-//			wifPrivKey:
-//"L5ipKgExgKZYaxsQPEmyjrhoSepoxuSAxSWgK1GX5kaTUN3zGCU7",
-//		},
-//		{
-//			path:       "m/101",
-//			hexPubKey:
-//"0299e3790956570737d6164e6fcda5a3daa304065ca95ba46bc73d436b84f34d46",
-//			wifPrivKey:
-//"L1iUjHWpYSead5vYZycMdMzCZDFQzveG3S6NviAi5BvvGdnuQbi6",
-//		},
-//		{
-//			path:       "m/102",
-//			hexPubKey:
-//"0202e0732c4c5d2b1036af173640e01957998cfd4f9cdaefab6ffe76eb869e2c59",
-//			wifPrivKey:
-//"KybjnK4e985dgzxL5pgXTfq8YFagG8gB9HWAjLimagR4pdodCSNo",
-//		},
-//		{
-//			path:       "m/103",
-//			hexPubKey:
-//"03d050adbd996c0c5d737ff638402dfbb8c08e451fef10e6d62fb57887c1ac6cb2",
-//			wifPrivKey:
-//"Kx9bf5cyf29fp7uuMVnqn47692xRwXStVmnL75w9i1sLQDjbFHP5",
-//		},
-//		{
-//			path:       "m/104",
-//			hexPubKey:
-//"038d466399e2d68b4b16043ad4d88893b3b2f84fc443368729a973df1e66f4f530",
-//			wifPrivKey:
-//"L5myg7MNjKHcgVMS9ytmHgBftiWAi1awGpeC6p9dygsEQV9ZRvpz",
-//		},
-//		{
-//			path:       "m/105",
-//			hexPubKey:
-//"034811e2f0c8c50440c08c2c9799b99c911c036e877e8325386ff61723ae3ffdce",
-//			wifPrivKey:
-//"L1KHrLBPhaJnvysjKUYk5QwkyWDb6uHgDM8EmE4eKtfqyJ13a7HC",
-//		},
-//		{
-//			path:       "m/106",
-//			hexPubKey:
-//"026339fd5842921888e711a6ba9104a5f0c94cc0569855273cf5faefdfbcd3cc29",
-//			wifPrivKey:
-//"Kz4WPV43po7LRkatwHf9YGknGZRYfvo7TkvojinzxoFRXRYXyfDn",
-//		},
-//		{
-//			path:       "m/107",
-//			hexPubKey:
-//"02833705c1069fab2aa92c6b0dac27807290d72e9f52378d493ac44849ca003b22",
-//			wifPrivKey:
-//"L3PxeN4w336kTk1becdFsAnR8ihh8SeMYXRHEzSmRNQTjtmcUjr9",
-//		},
-//		{
-//			path:       "m/108",
-//			hexPubKey:
-//"032d2639bde1eb7bdf8444bd4f6cc26a9d1bdecd8ea15fac3b992c3da68d9d1df5",
-//			wifPrivKey:
-//"L2wf8FYiA888qrhDzHkFkZ3ZRBntysjtJa1QfcxE1eFiyDUZBRSi",
-//		},
-//		{
-//			path:       "m/109",
-//			hexPubKey:
-//"02479c6d4a64b93a2f4343aa862c938fbc658c99219dd7bebb4830307cbd76c9e9",
-//			wifPrivKey:
-//"L5A5hcupWnYTNJTLTWDDfWyb3hnrJgdDgyN7c4PuF17bsY1tNjxS",
-//		},
-//	}
+    HDNode pubKey2;
+    memset(&pubKey2, 0, sizeof(pubKey2));
+    memcpy(&pubKey2, &extendedMasterPrivate, sizeof(pubKey2));
+    ret = hdnode_private_ckd_from_path(chield.path, &pubKey2);
+    ck_assert_int_eq(pubKey.depth, pubKey2.depth);
+    ck_assert_int_eq(pubKey.child_num, pubKey2.child_num);
+    ck_assert_mem_eq(pubKey.chain_code, pubKey2.chain_code, sizeof(pubKey.chain_code));
+    // ck_assert_mem_eq(pubKey.private_key, pubKey2.private_key, sizeof(pubKey.private_key));
+    ck_assert_mem_eq(pubKey.private_key_extension, pubKey2.private_key_extension, sizeof(pubKey.private_key_extension));
+    hdnode_fill_public_key(&pubKey2);
+    ck_assert_mem_eq(pubKey.public_key, pubKey2.public_key, sizeof(pubKey.public_key));
 
-//	for _, child := range expectedChildren {
-//		t.Run(fmt.Sprint(child.path), func(t *testing.T) {
-//			path, err := ParsePath(child.path)
-//			require.NoError(t, err)
-//			require.Len(t, path.Elements, 2)
+// TODO
+    //			privKey, err :=
+    // extendedMasterPrivate.NewPrivateChildKey(path.Elements[1].ChildNumber)
+    //			require.NoError(t, err)
+    //			expectedPrivKey, err :=
+    // cipher.SecKeyFromBitcoinWalletImportFormat(child.wifPrivKey)
+    //			require.NoError(t, err)
 
-//			pubKey, err :=
-// extendedMasterPublic.NewPublicChildKey(path.Elements[1].ChildNumber)
-//			require.NoError(t, err)
-//			require.Equal(t, child.hexPubKey,
-// hex.EncodeToString(pubKey.Key))
-
-//			pubKey2, err :=
-// extendedMasterPrivate.NewPublicChildKey(path.Elements[1].ChildNumber)
-//			require.NoError(t, err)
-//			require.Equal(t, pubKey, pubKey2)
-
-//			privKey, err :=
-// extendedMasterPrivate.NewPrivateChildKey(path.Elements[1].ChildNumber)
-//			require.NoError(t, err)
-
-//			expectedPrivKey, err :=
-// cipher.SecKeyFromBitcoinWalletImportFormat(child.wifPrivKey)
-//			require.NoError(t, err)
-
-//			require.Equal(t, expectedPrivKey[:], privKey.Key)
-
-//			pubKey3 := privKey.PublicKey()
-//			require.Equal(t, pubKey, pubKey3)
-//		})
-//	}
-//}
+    //			require.Equal(t, expectedPrivKey[:], privKey.Key)
+  }
+}
+END_TEST
 
 //// func TestPrivateParentPublicChildKey(childIdx
 
@@ -1022,13 +1011,13 @@ void testVectorKeyPairs(testMasterKey vector) {
 
 //			if tc.keyInvalid && tc.keyParInvalid {
 //				t.Fatal("keyInvalid and keyParInvalid can't both
-//be true")
+// be true")
 //			}
 
 //			if tc.keyInvalid {
 //				require.True(t, strings.HasPrefix(err.Error(),
 //"addPrivateKeys: key is invalid"), err.Error()) 			} else {
-//require.True(t, strings.HasPrefix(err.Error(), "addPrivateKeys: keyPar is
+// require.True(t, strings.HasPrefix(err.Error(), "addPrivateKeys: keyPar is
 // invalid"), err.Error())
 //			}
 //		})
@@ -1095,13 +1084,13 @@ void testVectorKeyPairs(testMasterKey vector) {
 
 //			if tc.keyInvalid && tc.keyParInvalid {
 //				t.Fatal("keyInvalid and keyParInvalid can't both
-//be true")
+// be true")
 //			}
 
 //			if tc.keyInvalid {
 //				require.True(t, strings.HasPrefix(err.Error(),
 //"addPublicKeys: key is invalid"), err.Error()) 			} else {
-//require.True(t, strings.HasPrefix(err.Error(), "addPublicKeys: keyPar is
+// require.True(t, strings.HasPrefix(err.Error(), "addPublicKeys: keyPar is
 // invalid"), err.Error())
 //			}
 //		})
@@ -1148,21 +1137,21 @@ void testVectorKeyPairs(testMasterKey vector) {
 //		{
 //			seed:
 //"6162636465666768696A6B6C6D6E6F707172737475767778797A",
-//path: "m", 			key:
+// path: "m", 			key:
 //"xprv9s21ZrQH143K3GfuLFf1UxUB4GzmFav1hrzTG1bPorBTejryu4YfYVxZn6LNmwfvsi6uj1Wyv9vLDPsfKDuuqwEqYier1ZsbgWVd9NCieNv",
 //		},
 
 //		{
 //			seed:
 //"6162636465666768696A6B6C6D6E6F707172737475767778797A",
-//path: "m/1'", 			key:
+// path: "m/1'", 			key:
 //"xprv9uWf8oyvCHcAUg3kSjSroz67s7M3qJRWmNcdVwYGf91GFsaAatsVVp1bjH7z3WiWevqB7WK92B415oBwcahjoMvvb4mopPyqZUDeVW4168c",
 //		},
 
 //		{
 //			seed:
 //"6162636465666768696A6B6C6D6E6F707172737475767778797A",
-//path: "m/1'/foo", 			err: ErrPathNodeNotNumber,
+// path: "m/1'/foo", 			err: ErrPathNodeNotNumber,
 //		},
 
 //		{
@@ -1347,8 +1336,9 @@ void testVectorKeyPairs(testMasterKey vector) {
 //			require.Equal(t, tc.p, p)
 
 //			hardenedDepthsMap := make(map[int]struct{},
-// len(tc.hardenedDepths)) 			for _, x := range tc.hardenedDepths
-// { 				hardenedDepthsMap[x] = struct{}{}
+// len(tc.hardenedDepths)) 			for _, x := range
+// tc.hardenedDepths { 				hardenedDepthsMap[x] =
+// struct{}{}
 //			}
 
 //			for i, n := range p.Elements {
@@ -1412,5 +1402,6 @@ void load_bip32_testcase(Suite* s) {
   TCase* tc = tcase_create("skycoin_crypto_bip32");
   tcase_add_test(tc, dummy_test_bip32);
   tcase_add_test(tc, TestBip32TestVectors);
+  tcase_add_test(tc, TestParentPublicChildDerivation);
   suite_add_tcase(s, tc);
 }
