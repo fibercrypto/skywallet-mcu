@@ -261,6 +261,23 @@ static int parse_path(const char* path, uint32_t *out_indexes, size_t *out_index
     return 0;
 }
 
+int hdnode_public_ckd_from_path(const char *path, HDNode* node) {
+    // sizeof deep = 256. https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#serialization-format
+    uint32_t out_indexes[256] = {0};
+    size_t out_indexes_size = 0;
+    int ret = parse_path(path, out_indexes, &out_indexes_size);
+    if (ret) {
+        return ret;
+    }
+    for (size_t i = 0; i < out_indexes_size; ++i) {
+        ret = hdnode_public_ckd(node, out_indexes[i]);
+        if (ret != 1) {
+            return ret;
+        }
+    }
+    return 0;
+}
+
 int hdnode_private_ckd_from_path(const char *path, HDNode* out) {
     // sizeof deep = 256. https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#serialization-format
     uint32_t out_indexes[256] = {0};
