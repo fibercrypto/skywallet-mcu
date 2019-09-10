@@ -17,7 +17,7 @@
 
 #include "blake2_common.h"
 #include "blake2b.h"
-#include "memzero.h"
+#include "tools/memzero.h"
 
 typedef struct blake2b_param__ {
     uint8_t digest_length;                   /* 1 */

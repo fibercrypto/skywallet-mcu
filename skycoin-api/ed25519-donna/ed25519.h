@@ -1,7 +1,7 @@
 #ifndef ED25519_H
 #define ED25519_H
 
-#include "options.h"
+#include "../tools/options.h"
 #include <stddef.h>
 
 #if defined(__cplusplus)

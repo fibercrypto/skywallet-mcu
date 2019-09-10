@@ -40,7 +40,6 @@ OBJS += protob/c/types.pb.o
 #test_skyhw
 TEST_OBJS += $(patsubst tests/%.c,tests/%.o, $(wildcard tests/*.c))
 TEST_OBJS += serialno.o
-TEST_OBJS += firmware/test_bip32.o
 #end test_skyhw
 
 ifneq ($(EMULATOR),1)
@@ -55,25 +54,6 @@ CFLAGS += -Itools
 LDLIBS += -lskycoin-crypto
 LDFLAGS += -L$(TOP_DIR)vendor/skycoin-crypto/lib
 LIBDEPS += $(TOP_DIR)vendor/skycoin-crypto/lib/libskycoin-crypto.a
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/sha3.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/blake2b.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/groestl.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/address.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/aes/aes_modes.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/aes/aescrypt.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/aes/aeskey.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/aes/aestab.o
-#OBJS += aes/aestst.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/curve25519-donna-32bit.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/curve25519-donna-helpers.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/curve25519-donna-scalarmult-base.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519-donna-32bit-tables.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519-donna-basepoint-table.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519-donna-impl-base.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519-keccak.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519-sha3.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519.o
-OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/modm-donna-32bit.o
 #end skycoin-crypto
 
 DEBUG_LINK ?= 0

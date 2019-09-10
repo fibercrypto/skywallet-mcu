@@ -5,10 +5,10 @@
 #include "libskycoin.h"
 #include "skyerrors.h"
 
-#include "sha2.h"
+#include "tools/sha2.h"
 #include "skycoin_crypto.h"
-#include "ripemd160.h"
-#include "base58.h"
+#include "tools/ripemd160.h"
+#include "tools/base58.h"
 
 GoUint32 SKY_cipher_SumSHA256(GoSlice p0, cipher__SHA256* p1) {
     sha256sum(p0.data, *p1, p0.len);

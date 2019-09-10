@@ -20,7 +20,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include "memzero.h"
+#include "tools/memzero.h"
 #include "sha3.h"
 
 #define I64(x) x##LL

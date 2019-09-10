@@ -25,7 +25,7 @@
 #ifndef __RFC6979_H__
 #define __RFC6979_H__
 
-#include "bignum.h"
+#include "tools/bignum.h"
 #include <stdint.h>
 
 // rfc6979 pseudo random number generator state

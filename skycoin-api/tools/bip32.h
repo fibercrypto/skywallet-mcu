@@ -25,7 +25,7 @@
 #define __BIP32_H__
 
 #include "ecdsa.h"
-#include "ed25519-donna/ed25519.h"
+#include "../ed25519-donna/ed25519.h"
 #include "options.h"
 #include <stdbool.h>
 #include <stdint.h>

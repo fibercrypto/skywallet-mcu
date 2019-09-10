@@ -24,7 +24,7 @@
 #ifndef __ADDRESS_H__
 #define __ADDRESS_H__
 
-#include "options.h"
+#include "tools/options.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>

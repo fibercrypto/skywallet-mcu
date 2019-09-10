@@ -20,7 +20,7 @@
 #ifndef __SHA3_H__
 #define __SHA3_H__
 
-#include "options.h"
+#include "tools/options.h"
 #include <stdint.h>
 
 #ifdef __cplusplus
