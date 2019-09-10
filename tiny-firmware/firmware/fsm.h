@@ -21,7 +21,7 @@
 #ifndef __FSM_H__
 #define __FSM_H__
 
-#include "messages.pb.h"
+#include "tiny-firmware/protob/c/messages.pb.h"
 
 // message functions
 
@@ -51,5 +51,7 @@ void fsm_msgCancel(Cancel* msg);
 void fsm_msgRecoveryDevice(RecoveryDevice* msg);
 void fsm_msgWordAck(WordAck* msg);
 void fsm_msgTransactionSign(TransactionSign* msg);
+void fsm_msgSignTx(SignTx* msg);
+void fsm_msgTxAck(TxAck* msg);
 
 #endif
