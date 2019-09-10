@@ -86,13 +86,13 @@ libskycoin-wrapper.o: libskycoin-wrapper.c
 	$(CC) -std=c99 -isystem../tiny-firmware/vendor/libskycoin/include -Itools -o libskycoin-wrapper.o -c libskycoin-wrapper.c
 
 libskycoin-crypto-wrapper.a: libskycoin-wrapper.o libskycoin-crypto.a
-	$(AR) rcs libskycoin-crypto-wrapper.a libskycoin-wrapper.o
+	$(AR) rcs lib/libskycoin-crypto-wrapper.a libskycoin-wrapper.o
 
 test_skycoin_crypto.o: test_skycoin_crypto.c
 	$(CC) $(CFLAGS) $(TESTINC) -o $@ -c $<
 
 test_skycoin_crypto: test_skycoin_crypto.o libskycoin-crypto.so
-	$(CC) test_skycoin_crypto.o $(OBJS) -L. -Wl,-rpath,$(MKFILE_DIR) -lskycoin-crypto $(LIBS) $(TESTLIBS) -o test_skycoin_crypto
+	$(CC) test_skycoin_crypto.o $(OBJS) -Llib/ -Wl,-rpath,$(MKFILE_DIR) -lskycoin-crypto $(LIBS) $(TESTLIBS) -o test_skycoin_crypto
 
 test: test_skycoin_crypto ## Run test suite for Skycoin cipher library for firmware
 	./test_skycoin_crypto

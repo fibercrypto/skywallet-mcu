@@ -192,7 +192,7 @@ run-emulator: emulator ## Run wallet emulator
 
 test: clean firmware tiny-firmware/bootloader/libskycoin-crypto.so ## Run all project test suites.
 	export LIBRARY_PATH="$(MKFILE_DIR)/skycoin-api/:$(shell echo $$$(LIBRARY_PATH))" && \
-	export $(LD_VAR)="$(MKFILE_DIR)/skycoin-api/:$(shell echo $$$(LD_VAR))" && \
+	export $(LD_VAR)="$(MKFILE_DIR)/skycoin-api/lib:$(shell echo $$$(LD_VAR))" && \
 	./tiny-firmware/bootloader/firmware_sign.py -f ./tiny-firmware/skyfirmware.bin -pk $(FIRMWARE_SIGNATURE_PUB_KEYs) -s -sk $(FIRMWARE_SIGNATURE_SEC_KEY) -S 2 && \
 	./tiny-firmware/bootloader/firmware_sign.py -f ./tiny-firmware/skyfirmware.bin -pk $(FIRMWARE_SIGNATURE_PUB_KEYs) && \
 	rm ./tiny-firmware/skyfirmware.bin && \
@@ -225,7 +225,7 @@ test-libsky-compat: tiny-firmware/vendor/libskycoin/include/libskycoin.h ## Run 
 	make -C skycoin-api libskycoin-crypto-wrapper.a
 	$(eval LIBSKYCOIN_DIR := $(MKFILE_DIR)tiny-firmware/vendor/libskycoin)
 	$(eval LIBSKYCOIN_LIB_DIR := $(LIBSKYCOIN_DIR)/lib)
-	$(CC) -o test_hardwarewallet $(MKFILE_DIR)tiny-firmware/test_libskycoin_fake_functions.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/*.common.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/testutils/libsky_string.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/testutils/libsky_assert.common.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/testutils/common.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/test_main_hw.c -L$(MKFILE_DIR)skycoin-api -Wl,-rpath,$(MKFILE_DIR)skycoin-api -lskycoin-crypto-wrapper -lskycoin-crypto `pkg-config --cflags --libs check` -lpthread -I$(LIBSKYCOIN_LIB_DIR)/cgo -I$(LIBSKYCOIN_DIR)/include -I$(LIBSKYCOIN_DIR)/build/usr/include -I$(MKFILE_DIR)
+	$(CC) -o test_hardwarewallet $(MKFILE_DIR)tiny-firmware/test_libskycoin_fake_functions.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/*.common.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/testutils/libsky_string.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/testutils/libsky_assert.common.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/testutils/common.c $(LIBSKYCOIN_LIB_DIR)/cgo/tests/test_main_hw.c -L$(MKFILE_DIR)skycoin-api/lib -Wl,-rpath,$(MKFILE_DIR)skycoin-api -lskycoin-crypto-wrapper -lskycoin-crypto `pkg-config --cflags --libs check` -lpthread -I$(LIBSKYCOIN_LIB_DIR)/cgo -I$(LIBSKYCOIN_DIR)/include -I$(LIBSKYCOIN_DIR)/build/usr/include -I$(MKFILE_DIR)
 	$(LD_VAR)="$(MKFILE_DIR)skycoin-api/:$$$(LD_VAR)" ./test_hardwarewallet
 
 st-flash: ## Deploy (flash) firmware on physical wallet

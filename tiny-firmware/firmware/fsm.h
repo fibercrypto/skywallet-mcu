@@ -21,7 +21,7 @@
 #ifndef __FSM_H__
 #define __FSM_H__
 
-#include "messages.pb.h"
+#include "tiny-firmware/protob/c/messages.pb.h"
 
 // message functions
 

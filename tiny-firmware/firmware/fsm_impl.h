@@ -12,7 +12,7 @@
 #ifndef __TINYFIRMWARE_FIRMWARE_FSMIMPL_H__
 #define __TINYFIRMWARE_FIRMWARE_FSMIMPL_H__
 
-#include "messages.pb.h"
+#include "tiny-firmware/protob/c/messages.pb.h"
 #include "tiny-firmware/firmware/error.h"
 
 #define MNEMONIC_WORD_COUNT_12 12
