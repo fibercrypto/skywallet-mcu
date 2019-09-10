@@ -41,7 +41,6 @@ ifeq ($(UNAME_S), Darwin)
 	TESTINC+=-isystem $(CHECK_PATH)/include
 endif
 endif
-INC += -I$(TOOLS_DIR)
 CFLAGS += -I$(MKFILE_DIR) $(INC)
 CFLAGS += -I../tiny-firmware/vendor/libskycoin/include
 
@@ -80,7 +79,8 @@ libskycoin-crypto.so: skycoin_crypto.o $(OBJS)
 	$(CC) -rdynamic -shared $(CFLAGS) $(OBJS) -o libskycoin-crypto.so
 
 libskycoin-crypto.a: skycoin_crypto.o $(OBJS)
-	$(AR) rcs libskycoin-crypto.a skycoin_crypto.o $(OBJS)
+	rm -rf lib && mkdir lib
+	$(AR) rcs lib/libskycoin-crypto.a skycoin_crypto.o $(OBJS)
 
 libskycoin-wrapper.o: libskycoin-wrapper.c
 	$(CC) -std=c99 -isystem../tiny-firmware/vendor/libskycoin/include -Itools -o libskycoin-wrapper.o -c libskycoin-wrapper.c
@@ -99,6 +99,7 @@ test: test_skycoin_crypto ## Run test suite for Skycoin cipher library for firmw
 	./test_skycoin_crypto.py
 
 clean: ## Delete all temporary files
+	rm -rf lib
 	rm -f $(MKFILE_DIR)/*.o test_skycoin_crypto
 	rm -f $(MKFILE_DIR)/*.so
 	rm -f $(TOOLS_DIR)/*.o
