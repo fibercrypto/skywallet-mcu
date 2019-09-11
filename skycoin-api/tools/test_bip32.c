@@ -403,8 +403,8 @@ void testVectorKeyPairs(testMasterKey vector) {
     //		t.Run(testChildKey.path, func(t *testing.T) {
     //			// Get the private key at the given key tree path
     HDNode child_node;
-    ret = hdnode_private_ckd_from_path_with_seed(testChildkey.path, seed, seed_len,
-                                       SECP256K1_NAME, &child_node);
+    ret = hdnode_private_ckd_from_path_with_seed(
+        testChildkey.path, seed, seed_len, SECP256K1_NAME, &child_node);
     ck_assert_int_eq(ret, 1);
 
     //        TODO
@@ -633,13 +633,18 @@ START_TEST(TestParentPublicChildDerivation) {
     ret = hdnode_private_ckd_from_path(chield.path, &pubKey2);
     ck_assert_int_eq(pubKey.depth, pubKey2.depth);
     ck_assert_int_eq(pubKey.child_num, pubKey2.child_num);
-    ck_assert_mem_eq(pubKey.chain_code, pubKey2.chain_code, sizeof(pubKey.chain_code));
-    // ck_assert_mem_eq(pubKey.private_key, pubKey2.private_key, sizeof(pubKey.private_key));
-    ck_assert_mem_eq(pubKey.private_key_extension, pubKey2.private_key_extension, sizeof(pubKey.private_key_extension));
+    ck_assert_mem_eq(pubKey.chain_code, pubKey2.chain_code,
+                     sizeof(pubKey.chain_code));
+    // ck_assert_mem_eq(pubKey.private_key, pubKey2.private_key,
+    // sizeof(pubKey.private_key));
+    ck_assert_mem_eq(pubKey.private_key_extension,
+                     pubKey2.private_key_extension,
+                     sizeof(pubKey.private_key_extension));
     hdnode_fill_public_key(&pubKey2);
-    ck_assert_mem_eq(pubKey.public_key, pubKey2.public_key, sizeof(pubKey.public_key));
+    ck_assert_mem_eq(pubKey.public_key, pubKey2.public_key,
+                     sizeof(pubKey.public_key));
 
-// TODO
+    // TODO
     //			privKey, err :=
     // extendedMasterPrivate.NewPrivateChildKey(path.Elements[1].ChildNumber)
     //			require.NoError(t, err)
@@ -654,39 +659,62 @@ END_TEST
 
 //// func TestPrivateParentPublicChildKey(childIdx
 
-// func TestNewMasterKey(t *testing.T) {
-//	tests := []struct {
-//		seed   []byte
-//		base58 string
-//	}{
-//		{[]byte{},
-//"xprv9s21ZrQH143K4YUcKrp6cVxQaX59ZFkN6MFdeZjt8CHVYNs55xxQSvZpHWfojWMv6zgjmzopCyWPSFAnV4RU33J4pwCcnhsB4R4mPEnTsMC"},
-//		{[]byte{1},
-//"xprv9s21ZrQH143K3YSbAXLMPCzJso5QAarQksAGc5rQCyZCBfw4Rj2PqVLFNgezSBhktYkiL3Ta2stLPDF9yZtLMaxk6Spiqh3DNFG8p8MVeEC"},
-//		{[]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
-//"xprv9s21ZrQH143K2hKT3jMKPFEcQLbx2XD55NtqQA7B4C5U9mTZY7gBeCdoFgurN4pxkQshzP8AQhBmUNgAo5djj5FzvUFh5pKH6wcRMSXVuc1"},
-//	}
+START_TEST(TestNewMasterKey) {
+  typedef struct {
+    uint8_t* seed;
+    size_t seed_len;
+    char* base58;
+  } TestData;
+  uint8_t seed0[] = {};
+  uint8_t seed1[] = {1};
+  uint8_t seed2[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
+  TestData tests[] = {
+      {
+          .seed = seed0,
+          .seed_len = sizeof(seed0),
+          .base58 = "xprv9s21ZrQH143K4YUcKrp6cVxQaX59ZFkN6MFdeZjt8CHVYNs55xxQSv"
+                    "ZpHWfojWMv6zgjmzopCyWPSFAnV4RU33J4pwCcnhsB4R4mPEnTsMC",
+      },
+      {.seed = seed1,
+       .seed_len = sizeof(seed1),
+       .base58 = "xprv9s21ZrQH143K3YSbAXLMPCzJso5QAarQksAGc5rQCyZCBfw4Rj2PqVLFN"
+                 "gezSBhktYkiL3Ta2stLPDF9yZtLMaxk6Spiqh3DNFG8p8MVeEC"},
+      {
+          .seed = seed2,
+          .seed_len = sizeof(seed2),
+          .base58 = "xprv9s21ZrQH143K2hKT3jMKPFEcQLbx2XD55NtqQA7B4C5U9mTZY7gBeC"
+                    "doFgurN4pxkQshzP8AQhBmUNgAo5djj5FzvUFh5pKH6wcRMSXVuc1",
+      }};
 
-//	for _, test := range tests {
-//		key, err := newMasterKey(test.seed)
-//		require.NoError(t, err)
-//		assertPrivateKeySerialization(t, key, test.base58)
-//	}
+  for (size_t i = 0; i < sizeof(tests) / sizeof(*tests); ++i) {
+    // Generate a master private and public key
+    HDNode master_node;
+    size_t ret = hdnode_from_seed(tests[i].seed, tests[i].seed_len,
+                                  SECP256K1_NAME, &master_node);
+    ck_assert_int_eq(ret, 1);
+    char xpriv_b58_ser[1000] = {0};
+    ret = hdnode_serialize_private(&master_node, master_node.parent_fingerprint,
+                                   0, xpriv_b58_ser, sizeof(xpriv_b58_ser));
+    ck_assert_int_gt(ret, 0);
+    ck_assert_str_eq(tests[i].base58, xpriv_b58_ser);
+  }
 
-//	// NewMasterKey requires a seed length >=16 and <=64 bytes
-//	badSeeds := [][]byte{
-//		nil,
-//		[]byte{},
-//		[]byte{1},
-//		make([]byte, 15),
-//		make([]byte, 65),
-//	}
+  //  TODO
+  // NewMasterKey requires a seed length >=16 and <=64 bytes
+  //	badSeeds := [][]byte{
+  //		nil,
+  //		[]byte{},
+  //		[]byte{1},
+  //		make([]byte, 15),
+  //		make([]byte, 65),
+  //	}
 
-//	for _, b := range badSeeds {
-//		_, err := NewMasterKey(b)
-//		require.Equal(t, ErrInvalidSeedLength, err)
-//	}
-//}
+  //	for _, b := range badSeeds {
+  //		_, err := NewMasterKey(b)
+  //		require.Equal(t, ErrInvalidSeedLength, err)
+  //	}
+}
+END_TEST
 
 // func TestDeserializePrivateInvalidStrings(t *testing.T) {
 //	// Some test cases sourced from bitcoinjs-lib:
@@ -1395,13 +1423,11 @@ END_TEST
 //	require.False(t, IsImpossibleChildError(nil))
 //}
 
-START_TEST(dummy_test_bip32) { ck_assert_int_eq(1, 1); }
-END_TEST
-
 void load_bip32_testcase(Suite* s) {
   TCase* tc = tcase_create("skycoin_crypto_bip32");
-  tcase_add_test(tc, dummy_test_bip32);
+  //  tcase_add_test(tc, dummy_test_bip32);
   tcase_add_test(tc, TestBip32TestVectors);
   tcase_add_test(tc, TestParentPublicChildDerivation);
+  tcase_add_test(tc, TestNewMasterKey);
   suite_add_tcase(s, tc);
 }
