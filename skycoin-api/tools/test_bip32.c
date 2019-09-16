@@ -40,6 +40,8 @@ typedef struct {
 } testMasterKey;
 
 void testVectorKeyPairs(testMasterKey vector);
+void assertPublicKeySerialization(HDNode *key, char *expected);
+void assertPrivateKeySerialization(HDNode *key, char *expected);
 
 START_TEST(TestBip32TestVectors) {
   // vector1,2,3 test cases from:
@@ -380,20 +382,19 @@ void testVectorKeyPairs(testMasterKey vector) {
   // hex.EncodeToString(privKey.Identifier())) 	require.Equal(t,
   // vector.identifier, hex.EncodeToString(pubKey.Identifier()))
 
-  //    TODO
-  //	// Serialize and deserialize both keys and ensure they're the same
-  //	assertPrivateKeySerialization(t, privKey, vector.privKey)
-  //	assertPublicKeySerialization(t, pubKey, vector.pubKey)
+  // Serialize and deserialize both keys and ensure they're the same
+  assertPrivateKeySerialization(&master_node, vector.privKey);
+  assertPublicKeySerialization(&master_node, vector.pubKey);
 
   uint32_t xpriv = 0, xpub = 0;
   memcpy(&xpriv, private_wallet_version, sizeof(xpriv));
   memcpy(&xpub, public_wallet_version, sizeof(xpub));
   uint32_t fingerprint = 0;
   HDNode master_priv_des, master_pub_des;
-  ret = hdnode_deserialize(xpriv_b58_ser, xpriv, xpub, SECP256K1_NAME,
+  ret = hdnode_deserialize(xpriv_b58_ser, xpub, xpriv, SECP256K1_NAME,
                            &master_priv_des, &fingerprint);
   ck_assert_int_eq(ret, 0);
-  ret = hdnode_deserialize(xpub_b58_ser, xpriv, xpub, SECP256K1_NAME,
+  ret = hdnode_deserialize(xpub_b58_ser, xpub, xpriv, SECP256K1_NAME,
                            &master_pub_des, &fingerprint);
   ck_assert_int_eq(ret, 0);
 
@@ -794,6 +795,7 @@ START_TEST(TestDeserializePrivateInvalidStrings) {
     memcpy(&xpub, public_wallet_version, sizeof(xpub));
     uint32_t fingerprint = 0;
     HDNode master_priv_des;
+    // FIXME: swap xpriv and xpub.
     int ret = hdnode_deserialize(tests[var].base58, xpriv, xpub, SECP256K1_NAME,
                                  &master_priv_des, &fingerprint);
     ck_assert_int_eq(tests[var].err, ret);
@@ -906,41 +908,43 @@ START_TEST(TestCantCreateHardenedPublicChild) {
 }
 END_TEST
 
-// func assertPrivateKeySerialization(t *testing.T, key *PrivateKey, expected
-// string) { 	expectedBytes, err := base58.Decode(expected)
-// require.NoError(t,
-// err)
+void assertPrivateKeySerialization(HDNode *key, char *expected) {
+    char xpriv_b58_ser[1000] = {0};
+    int ret = hdnode_serialize_private(
+                key, key->parent_fingerprint, 0, xpriv_b58_ser, 
+                sizeof(xpriv_b58_ser));
+    ck_assert_int_gt(ret, 0);
+    ck_assert_str_eq(expected, xpriv_b58_ser);
 
-//	serialized := key.Serialize()
+    uint32_t xpriv = 0, xpub = 0;
+    memcpy(&xpriv, private_wallet_version, sizeof(xpriv));
+    memcpy(&xpub, public_wallet_version, sizeof(xpub));
+    uint32_t fingerprint = 0;
+    HDNode master_priv_des;
+    ret = hdnode_deserialize(xpriv_b58_ser, xpub, xpriv, SECP256K1_NAME,
+                             &master_priv_des, &fingerprint);
+    ck_assert_int_eq(ret, 0);
+    ck_assert_mem_eq(key->private_key, master_priv_des.private_key, sizeof(key->private_key));
+}
 
-//	require.Equal(t, expectedBytes, serialized)
+void assertPublicKeySerialization(HDNode *master_node, char *expected) {
+    char xpub_b58_ser[1000] = {0};
+    bool ret = hdnode_serialize_public(
+                master_node, master_node->parent_fingerprint, 0,
+                xpub_b58_ser, sizeof(xpub_b58_ser));
+    ck_assert_int_gt(ret, 0);
+    ck_assert_str_eq(expected, xpub_b58_ser);
 
-//	key2, err := DeserializePrivateKey(serialized)
-//	require.NoError(t, err)
-//	require.Equal(t, key, key2)
-
-//	key3, err := DeserializeEncodedPrivateKey(expected)
-//	require.NoError(t, err)
-//	require.Equal(t, key2, key3)
-//}
-
-// func assertPublicKeySerialization(t *testing.T, key *PublicKey, expected
-// string) { 	expectedBytes, err := base58.Decode(expected)
-// require.NoError(t,
-// err)
-
-//	serialized := key.Serialize()
-
-//	require.Equal(t, expectedBytes, serialized)
-
-//	key2, err := DeserializePublicKey(serialized)
-//	require.NoError(t, err)
-//	require.Equal(t, key, key2)
-
-//	key3, err := DeserializeEncodedPublicKey(expected)
-//	require.NoError(t, err)
-//	require.Equal(t, key2, key3)
-//}
+    uint32_t xpriv = 0, xpub = 0;
+    memcpy(&xpriv, private_wallet_version, sizeof(xpriv));
+    memcpy(&xpub, public_wallet_version, sizeof(xpub));
+    uint32_t fingerprint = 0;
+    HDNode master_pub_des;
+    ret = hdnode_deserialize(xpub_b58_ser, xpub, xpriv, SECP256K1_NAME,
+                             &master_pub_des, &fingerprint);
+    ck_assert_int_eq(0, ret);
+    ck_assert_mem_eq(master_node->public_key, master_pub_des.public_key, sizeof(master_node->public_key));
+}
 
 START_TEST(TestValidatePrivateKey) {
   typedef struct {
