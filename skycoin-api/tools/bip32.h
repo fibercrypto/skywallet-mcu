@@ -109,8 +109,8 @@ int hdnode_serialize_private(const HDNode* node, uint32_t fingerprint, uint32_t 
 
 int hdnode_deserialize(const char* str, uint32_t version_public, uint32_t version_private, const char* curve, HDNode* node, uint32_t* fingerprint);
 
-void hdnode_get_address_raw(HDNode* node, uint32_t version, uint8_t* addr_raw);
-void hdnode_get_address(HDNode* node, uint32_t version, char* addr, int addrsize);
+void hdnode_get_address_raw(HDNode* node, uint8_t* addr_raw, size_t *addr_raw_size);
+void hdnode_get_address(HDNode* node, char* addr, size_t *addrsize);
 
 //const curve_info *get_curve_by_name(const char *curve_name);
 

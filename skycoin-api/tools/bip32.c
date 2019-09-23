@@ -31,6 +31,7 @@
 #include "bignum.h"
 #include "bip32.h"
 #include "curves.h"
+#include "skycoin_crypto.h"
 #include "ecdsa.h"
 #include "ed25519-donna/ed25519-sha3.h"
 #include "ed25519-donna/ed25519.h"
@@ -242,7 +243,7 @@ static inline int number_from_node(const char *str, uint32_t *out) {
     return 0;
 }
 
-static int parse_path(const char* path, uint32_t *out_indexes, size_t *out_indexes_size) {
+int parse_path(const char* path, uint32_t *out_indexes, size_t *out_indexes_size) {
     *out_indexes_size = 0;
     // sizeof deep = 256. https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#serialization-format
     const char *path_indexes[256] = {0};
@@ -655,16 +656,28 @@ int hdnode_private_ckd_cached(HDNode* inout, const uint32_t* i, size_t i_count, 
 }
 #endif
 
-void hdnode_get_address_raw(HDNode* node, uint32_t version, uint8_t* addr_raw)
+void hdnode_get_address_raw(HDNode* node, uint8_t* addr_raw, size_t *addr_raw_size)
 {
-    hdnode_fill_public_key(node);
-    ecdsa_get_address_raw(node->public_key, version, node->curve->hasher_pubkey, addr_raw);
+    const size_t org_addr_raw_size = *addr_raw_size;
+    char addr[100] = {0};
+    size_t addr_size = sizeof(addr);
+    hdnode_get_address(node, addr, &addr_size);
+    // TODO: check this return value
+    b58tobin(addr_raw, addr_raw_size, addr);
+    char tmp_addr[100] = {0};
+    memcpy(tmp_addr,
+           addr_raw + (org_addr_raw_size - *addr_raw_size),
+           org_addr_raw_size < *addr_raw_size ? org_addr_raw_size : *addr_raw_size);
+    memset(addr_raw, 0, org_addr_raw_size);
+    memcpy(addr_raw,
+           tmp_addr,
+           org_addr_raw_size < *addr_raw_size ? org_addr_raw_size : *addr_raw_size);
 }
 
-void hdnode_get_address(HDNode* node, uint32_t version, char* addr, int addrsize)
+void hdnode_get_address(HDNode* node, char* addr, size_t *addrsize)
 {
     hdnode_fill_public_key(node);
-    ecdsa_get_address(node->public_key, version, node->curve->hasher_pubkey, node->curve->hasher_base58, addr, addrsize);
+    skycoin_address_from_pubkey(node->public_key, addr, addrsize);
 }
 
 void hdnode_fill_public_key(HDNode* node)
