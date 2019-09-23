@@ -117,8 +117,11 @@ test_skycoin_crypto.o: test_skycoin_crypto.c
 tools/test_bip32.o: tools/test_bip32.c
 	$(CC) $(CFLAGS) $(TESTINC) -o $@ -c $<
 
-test_skycoin_crypto: test_skycoin_crypto.o tools/test_bip32.o libskycoin-crypto.so
-	$(CC) -o test_skycoin_crypto test_skycoin_crypto.o tools/test_bip32.o $(OBJS) -L. -Wl,-rpath,$(MKFILE_DIR) -lskycoin-crypto $(LIBS) $(TESTLIBS)
+tools/test_bip44.o: tools/test_bip44.c
+	$(CC) $(CFLAGS) $(TESTINC) -o $@ -c $<
+
+test_skycoin_crypto: test_skycoin_crypto.o tools/test_bip32.o tools/test_bip44.o libskycoin-crypto.so
+	$(CC) -o test_skycoin_crypto test_skycoin_crypto.o tools/test_bip32.o tools/test_bip44.o $(OBJS) -L. -Wl,-rpath,$(MKFILE_DIR) -lskycoin-crypto $(LIBS) $(TESTLIBS)
 
 test: test_skycoin_crypto ## Run test suite for Skycoin cipher library for firmware
 	./test_skycoin_crypto

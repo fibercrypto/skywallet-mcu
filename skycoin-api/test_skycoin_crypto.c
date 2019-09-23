@@ -23,6 +23,7 @@
 #include "tools/secp256k1.h"
 #include "tools/sha2.h" //SHA256_DIGEST_LENGTH
 #include "tools/test_bip32.h"
+#include "tools/test_bip44.h"
 
 #define FROMHEX_MAXLEN 512
 
@@ -1400,6 +1401,7 @@ Suite* test_suite(void)
     tcase_add_test(tc, test_ecdh);
     suite_add_tcase(s, tc);
     load_bip32_testcase(s);
+    load_bip44_testcase(s);
 
     return s;
 }
