@@ -1952,6 +1952,38 @@ START_TEST(test_transactionSignCheckEdges)
 }
 END_TEST
 
+START_TEST(test_generateAddressBip44)
+{
+    // NOTE(): Given
+    char mnem_str[] = {"apple again now trial car member express concert antenna panda shuffle topple"};
+    SetMnemonic setMnem = SetMnemonic_init_zero;
+    memcpy(setMnem.mnemonic, mnem_str, sizeof(mnem_str));
+    ErrCode_t err = msgSetMnemonicImpl(&setMnem);
+    ck_assert_int_eq(ErrOk, err);
+
+    Bip44AddrIndex bip44 = Bip44AddrIndex_init_zero;
+    bip44.purpose = 0x80000000 + 44;
+    bip44.coin_type = 0x80000000 + 8000;
+    bip44.account = 0x80000000;
+    bip44.change = 0;
+    bip44.address_index = 0;
+    SkycoinAddress msgSkyAddress = SkycoinAddress_init_zero;
+    msgSkyAddress.bip44_addr = bip44;
+    msgSkyAddress.has_bip44_addr = true;
+    msgSkyAddress.address_n = 1;
+
+    uint8_t msg_resp_addr[MSG_OUT_SIZE] __attribute__((aligned)) = {0};
+    ResponseSkycoinAddress* respAddress = (ResponseSkycoinAddress*)(void*)msg_resp_addr;
+    err = msgSkycoinAddressImpl(&msgSkyAddress, respAddress);
+    ck_assert_int_eq(ErrOk, err);
+    ck_assert_int_eq(respAddress->addresses_count, 1);
+    // Test data generated with skycoin cli
+    // go run cli.go walletCreate /tmp/aaa.wlt -s "apple again now trial car member express concert antenna panda shuffle topple" -t "bip44"
+    char expected_addr[] = {"Qhi8XDLQzrzR5owkbhX2Dmbg27cYTZaVyk"};
+    ck_assert_str_eq(expected_addr, respAddress->addresses[0]);
+}
+END_TEST
+
 // define test cases
 TCase* add_fsm_tests(TCase* tc)
 {
@@ -2002,5 +2034,6 @@ TCase* add_fsm_tests(TCase* tc)
     tcase_add_test(tc, test_msgTransactionSign14);
     tcase_add_test(tc, test_isSha256DigestHex);
     tcase_add_test(tc, test_transactionSignCheckEdges);
+    tcase_add_test(tc, test_generateAddressBip44);
     return tc;
 }
