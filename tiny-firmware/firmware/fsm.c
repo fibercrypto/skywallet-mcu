@@ -46,6 +46,7 @@
 #include "tiny-firmware/firmware/droplet.h"
 #include "tiny-firmware/firmware/skyparams.h"
 #include "tiny-firmware/firmware/entropy.h"
+#include "skycoin-api/tools/bip44.h"
 
 // Utils
 
@@ -384,13 +385,42 @@ void fsm_msgSkycoinSignMessage(SkycoinSignMessage* msg)
     ResponseSkycoinAddress respAddr;
     uint8_t seckey[32] = {0};
     uint8_t pubkey[33] = {0};
-    ErrCode_t err = fsm_getKeyPairAtIndex(1, pubkey, seckey, &respAddr, msg->address_n);
-    if (err != ErrOk) {
-        fsm_sendResponseFromErrCode(err, NULL, _("Unable to get keys pair"), &msgtype);
-        layoutHome();
-        return;
+    if (msg->has_bip44_addr) {
+        const char* mnemo = storage_getFullSeed();
+        uint8_t seed[512 / 8] = {0};
+        mnemonic_to_seed(mnemo, "", seed, NULL);
+        uint8_t addr[100] = {0};
+        size_t addr_size = sizeof(addr);
+        int ret = hdnode_address_for_branch(
+            seed, sizeof(seed), msg->bip44_addr.purpose,
+            msg->bip44_addr.coin_type, msg->bip44_addr.account,
+            msg->bip44_addr.change, msg->bip44_addr.address_index, addr, &addr_size);
+        size_t encoded_addr_size = sizeof(addr);
+        if (ret != 1) {
+            fsm_sendResponseFromErrCode(
+                ErrFailed, NULL, _("Unable to get address"),&msgtype);
+            layoutHome();
+            return;
+        }
+        if (b58enc(respAddr.addresses[0], &encoded_addr_size, addr, addr_size) != true) {
+            fsm_sendResponseFromErrCode(
+                ErrFailed, NULL, _("Unable to encode address"),&msgtype);
+            layoutHome();
+            return;
+        }
+    } else {
+        ErrCode_t err = fsm_getKeyPairAtIndex(1, pubkey, seckey, &respAddr,
+                                              msg->address_n);
+        if (err != ErrOk) {
+            fsm_sendResponseFromErrCode(
+                err, NULL, _("Unable to get keys pair"),&msgtype);
+            layoutHome();
+            return;
+        }
     }
-    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("sign message using"), _("this address?"), respAddr.addresses[0], NULL, NULL);
+    layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL,
+                      _("Do you really want to"), _("sign message using"),
+                      _("this address?"), respAddr.addresses[0], NULL, NULL);
     CHECK_BUTTON_PROTECT
 
             err = msgSkycoinSignMessageImpl(msg, resp);

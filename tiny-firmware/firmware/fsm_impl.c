@@ -35,6 +35,7 @@
 #include "tiny-firmware/memory.h"
 #include "tiny-firmware/usb.h"
 #include "tiny-firmware/util.h"
+#include "skycoin-api/tools/bip44.h"
 #include "skycoin-crypto/skycoin_constants.h"
 #include "skycoin-crypto/skycoin_crypto.h"
 #include "skycoin-crypto/skycoin_signature.h"
@@ -221,12 +222,33 @@ ErrCode_t msgSkycoinAddressImpl(SkycoinAddress* msg, ResponseSkycoinAddress* res
     }
 
     CHECK_MNEMONIC_RET_ERR_CODE
-
-    if (fsm_getKeyPairAtIndex(msg->address_n, pubkey, seckey, resp, start_index) != ErrOk) {
-        return ErrAddressGeneration;
-    }
-    if (msg->address_n == 1 && msg->has_confirm_address && msg->confirm_address) {
-        return ErrUserConfirmation;
+    
+    if (msg->has_bip44_addr) {
+        const char* mnemo = storage_getFullSeed();
+        uint8_t seed[512 / 8] = {0};
+        mnemonic_to_seed(mnemo, "", seed, NULL);
+        char addr[100] = {0};
+        size_t addr_size = sizeof(addr);
+        int ret = hdnode_address_for_branch(
+            seed, sizeof(seed), msg->bip44_addr.purpose,
+            msg->bip44_addr.coin_type, msg->bip44_addr.account,
+            msg->bip44_addr.change, msg->bip44_addr.address_index, addr, &addr_size);
+        if (ret != 1) {
+            return ErrAddressGeneration;
+        }
+        if (addr_size > sizeof(resp->addresses[0])) {
+            return ErrFailed;
+        }
+        memcpy(resp->addresses[0], addr, addr_size);
+        // TODO addresses_count
+        resp->addresses_count = 1;
+    } else {
+        if (fsm_getKeyPairAtIndex(msg->address_n, pubkey, seckey, resp, start_index) != ErrOk) {
+            return ErrAddressGeneration;
+        }
+        if (msg->address_n == 1 && msg->has_confirm_address && msg->confirm_address) {
+            return ErrUserConfirmation;
+        }
     }
     return ErrOk;
 }
