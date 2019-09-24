@@ -117,7 +117,19 @@ ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage* msg, ResponseSkycoinSign
     uint8_t seckey[SKYCOIN_SECKEY_LEN] = {0};
     uint8_t digest[SHA256_DIGEST_LENGTH] = {0};
     uint8_t signature[SKYCOIN_SIG_LEN];
-    if (fsm_getKeyPairAtIndex(1, pubkey, seckey, NULL, msg->address_n) != ErrOk) {
+    if (msg->has_bip44_addr) {
+        const char* mnemo = storage_getFullSeed();
+        uint8_t seed[512 / 8] = {0};
+        mnemonic_to_seed(mnemo, "", seed, NULL);
+        int ret = hdnode_keypair_for_branch(
+            seed, sizeof(seed), msg->bip44_addr.purpose,
+            msg->bip44_addr.coin_type, msg->bip44_addr.account,
+            msg->bip44_addr.change, msg->bip44_addr.address_index, seckey,
+            pubkey);
+        if (ret != 1) {
+            return ErrAddressGeneration;
+        }
+    } else if (fsm_getKeyPairAtIndex(1, pubkey, seckey, NULL, msg->address_n) != ErrOk) {
         return ErrInvalidValue;
     }
     if (is_sha256_digest_hex(msg->message)) {

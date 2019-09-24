@@ -389,7 +389,7 @@ void fsm_msgSkycoinSignMessage(SkycoinSignMessage* msg)
         const char* mnemo = storage_getFullSeed();
         uint8_t seed[512 / 8] = {0};
         mnemonic_to_seed(mnemo, "", seed, NULL);
-        uint8_t addr[100] = {0};
+        char addr[100] = {0};
         size_t addr_size = sizeof(addr);
         int ret = hdnode_address_for_branch(
             seed, sizeof(seed), msg->bip44_addr.purpose,
@@ -423,7 +423,7 @@ void fsm_msgSkycoinSignMessage(SkycoinSignMessage* msg)
                       _("this address?"), respAddr.addresses[0], NULL, NULL);
     CHECK_BUTTON_PROTECT
 
-            err = msgSkycoinSignMessageImpl(msg, resp);
+    ErrCode_t err = msgSkycoinSignMessageImpl(msg, resp);
     if (err == ErrOk) {
         msg_write(MessageType_MessageType_ResponseSkycoinSignMessage, resp);
         layoutRawMessage("Signature success");
@@ -436,6 +436,7 @@ void fsm_msgSkycoinSignMessage(SkycoinSignMessage* msg)
         layoutHome();
     }
 }
+
 void fsm_msgSkycoinAddress(SkycoinAddress* msg)
 {
     MessageType msgtype = MessageType_MessageType_SkycoinAddress;
