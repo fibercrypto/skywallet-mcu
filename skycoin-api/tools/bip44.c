@@ -42,45 +42,118 @@ int parse_path(const char *path, uint32_t *out_indexes,
                size_t *out_indexes_size);
 
 // m / purpose' / coin_type' / account' / change / address_index
+static int validate_bip44(uint32_t purpose, uint32_t coin_type,
+                          uint32_t account, uint32_t change,
+                          uint32_t address_index) {
+    // Purpose is a constant set to 44' (or 0x8000002C) following the BIP43
+    // recommendation.
+    if (purpose != 0x8000002C) {
+        return -2;
+    }
+    // coin_type is set to 8000'
+    if (coin_type != first_hardened_child + coint_type_skycoin) {
+        return -3;
+    }
+    // account is in an a hardened chield (')
+    if (!(account & first_hardened_child)) {
+        return -4;
+    }
+    // change is 0 or 1 (Constant 0 is used for external chain and constant 1 for
+    // internal chain)
+    if (change != 0 && change != 1) {
+        return -5;
+    }
+    // address_index is not in a hardened chield (')
+    if (address_index & first_hardened_child) {
+        return -6;
+    }
+    return 0;
+}
+
+static int hdnode_for_branch_path(const uint8_t *seed, size_t seed_len,
+                                  uint32_t purpose, uint32_t coin_type,
+                                  uint32_t account, uint32_t change,
+                                  uint32_t address_index, HDNode *node) {
+  int ret = validate_bip44(purpose, coin_type, account, change, address_index);
+  if (ret != 0) {
+      return ret;
+  }
+  ret = hdnode_from_seed(seed, seed_len, SECP256K1_NAME, node);
+  if (ret != 1) {
+    return ret;
+  }
+  ret = hdnode_private_ckd(node, purpose);
+  if (ret != 1) {
+    return ret;
+  }
+  ret = hdnode_private_ckd(node, coin_type);
+  if (ret != 1) {
+    return ret;
+  }
+  ret = hdnode_private_ckd(node, account);
+  if (ret != 1) {
+    return ret;
+  }
+  ret = hdnode_private_ckd(node, change);
+  if (ret != 1) {
+    return ret;
+  }
+  ret = hdnode_private_ckd(node, address_index);
+  if (ret != 1) {
+    return ret;
+  }
+  return 1;
+}
+
+int hdnode_address_for_branch(const uint8_t *seed, size_t seed_len,
+                              uint32_t purpose, uint32_t coin_type,
+                              uint32_t account, uint32_t change,
+                              uint32_t address_index, char *out_addrs,
+                              size_t *out_addrs_size) {
+  HDNode node;
+  int ret = hdnode_for_branch_path(seed, seed_len, purpose, coin_type, account,
+                                   change, address_index, &node);
+  if (ret != 1) {
+    return ret;
+  }
+  hdnode_get_address(&node, out_addrs, out_addrs_size);
+  return 1;
+}
+
+int hdnode_keypair_for_branch(const uint8_t *seed, size_t seed_len,
+                              uint32_t purpose, uint32_t coin_type,
+                              uint32_t account, uint32_t change,
+                              uint32_t address_index, uint8_t *seckey,
+                              uint8_t *pubkey) {
+  HDNode node;
+  int ret = hdnode_for_branch_path(seed, seed_len, purpose, coin_type, account,
+                                   change, address_index, &node);
+  if (ret != 1) {
+    return ret;
+  }
+  memcpy(seckey, node.private_key, sizeof(node.private_key));
+  memcpy(pubkey, node.public_key, sizeof(node.public_key));
+  return 1;
+}
+
+// m / purpose' / coin_type' / account' / change / address_index
 int validate_path(const uint32_t *indexes, size_t indexes_size) {
-  if (indexes_size != 5) {
-    return -1;
-  }
-  // Purpose is a constant set to 44' (or 0x8000002C) following the BIP43
-  // recommendation.
-  if (indexes[0] != 0x8000002C) {
-    return -2;
-  }
-  // coin_type is set to 8000'
-  if (indexes[1] != first_hardened_child + coint_type_skycoin) {
-    return -3;
-  }
-  // account is in an a hardened chield (')
-  if (!(indexes[2] & first_hardened_child)) {
-    return -4;
-  }
-  // change is 0 or 1 (Constant 0 is used for external chain and constant 1 for
-  // internal chain)
-  if (indexes[3] != 0 && indexes[3] != 1) {
-    return -5;
-  }
-  // address_index is not in a hardened chield (')
-  if (indexes[4] & first_hardened_child) {
-    return -6;
-  }
-  return 0;
+    if (indexes_size != 5) {
+        return -1;
+    }
+    return validate_bip44(indexes[0], indexes[1], indexes[2], indexes[3], indexes[4]);
 }
 
 int hdnode_ckd_address_from_path(const uint8_t *seed, size_t seed_len,
                                  const char *path, uint8_t *out_addrs,
                                  size_t *out_addrs_size) {
-  uint32_t out_indexes[256] = {0};
-  size_t out_indexes_size = 0;
-  int ret = parse_path(path, out_indexes, &out_indexes_size);
+  uint32_t path_nodes[256] = {0};
+  size_t path_nodes_size = 0;
+  int ret = parse_path(path, path_nodes, &path_nodes_size);
   if (ret) {
     return ret;
   }
-  ret = validate_path(out_indexes, out_indexes_size);
+  ret = validate_path(path_nodes, path_nodes_size);
   if (ret != 0) {
     return ret;
   }
