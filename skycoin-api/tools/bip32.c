@@ -160,7 +160,7 @@ int hdnode_from_xprv(uint32_t depth, uint32_t child_num, const uint8_t* chain_co
     return 1;
 }
 
-int hdnode_from_seed(const uint8_t* seed, int seed_len, const char* curve, HDNode* out)
+int hdnode_from_seed(const uint8_t* seed, size_t seed_len, const char* curve, HDNode* out)
 {
     static CONFIDENTIAL uint8_t I[32 + 32];
     memzero(out, sizeof(HDNode));
@@ -677,6 +677,7 @@ void hdnode_get_address_raw(HDNode* node, uint8_t* addr_raw, size_t *addr_raw_si
 void hdnode_get_address(HDNode* node, char* addr, size_t *addrsize)
 {
     hdnode_fill_public_key(node);
+    // FIXME check return value of skycoin_address_from_pubkey
     skycoin_address_from_pubkey(node->public_key, addr, addrsize);
 }
 

@@ -58,7 +58,7 @@ int hdnode_from_xpub(uint32_t depth, uint32_t child_num, const uint8_t* chain_co
 
 int hdnode_from_xprv(uint32_t depth, uint32_t child_num, const uint8_t* chain_code, const uint8_t* private_key, const char* curve, HDNode* out);
 
-int hdnode_from_seed(const uint8_t* seed, int seed_len, const char* curve, HDNode* out);
+int hdnode_from_seed(const uint8_t* seed, size_t seed_len, const char* curve, HDNode* out);
 
 int hdnode_private_ckd_from_path(const char *path, HDNode* out);
 int hdnode_private_ckd_from_path_with_seed(const char *path, const uint8_t* seed, int seed_len, const char* curve, HDNode* out);
