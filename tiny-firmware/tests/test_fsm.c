@@ -291,8 +291,8 @@ START_TEST(test_msgSkycoinCheckMessageSignatureBip44Ok)
         bip44.coin_type = 0x80000000 + 8000;
         bip44.account = 0x80000000;
         bip44.change = 0;
-        bip44.address_index = 0;
-        msgSkyAddress.address_n = 1;
+        bip44.address_start_index = 0;
+        bip44.address_n = 1;
         msgSkyAddress.bip44_addr = bip44;
         msgSkyAddress.has_bip44_addr = true;
         uint8_t msg_resp_addr[MSG_OUT_SIZE] __attribute__((aligned)) = {0};
@@ -1966,7 +1966,8 @@ START_TEST(test_generateAddressBip44)
     bip44.coin_type = 0x80000000 + 8000;
     bip44.account = 0x80000000;
     bip44.change = 0;
-    bip44.address_index = 0;
+    bip44.address_start_index = 0;
+    bip44.address_n = 1;
     SkycoinAddress msgSkyAddress = SkycoinAddress_init_zero;
     msgSkyAddress.bip44_addr = bip44;
     msgSkyAddress.has_bip44_addr = true;

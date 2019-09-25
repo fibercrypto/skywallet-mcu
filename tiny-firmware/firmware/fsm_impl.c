@@ -124,7 +124,7 @@ ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage* msg, ResponseSkycoinSign
         int ret = hdnode_keypair_for_branch(
             seed, sizeof(seed), msg->bip44_addr.purpose,
             msg->bip44_addr.coin_type, msg->bip44_addr.account,
-            msg->bip44_addr.change, msg->bip44_addr.address_index, seckey,
+            msg->bip44_addr.change, msg->bip44_addr.address_start_index, seckey,
             pubkey);
         if (ret != 1) {
             return ErrAddressGeneration;
@@ -234,26 +234,29 @@ ErrCode_t msgSkycoinAddressImpl(SkycoinAddress* msg, ResponseSkycoinAddress* res
     }
 
     CHECK_MNEMONIC_RET_ERR_CODE
-    
     if (msg->has_bip44_addr) {
         const char* mnemo = storage_getFullSeed();
         uint8_t seed[512 / 8] = {0};
         mnemonic_to_seed(mnemo, "", seed, NULL);
-        char addr[100] = {0};
-        size_t addr_size = sizeof(addr);
-        int ret = hdnode_address_for_branch(
-            seed, sizeof(seed), msg->bip44_addr.purpose,
-            msg->bip44_addr.coin_type, msg->bip44_addr.account,
-            msg->bip44_addr.change, msg->bip44_addr.address_index, addr, &addr_size);
-        if (ret != 1) {
-            return ErrAddressGeneration;
+        resp->addresses_count = 0;
+        for (uint32_t i = 0; i < msg->bip44_addr.address_n; ++i) {
+            char addr[100] = {0};
+            size_t addr_size = sizeof(addr);
+            int ret = hdnode_address_for_branch(
+                seed, sizeof(seed), msg->bip44_addr.purpose,
+                msg->bip44_addr.coin_type, msg->bip44_addr.account,
+                msg->bip44_addr.change, msg->bip44_addr.address_start_index + i, addr, &addr_size);
+            if (ret != 1) {
+                return ErrAddressGeneration;
+            }
+            if (addr_size > sizeof(resp->addresses[i])) {
+                return ErrFailed;
+            }
+            memcpy(resp->addresses[i], addr, addr_size);
+            printf("%s\n", resp->addresses[i]);
+            // TODO addresses_count
+            ++(resp->addresses_count);
         }
-        if (addr_size > sizeof(resp->addresses[0])) {
-            return ErrFailed;
-        }
-        memcpy(resp->addresses[0], addr, addr_size);
-        // TODO addresses_count
-        resp->addresses_count = 1;
     } else {
         if (fsm_getKeyPairAtIndex(msg->address_n, pubkey, seckey, resp, start_index) != ErrOk) {
             return ErrAddressGeneration;
