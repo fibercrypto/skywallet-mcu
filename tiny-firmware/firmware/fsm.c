@@ -389,22 +389,14 @@ void fsm_msgSkycoinSignMessage(SkycoinSignMessage* msg)
         const char* mnemo = storage_getFullSeed();
         uint8_t seed[512 / 8] = {0};
         mnemonic_to_seed(mnemo, "", seed, NULL);
-        char addr[100] = {0};
-        size_t addr_size = sizeof(addr);
+        size_t addr_size = sizeof(respAddr.addresses[0]);
         int ret = hdnode_address_for_branch(
             seed, sizeof(seed), msg->bip44_addr.purpose,
             msg->bip44_addr.coin_type, msg->bip44_addr.account,
-            msg->bip44_addr.change, msg->bip44_addr.address_index, addr, &addr_size);
-        size_t encoded_addr_size = sizeof(addr);
+            msg->bip44_addr.change, msg->bip44_addr.address_start_index, respAddr.addresses[0], &addr_size);
         if (ret != 1) {
             fsm_sendResponseFromErrCode(
                 ErrFailed, NULL, _("Unable to get address"),&msgtype);
-            layoutHome();
-            return;
-        }
-        if (b58enc(respAddr.addresses[0], &encoded_addr_size, addr, addr_size) != true) {
-            fsm_sendResponseFromErrCode(
-                ErrFailed, NULL, _("Unable to encode address"),&msgtype);
             layoutHome();
             return;
         }
