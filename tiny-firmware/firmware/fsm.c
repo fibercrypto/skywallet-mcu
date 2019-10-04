@@ -353,7 +353,7 @@ ErrCode_t requestConfirmTransaction(char *strCoin, char *strHour, TransactionSig
 
 void fsm_msgTransactionSign(TransactionSign *msg) {
     CHECK_PIN
-            CHECK_MNEMONIC
+    CHECK_MNEMONIC
     CHECK_INPUTS(msg)
     CHECK_OUTPUTS(msg)
 

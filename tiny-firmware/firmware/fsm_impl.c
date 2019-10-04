@@ -153,7 +153,7 @@ ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage* msg, ResponseSkycoinSign
     return ErrOk;
 }
 
-ErrCode_t msgSignTransactionMessageImpl(uint8_t* message_digest, uint32_t index, char* signed_message)
+static ErrCode_t signTransactionMessage(uint8_t* message_digest, uint32_t index, char* signed_message)
 {
     uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};
     uint8_t seckey[SKYCOIN_SECKEY_LEN] = {0};
@@ -906,7 +906,7 @@ ErrCode_t msgTxAckImpl(TxAck *msg, TxRequest *resp) {
                     sha256_Update(&sha256ctx, shaInput, 64);
                     sha256_Final(&sha256ctx, msg_digest);
                     resp->sign_result[signCount].has_signature = true;
-                    msgSignTransactionMessageImpl(msg_digest,msg->tx.inputs[i].address_n[0],resp->sign_result[signCount].signature);
+                    signTransactionMessage(msg_digest,msg->tx.inputs[i].address_n[0],resp->sign_result[signCount].signature);
                     resp->sign_result[signCount].has_signature_index = true;
                     resp->sign_result[signCount].signature_index = i;
                     signCount++;
