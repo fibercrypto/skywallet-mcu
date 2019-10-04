@@ -166,7 +166,7 @@ ErrCode_t msgSignTransactionMessageImpl(uint8_t* message_digest, uint32_t index,
     if (signres == -2) {
         // Fail due to empty digest
         return ErrInvalidArg;
-    } else if (res) {
+    } else if (signres) {
         // Too many retries without a valid signature
         // -> fail with an error
         return ErrFailed;
@@ -175,7 +175,7 @@ ErrCode_t msgSignTransactionMessageImpl(uint8_t* message_digest, uint32_t index,
 #if EMULATOR
     printf("Size_sign: %d, sig(hex): %s\n", SKYCOIN_SIG_LEN * 2, signed_message);
 #endif
-    return res;
+    return ErrOk;
 }
 
 ErrCode_t fsm_getKeyPairAtIndex(uint32_t nbAddress, uint8_t* pubkey, uint8_t* seckey, ResponseSkycoinAddress* respSkycoinAddress, uint32_t start_index)
