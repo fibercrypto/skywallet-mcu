@@ -178,6 +178,36 @@ ErrCode_t msgSignTransactionMessageImpl(uint8_t* message_digest, uint32_t index,
     return ErrOk;
 }
 
+static ErrCode_t signTransactionMessageFromHDW(uint8_t* message_digest, Bip44AddrIndex bip44, char* signed_message)
+{
+    uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};
+    uint8_t seckey[SKYCOIN_SECKEY_LEN] = {0};
+    uint8_t signature[SKYCOIN_SIG_LEN];
+    const char* mnemo = storage_getFullSeed();
+    uint8_t seed[512 / 8] = {0};
+    mnemonic_to_seed(mnemo, "", seed, NULL);
+    int ret = hdnode_keypair_for_branch(
+        seed, sizeof(seed), bip44.purpose, bip44.coin_type, bip44.account,
+        bip44.change, bip44.address_start_index, seckey, pubkey);
+    if (ret != 1) {
+        return ErrAddressGeneration;
+    }
+    int signres = skycoin_ecdsa_sign_digest(seckey, message_digest, signature);
+    if (signres == -2) {
+        // Fail due to empty digest
+        return ErrInvalidArg;
+    } else if (signres) {
+        // Too many retries without a valid signature
+        // -> fail with an error
+        return ErrFailed;
+    }
+    tohex(signed_message, signature, SKYCOIN_SIG_LEN);
+#if EMULATOR
+    printf("Size_sign: %d, sig(hex): %s\n", SKYCOIN_SIG_LEN * 2, signed_message);
+#endif
+    return ErrOk;
+}
+
 ErrCode_t fsm_getKeyPairAtIndex(uint32_t nbAddress, uint8_t* pubkey, uint8_t* seckey, ResponseSkycoinAddress* respSkycoinAddress, uint32_t start_index)
 {
     const char* mnemo = storage_getFullSeed();
