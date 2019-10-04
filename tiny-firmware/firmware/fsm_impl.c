@@ -486,8 +486,34 @@ ErrCode_t msgTransactionSignImpl(TransactionSign* msg, ErrCode_t (*funcConfirmTx
         }
         sprintf(strCoin, "%s %s %s", _("send"), strValueMsg, coinString);
         sprintf(strHour, "%" PRIu64 " %s", msg->transactionOut[i].hour, hourString);
-
-        if (msg->transactionOut[i].has_address_index) {
+        if (msg->transactionOut[i].has_bip44_addr) {
+            const char* mnemo = storage_getFullSeed();
+            uint8_t seed[512 / 8] = {0};
+            mnemonic_to_seed(mnemo, "", seed, NULL);
+            char addr[100] = {0};
+            size_t addr_size = sizeof(addr);
+            int ret = hdnode_address_for_branch(
+                seed,
+                sizeof(seed),
+                msg->transactionOut[i].bip44_addr.purpose,
+                msg->transactionOut[i].bip44_addr.coin_type,
+                msg->transactionOut[i].bip44_addr.account,
+                msg->transactionOut[i].bip44_addr.change,
+                msg->transactionOut[i].bip44_addr.address_start_index,
+                addr,
+                &addr_size);
+            if (ret != 1) {
+                return ErrAddressGeneration;
+            }
+            if (strcmp(msg->transactionOut[i].address, addr) != 0) {
+                // fsm_sendFailure(FailureType_Failure_AddressGeneration, _("Wrong return address"));
+#if EMULATOR
+                printf("Internal address: %s, message address: %s\n", addr, msg->transactionOut[i].address);
+                printf("Comparaison size %ld\n", addr_size);
+#endif
+                return ErrAddressGeneration;
+            }
+        } else if (msg->transactionOut[i].has_address_index) {
             uint8_t pubkey[33] = {0};
             uint8_t seckey[32] = {0};
             size_t size_address = 36;
@@ -522,8 +548,14 @@ ErrCode_t msgTransactionSignImpl(TransactionSign* msg, ErrCode_t (*funcConfirmTx
         uint8_t digest[32] = {0};
         transaction_msgToSign(&transaction, i, digest);
         // Only sign inputs owned by Skywallet device
-        if (msg->transactionIn[i].has_index) {
-            if (msgSignTransactionMessageImpl(digest, msg->transactionIn[i].index, resp->signatures[resp->signatures_count]) != ErrOk) {
+        if (msg->transactionIn[i].has_bip44_addr) {
+            if (signTransactionMessageFromHDW(digest, msg->transactionIn[i].bip44_addr, resp->signatures[resp->signatures_count]) != ErrOk) {
+                //fsm_sendFailure(FailureType_Failure_InvalidSignature, NULL);
+                //layoutHome();
+                return ErrInvalidSignature;
+            }
+        } else if (msg->transactionIn[i].has_index) {
+            if (signTransactionMessage(digest, msg->transactionIn[i].index, resp->signatures[resp->signatures_count]) != ErrOk) {
                 //fsm_sendFailure(FailureType_Failure_InvalidSignature, NULL);
                 //layoutHome();
                 return ErrInvalidSignature;
