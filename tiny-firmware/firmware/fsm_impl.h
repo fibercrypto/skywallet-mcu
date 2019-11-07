@@ -150,12 +150,8 @@ ErrCode_t fsm_getKeyPairAtIndex(uint32_t nbAddress, uint8_t* pubkey, uint8_t* se
 
 ErrCode_t msgGenerateMnemonicImpl(GenerateMnemonic* msg, void (*random_buffer_func)(uint8_t* buf, size_t len));
 ErrCode_t msgEntropyAckImpl(EntropyAck* msg);
-ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage* msg, ResponseSkycoinSignMessage* msg_resp);
-ErrCode_t msgSkycoinAddressImpl(SkycoinAddress* msg, ResponseSkycoinAddress* resp);
-ErrCode_t msgSkycoinCheckMessageSignatureImpl(SkycoinCheckMessageSignature* msg, Success* successResp, Failure* failureResp);
 ErrCode_t msgApplySettingsImpl(ApplySettings* msg);
 ErrCode_t msgGetFeaturesImpl(Features* resp);
-ErrCode_t msgTransactionSignImpl(TransactionSign* msg, ErrCode_t (*)(char*, char*, TransactionSign*, uint32_t), ResponseTransactionSign*);
 ErrCode_t msgPingImpl(Ping* msg);
 ErrCode_t msgChangePinImpl(ChangePin* msg, const char* (*)(PinMatrixRequestType, const char*));
 ErrCode_t msgWipeDeviceImpl(WipeDevice* msg);
