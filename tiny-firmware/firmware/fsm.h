@@ -22,12 +22,15 @@
 #define __FSM_H__
 
 #include "tiny-firmware/protob/c/messages.pb.h"
+#include "tiny-firmware/firmware/error.h"
 
 // message functions
 
 void fsm_sendSuccess(const char* text, MessageType* msgtype);
 
 void fsm_sendFailure(FailureType code, const char* text, MessageType* msgtype);
+
+void fsm_sendResponseFromErrCode(ErrCode_t err, const char *successMsg, const char *failMsg, MessageType *msgtype);
 
 void fsm_msgInitialize(Initialize* msg);
 void fsm_msgGetFeatures(GetFeatures* msg);
@@ -49,5 +52,6 @@ void fsm_msgRecoveryDevice(RecoveryDevice* msg);
 void fsm_msgWordAck(WordAck* msg);
 void fsm_msgSignTx(SignTx* msg);
 void fsm_msgTxAck(TxAck* msg);
+ErrCode_t requestConfirmTransaction(char *strCoin, char *strHour, TransactionSign *msg, uint32_t i);
 
 #endif

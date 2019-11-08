@@ -51,9 +51,40 @@ endif
 CFLAGS += -I$(TOP_DIR)vendor/skycoin-crypto/tools
 CFLAGS += -Itools
 #skycoin-crypto
-LDLIBS += -lskycoin-crypto
-LDFLAGS += -L$(TOP_DIR)vendor/skycoin-crypto/lib
-LIBDEPS += $(TOP_DIR)vendor/skycoin-crypto/lib/libskycoin-crypto.a
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/skycoin_signature.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/skycoin_crypto.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/check_digest.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/sha3.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/blake2b.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519-donna-basepoint-table.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/curve25519-donna-scalarmult-base.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519-donna-32bit-tables.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/curve25519-donna-32bit.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519-keccak.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519-donna-impl-base.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519-sha3.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/ed25519.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/curve25519-donna-helpers.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/ed25519-donna/modm-donna-32bit.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/groestl.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/address.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/base58.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/blake256.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/hasher.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/rand.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/sha2.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/bignum.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/curves.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/hmac.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/ripemd160.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/bip32.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/bip44.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/ecdsa.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/memzero.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/secp256k1.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/bip39.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/pbkdf2.o
+OBJS += $(TOP_DIR)vendor/skycoin-crypto/tools/entropypool.o
 #end skycoin-crypto
 
 DEBUG_LINK ?= 0

@@ -43,6 +43,7 @@
 #include "tiny-firmware/firmware/gettext.h"
 #include "skycoin-crypto/skycoin_crypto.h"
 #include "skycoin-crypto/check_digest.h"
+#include "skycoin-crypto/tools/bip44.h"
 #include "tiny-firmware/firmware/fsm_impl.h"
 #include "tiny-firmware/firmware/droplet.h"
 #include "tiny-firmware/firmware/skyparams.h"
@@ -75,11 +76,11 @@ void fsm_msgSkycoinCheckMessageSignature(SkycoinCheckMessageSignature *msg) {
     msg_write(msg_id, msg_ptr);
 }
 
-void fsm_msgSkycoinSignMessage(SkycoinSignMessage* msg)
+void fsm_msgSkycoinSignMessage(SkycoinSignMessage *msg)
 {
     CHECK_MNEMONIC
-    RESP_INIT(ResponseSkycoinSignMessage);
     CHECK_PIN_UNCACHED
+    RESP_INIT(ResponseSkycoinSignMessage);
 
     MessageType msgtype = MessageType_MessageType_SkycoinSignMessage;
     ResponseSkycoinAddress respAddr;
@@ -129,8 +130,7 @@ void fsm_msgSkycoinSignMessage(SkycoinSignMessage* msg)
     }
 }
 
-void fsm_msgSkycoinAddress(SkycoinAddress* msg)
-{
+void fsm_msgSkycoinAddress(SkycoinAddress *msg) {
     MessageType msgtype = MessageType_MessageType_SkycoinAddress;
     RESP_INIT(ResponseSkycoinAddress);
     char *failMsg = NULL;

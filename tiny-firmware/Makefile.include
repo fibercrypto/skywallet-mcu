@@ -47,12 +47,18 @@ LDFLAGS  += --static \
             -Wl,--start-group \
             -lc \
             -lgcc \
-            -lnosys \
             -Wl,--end-group \
             -L$(TOOLCHAIN_DIR)/lib \
             -T$(LDSCRIPT) \
             -nostartfiles \
             -Wl,--gc-sections
+
+ifeq ($(SEMIHOSTING), 1)
+	LDFLAGS += -specs=rdimon.specs
+else
+	LDFLAGS += -lnosys
+endif
+
 CFLAGS += -DCONFIDENTIAL='__attribute__((section("confidential")))'
 
 endif
@@ -91,6 +97,7 @@ CFLAGS   += $(OPTFLAGS) \
             -DRAND_PLATFORM_INDEPENDENT=1 \
             -I$(TOOLCHAIN_DIR)/include \
             -I$(GLOBAL_PATH) \
+            -I$(GLOBAL_PATH)/skycoin-api \
             -isystem$(TOP_DIR)vendor/
 
 LDFLAGS  += -L$(TOP_DIR) \

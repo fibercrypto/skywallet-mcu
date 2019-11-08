@@ -123,7 +123,6 @@ def sign(data, pubkeys, secexp, slot):
     # pubkey = b'04' + binascii.hexlify(key.get_verifying_key().to_string())
     index = None
     for i, pk in pubkeys.items():
-        print(i, str(pk), str(pubkey))
         if pk == pubkey:
             index = i
             break
