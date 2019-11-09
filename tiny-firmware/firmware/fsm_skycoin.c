@@ -51,6 +51,7 @@
 #include "tiny-firmware/firmware/fsm_skycoin_impl.h"
 
 extern uint8_t msg_resp[MSG_OUT_SIZE] __attribute__((aligned));
+extern const uint32_t bip44_purpose;
 
 void fsm_msgSkycoinCheckMessageSignature(SkycoinCheckMessageSignature *msg) {
     GET_MSG_POINTER(Success, successResp);
@@ -92,9 +93,10 @@ void fsm_msgSkycoinSignMessage(SkycoinSignMessage *msg)
         mnemonic_to_seed(mnemo, "", seed, NULL);
         size_t addr_size = sizeof(respAddr.addresses[0]);
         int ret = hdnode_address_for_branch(
-            seed, sizeof(seed), msg->bip44_addr.purpose,
-            msg->bip44_addr.coin_type, msg->bip44_addr.account,
-            msg->bip44_addr.change, msg->bip44_addr.address_start_index, respAddr.addresses[0], &addr_size);
+            seed, sizeof(seed), bip44_purpose, msg->bip44_addr.coin_type,
+            msg->bip44_addr.account, msg->bip44_addr.change,
+            msg->bip44_addr.address_start_index, respAddr.addresses[0],
+            &addr_size);
         if (ret != 1) {
             fsm_sendResponseFromErrCode(
                 ErrFailed, NULL, _("Unable to get address"),&msgtype);

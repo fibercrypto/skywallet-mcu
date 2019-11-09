@@ -47,6 +47,12 @@
 
 uint8_t msg_resp[MSG_OUT_SIZE] __attribute__((aligned));
 
+/**
+ * @brief bip44_purpose https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#purpose
+ * 0x8000002C
+ */
+const uint32_t bip44_purpose = 0x80000000 + 44;
+
 extern uint32_t strength;
 extern bool skip_backup;
 extern uint8_t int_entropy[INTERNAL_ENTROPY_SIZE];
@@ -245,7 +251,7 @@ ErrCode_t signTransactionMessageFromHDW(uint8_t *message_digest, Bip44AddrIndex 
     uint8_t seed[512 / 8] = {0};
     mnemonic_to_seed(mnemo, "", seed, NULL);
     int ret = hdnode_keypair_for_branch(
-        seed, sizeof(seed), bip44.purpose, bip44.coin_type, bip44.account,
+        seed, sizeof(seed), bip44_purpose, bip44.coin_type, bip44.account,
         bip44.change, bip44.address_start_index, seckey, pubkey);
     if (ret != 1) {
         return ErrAddressGeneration;

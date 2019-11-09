@@ -51,6 +51,8 @@
 #include "tiny-firmware/firmware/skyparams.h"
 #include "fsm_skycoin_impl.h"
 
+extern const uint32_t bip44_purpose;
+
 ErrCode_t
 msgSkycoinCheckMessageSignatureImpl(SkycoinCheckMessageSignature *msg, Success *successResp, Failure *failureResp) {
     // NOTE(): -1 because the end of string ('\0')
@@ -111,10 +113,9 @@ ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage *msg, ResponseSkycoinSign
         uint8_t seed[512 / 8] = {0};
         mnemonic_to_seed(mnemo, "", seed, NULL);
         int ret = hdnode_keypair_for_branch(
-            seed, sizeof(seed), msg->bip44_addr.purpose,
-            msg->bip44_addr.coin_type, msg->bip44_addr.account,
-            msg->bip44_addr.change, msg->bip44_addr.address_start_index, seckey,
-            pubkey);
+            seed, sizeof(seed), bip44_purpose, msg->bip44_addr.coin_type,
+            msg->bip44_addr.account, msg->bip44_addr.change,
+            msg->bip44_addr.address_start_index, seckey, pubkey);
         if (ret != 1) {
             return ErrAddressGeneration;
         }
@@ -161,9 +162,9 @@ ErrCode_t msgSkycoinAddressImpl(SkycoinAddress *msg, ResponseSkycoinAddress *res
             char addr[100] = {0};
             size_t addr_size = sizeof(addr);
             int ret = hdnode_address_for_branch(
-                seed, sizeof(seed), msg->bip44_addr.purpose,
-                msg->bip44_addr.coin_type, msg->bip44_addr.account,
-                msg->bip44_addr.change, msg->bip44_addr.address_start_index + i, addr, &addr_size);
+                seed, sizeof(seed), bip44_purpose, msg->bip44_addr.coin_type,
+                msg->bip44_addr.account, msg->bip44_addr.change,
+                msg->bip44_addr.address_start_index + i, addr, &addr_size);
             if (ret != 1) {
                 return ErrAddressGeneration;
             }
@@ -244,7 +245,7 @@ msgTransactionSignImpl(TransactionSign *msg, ErrCode_t (*funcConfirmTxn)(char *,
             int ret = hdnode_address_for_branch(
                 seed,
                 sizeof(seed),
-                msg->transactionOut[i].bip44_addr.purpose,
+                bip44_purpose,
                 msg->transactionOut[i].bip44_addr.coin_type,
                 msg->transactionOut[i].bip44_addr.account,
                 msg->transactionOut[i].bip44_addr.change,

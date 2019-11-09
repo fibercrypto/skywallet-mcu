@@ -424,7 +424,6 @@ START_TEST(test_msgSkycoinCheckMessageSignatureBip44Ok)
         forceGenerateMnemonic(wcs[wi]);
         SkycoinAddress msgSkyAddress = SkycoinAddress_init_zero;
         Bip44AddrIndex bip44 = Bip44AddrIndex_init_zero;
-        bip44.purpose = 0x80000000 + 44;
         bip44.coin_type = 0x80000000 + 8000;
         bip44.account = 0x80000000;
         bip44.change = 0;
@@ -492,7 +491,6 @@ START_TEST(test_generateAddressBip44)
     ck_assert_int_eq(ErrOk, err);
 
     Bip44AddrIndex bip44 = Bip44AddrIndex_init_zero;
-    bip44.purpose = 0x80000000 + 44;
     bip44.coin_type = 0x80000000 + 8000;
     bip44.account = 0x80000000;
     bip44.change = 0;
