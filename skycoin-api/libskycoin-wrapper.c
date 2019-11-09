@@ -89,7 +89,7 @@ GoUint32 SKY_cipher_Address_Checksum(cipher__Address* p0, cipher__Checksum* p1) 
     return SKY_OK;
 }
 
-GoUint32 SKY_cipher_Address_Bytes(cipher__Address* p0, GoSlice* p1) {
+GoUint32 SKY_cipher_Address_Bytes(cipher__Address* p0, GoSlice_* p1) {
     uint8_t b[20 + 1 + 4] = {0};
     memcpy(b, p0->Key, sizeof(p0->Key));
     memcpy(&b[20], &(p0->Version), sizeof(p0->Version));
@@ -104,11 +104,11 @@ GoUint32 SKY_cipher_Address_Bytes(cipher__Address* p0, GoSlice* p1) {
     return SKY_OK;
 }
 
-GoUint32 SKY_base58_Encode(GoSlice p0, GoString* p1) {
+GoUint32 SKY_base58_Encode(GoSlice p0, GoString_* p1) {
     return b58enc((char*)p1->p, (size_t *)&(p1->n), p0.data, p0.len) ? SKY_OK : SKY_ERROR;
 }
 
-GoUint32 SKY_base58_Decode(GoString p0, GoSlice* p1) {
+GoUint32 SKY_base58_Decode(GoString p0, GoSlice_* p1) {
     size_t sz = p0.n;
     if (!b58tobin((void*)p0.p, &sz, p1->data)) {
         return SKY_ERROR;
@@ -117,9 +117,9 @@ GoUint32 SKY_base58_Decode(GoString p0, GoSlice* p1) {
     return SKY_OK;
 }
 
-GoUint32 SKY_cipher_Address_String(cipher__Address* p0, GoString* p1) {
+GoUint32 SKY_cipher_Address_String(cipher__Address* p0, GoString_* p1) {
     char str[25] = {0};
-    GoSlice bytes = {.data = str, .len = sizeof(str)};
+    GoSlice_ bytes = {.data = str, .len = sizeof(str)};
     GoUint32 ret = SKY_cipher_Address_Bytes(p0, &bytes);
     if (ret != SKY_OK) {
         return ret;
@@ -184,7 +184,7 @@ GoUint32 SKY_cipher_DecodeBase58Address(GoString p0, cipher__Address* p1) {
     return SKY_cipher_AddressFromBytes(sl, p1);
 }
 
-GoUint32 SKY_base58_Hex2Base58(GoSlice p0, GoString* p1) {
+GoUint32 SKY_base58_Hex2Base58(GoSlice p0, GoString_* p1) {
     return SKY_base58_Encode(p0, p1);
 }
 
@@ -198,7 +198,7 @@ GoUint32 SKY_cipher_HashRipemd160(GoSlice p0, cipher__Ripemd160* p1) {
     return SKY_OK;
 }
 
-GoUint32 SKY_cipher_SHA256_Hex(cipher__SHA256* p0, GoString* p1) {
+GoUint32 SKY_cipher_SHA256_Hex(cipher__SHA256* p0, GoString_* p1) {
     p1->n = sizeof(cipher__SHA256) * 2;
     p1->p = (const char*)calloc(p1->n + 1, sizeof(uint8_t));
     memset((char*)(p1->p), 0, p1->n + 1);
@@ -232,7 +232,7 @@ GoUint32 SKY_cipher_PubKeyFromHex(GoString p0, cipher__PubKey* p1) {
     return ret;
 }
 
-GoUint32 SKY_cipher_PubKey_Hex(cipher__PubKey* p0, GoString* p1) {
+GoUint32 SKY_cipher_PubKey_Hex(cipher__PubKey* p0, GoString_* p1) {
     p1->p = (const char*)calloc(sizeof(cipher__PubKey) * 2, sizeof(char));
     tohex((char*)p1->p, (const uint8_t*)p0, sizeof(cipher__PubKey));
     p1->n = sizeof(cipher__PubKey) * 2;
@@ -247,7 +247,7 @@ GoUint32 SKY_cipher_NewSig(GoSlice p0, cipher__Sig* p1) {
     return SKY_OK;
 }
 
-GoUint32 SKY_cipher_Sig_Hex(cipher__Sig* p0, GoString* p1) {
+GoUint32 SKY_cipher_Sig_Hex(cipher__Sig* p0, GoString_* p1) {
     tohex((char*)(p1->p), (uint8_t*)p0, sizeof(cipher__Sig));
     p1->n = sizeof(cipher__Sig) * 2;
     return SKY_OK;
@@ -288,7 +288,7 @@ GoUint32 SKY_cipher_PubKeyFromSecKey(cipher__SecKey* p0, cipher__PubKey* p1) {
     return SKY_OK;
 }
 
-GoUint32 SKY_cipher_ECDH(cipher__PubKey* p0, cipher__SecKey* p1, GoSlice* p2) {
+GoUint32 SKY_cipher_ECDH(cipher__PubKey* p0, cipher__SecKey* p1, GoSlice_* p2) {
     return ecdh((const uint8_t *)p1, (const uint8_t *)p0, p2->data) ? SKY_ERROR : SKY_OK;
 }
 

@@ -108,6 +108,7 @@ libskycoin-wrapper.o: libskycoin-wrapper.c
 	$(CC) -std=c99 $(INC) -o libskycoin-wrapper.o -c libskycoin-wrapper.c
 
 libskycoin-crypto-wrapper.a: libskycoin-wrapper.o libskycoin-crypto.a
+	@mkdir -p lib
 	$(AR) rcs lib/libskycoin-crypto-wrapper.a libskycoin-wrapper.o
 
 test_skycoin_crypto.o: test_skycoin_crypto.c
@@ -120,7 +121,8 @@ tools/test_bip44.o: tools/test_bip44.c
 	$(CC) $(CFLAGS) $(TESTINC) -o $@ -c $<
 
 test_skycoin_crypto: test_skycoin_crypto.o tools/test_bip32.o tools/test_bip44.o libskycoin-crypto.so
-	$(CC) -o test_skycoin_crypto test_skycoin_crypto.o tools/test_bip32.o tools/test_bip44.o $(OBJS) -L. -Wl,-rpath,$(MKFILE_DIR) -lskycoin-crypto $(LIBS) $(TESTLIBS)
+	$(CC) -o test_skycoin_crypto test_skycoin_crypto.o tools/test_bip32.o tools/test_bip44.o $(OBJS) -L. -Llib/ -Wl,-rpath,$(MKFILE_DIR) -lskycoin-crypto $(LIBS) $(TESTLIBS)
+#	$(CC) test_skycoin_crypto.o $(OBJS) -Llib/ -L. -Wl,-rpath,$(MKFILE_DIR) -lskycoin-crypto $(LIBS) $(TESTLIBS) -o test_skycoin
 
 test: test_skycoin_crypto ## Run test suite for Skycoin cipher library for firmware
 	./test_skycoin_crypto
@@ -133,6 +135,7 @@ clean: ## Delete all temporary files
 	rm -f $(MKFILE_DIR)/tools/*.o
 	rm -f $(MKFILE_DIR)/*.a
 	rm -f $(OBJS)
+	rm -rf lib
 
 coverage: test_skycoin_crypto
 	gcov -n -b $(SRCS) test_skycoin_crypto.c

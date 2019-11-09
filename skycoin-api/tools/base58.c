@@ -165,7 +165,7 @@ bool b58tobin(void* bin, size_t* binszp, const char* b58)
     size_t binsz = *binszp;
     const unsigned char* b58u = (const unsigned char*)b58;
     unsigned char* binu = bin;
-    size_t outisz = (binsz + 4 - binsz % 4) / 4;
+    size_t outisz = (binsz + 3) / 4;
     uint32_t outi[outisz];
     uint64_t t;
     uint32_t c;
