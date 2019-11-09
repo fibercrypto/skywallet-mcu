@@ -601,7 +601,7 @@ ErrCode_t reqConfirmTransaction(uint64_t coins, uint64_t hours, char *address) {
 ErrCode_t msgTxAckImpl(TxAck *msg, TxRequest *resp) {
     TxSignContext *ctx = TxSignCtx_Get();
     if (ctx->state != Start && ctx->state != InnerHashInputs && ctx->state != InnerHashOutputs &&
-        ctx->state != Signature) {
+        ctx->state != Signature_) {
         TxSignCtx_Destroy(ctx);
         return ErrInvalidArg;
     }
