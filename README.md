@@ -29,6 +29,7 @@
     - [Versioning libraries](#versioning-libraries)
   - [Running tests](#running-tests)
     - [Generating tests code coverage](#generating-tests-code-coverage)
+    - [Running libskycoin compatibility tests](#running-libskycoin-compatibility-tests)
   - [Validate the TRNG](#validate-the-trng)
       - [Files description](#files-description)
   - [Releases](#releases)
@@ -190,6 +191,12 @@ make clean && make test
 
 To generate code coverage html report you need to have `lcov` available in your `PATH`, in a debian based system you can run `apt install lcov`, lcov can be available using `brew` on osx too, but in the most general case you can follow the the official [install instructions](https://github.com/linux-test-project/lcov/blob/4ff2ed639ec25c271eb9aa2fcdadd30bfab33e4b/README).
 After having this tool you can run `make check-coverage`, if not errors found you can find the result in `coverage/index.html`.
+
+#### Running libskycoin compatibility tests
+
+Due to a skycoin and crypto-api (in this firmware project) incompatibility it was required to make use of an [Adapter Pattern](https://en.wikipedia.org/wiki/Adapter_pattern).
+After having a higher compatibility level (implemented in `skycoin-api/libskycoin-wrapper.c`) then you can run a subset of the libskycoin tests against this crypto API.
+More details about this stuff can be seen [in the source code](https://github.com/simelo/skywallet-mcu/blob/ad00712856cd7bab2b5963de45216979b5a6b960/Makefile#L222) itself.
 
 ### Validate the TRNG
 
