@@ -28,7 +28,6 @@ before_script:
     export CHECK_PATH="$(pwd)/check-0.12.0" ;
     export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${CHECK_PATH}/src" ;
     export PATH="/usr/local/bin:$(pwd)/protoc/bin:$PATH" ;
-    sudo apt-get install -qq valgrind;
     echo "PATH=$PATH";
     echo "PIP=$PIP";
     fi
@@ -46,7 +45,7 @@ before_script:
   # Install gcc 6 version, required for libskycoin
   #FIXME $TRAVIS_TAG != ''
   - if [[ $TRAVIS_TAG == 'osx' ]]; then
-    make tiny-firmware/vendor/libskycoin/Makefile;
+    make setup-libskycoin;
     ./tiny-firmware/vendor/libskycoin/ci-scripts/install-travis-gcc.sh;
     eval "CC=gcc-6 && CXX=g++-6";
     fi
