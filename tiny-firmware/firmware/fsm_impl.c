@@ -216,7 +216,6 @@ ErrCode_t msgGenerateMnemonicImpl(GenerateMnemonic *msg, void (*random_buffer_fu
     return ErrOk;
 }
 
-// static
 ErrCode_t msgSignTransactionMessageImpl(uint8_t* message_digest, uint32_t index, char* signed_message)
 {
     uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};
@@ -242,7 +241,6 @@ ErrCode_t msgSignTransactionMessageImpl(uint8_t* message_digest, uint32_t index,
     return ErrOk;
 }
 
-//FIXME static
 ErrCode_t signTransactionMessageFromHDW(uint8_t *message_digest, Bip44AddrIndex bip44, char *signed_message) {
     uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};
     uint8_t seckey[SKYCOIN_SECKEY_LEN] = {0};

@@ -19,7 +19,6 @@
 #define MNEMONIC_WORD_COUNT_24 24
 
 // message methods
-
 #define GET_MSG_POINTER(TYPE, VarName)                                       \
     TYPE* VarName = (TYPE*)(void*)msg_resp;                                  \
     _Static_assert(sizeof(msg_resp) >= sizeof(TYPE), #TYPE " is too large"); \

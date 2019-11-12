@@ -208,13 +208,10 @@ test: clean firmware tiny-firmware/bootloader/libskycoin-crypto.so ## Run all pr
 	make test-libsky-compat
 
 setup-libskycoin: ## Download libskycoin for tests
-	go get -v -t github.com/skycoin/libskycoin/...
-	ln -sf $(GOPATH)/src/github.com/skycoin/libskycoin ./tiny-firmware/vendor/
-	git -C ./tiny-firmware/vendor/libskycoin remote add simelo https://github.com/simelo/libskycoin.git || true
-	git -C ./tiny-firmware/vendor/libskycoin fetch simelo
-	git -C ./tiny-firmware/vendor/libskycoin checkout simelo/stdevHan_t105_update_submodule_0.27.0
+	go get -v -t github.com/fibercrypto/libskycoin/...
+	ln -sf $(GOPATH)/src/github.com/fibercrypto/libskycoin ./tiny-firmware/vendor/
+	git -C ./tiny-firmware/vendor/libskycoin checkout develop
 	git -C ./tiny-firmware/vendor/libskycoin submodule update --recursive
-	git -C ./tiny-firmware/vendor/libskycoin remote remove simelo
 
 tiny-firmware/vendor/libskycoin/include/libskycoin.h: setup-libskycoin ## Generate libskycoin C library
 	make -C tiny-firmware/vendor/libskycoin install-deps-libc-$(UNAME_S)

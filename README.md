@@ -196,7 +196,7 @@ After having this tool you can run `make check-coverage`, if not errors found yo
 
 Due to a skycoin and crypto-api (in this firmware project) incompatibility it was required to make use of an [Adapter Pattern](https://en.wikipedia.org/wiki/Adapter_pattern).
 After having a higher compatibility level (implemented in `skycoin-api/libskycoin-wrapper.c`) then you can run a subset of the libskycoin tests against this crypto API.
-More details about this stuff can be seen [in the source code](https://github.com/simelo/skywallet-mcu/blob/ad00712856cd7bab2b5963de45216979b5a6b960/Makefile#L222) itself.
+More details about this stuff can be seen [in the source code](https://github.com/simelo/skywallet-mcu/blob/2766a22f033e92d3f5943dced5a4510695c67eec/Makefile#L223) itself.
 
 ### Validate the TRNG
 

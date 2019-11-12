@@ -179,15 +179,15 @@ void fsm_msgTransactionSign(TransactionSign *msg) {
     ErrCode_t err = msgTransactionSignImpl(msg, &requestConfirmTransaction, resp);
     char *failMsg = NULL;
     switch (err) {
-    case ErrOk:
-        msg_write(MessageType_MessageType_ResponseTransactionSign, resp);
-        break;
-    case ErrAddressGeneration:
-        failMsg = _("Wrong return address");
-        // fall through
-    default:
-        fsm_sendResponseFromErrCode(err, NULL, failMsg, &msgtype);
-        break;
+        case ErrOk:
+            msg_write(MessageType_MessageType_ResponseTransactionSign, resp);
+            break;
+        case ErrAddressGeneration:
+            failMsg = _("Wrong return address");
+            // fall through
+        default:
+            fsm_sendResponseFromErrCode(err, NULL, failMsg, &msgtype);
+            break;
     }
     layoutHome();
 }
