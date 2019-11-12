@@ -42,6 +42,7 @@ ifeq ($(UNAME_S), Darwin)
 endif
 endif
 CFLAGS += -I$(MKFILE_DIR) $(INC)
+CFLAGS += -I../tiny-firmware/vendor/libskycoin/include
 
 SRCS += skycoin_crypto.c
 SRCS += skycoin_signature.c
@@ -80,11 +81,18 @@ libskycoin-crypto.so: skycoin_crypto.o $(OBJS)
 libskycoin-crypto.a: skycoin_crypto.o $(OBJS)
 	$(AR) rcs libskycoin-crypto.a skycoin_crypto.o $(OBJS)
 
+libskycoin-wrapper.o: libskycoin-wrapper.c
+	$(CC) -std=c99 -isystem../tiny-firmware/vendor/libskycoin/include -Itools -o libskycoin-wrapper.o -c libskycoin-wrapper.c
+
+libskycoin-crypto-wrapper.a: libskycoin-wrapper.o libskycoin-crypto.a
+	@mkdir -p lib
+	$(AR) rcs lib/libskycoin-crypto-wrapper.a libskycoin-wrapper.o
+
 test_skycoin_crypto.o: test_skycoin_crypto.c
 	$(CC) $(CFLAGS) $(TESTINC) -o $@ -c $<
 
 test_skycoin_crypto: test_skycoin_crypto.o libskycoin-crypto.so
-	$(CC) test_skycoin_crypto.o $(OBJS) -L. -lskycoin-crypto $(LIBS) $(TESTLIBS) -o test_skycoin_crypto
+	$(CC) test_skycoin_crypto.o $(OBJS) -Llib/ -L. -Wl,-rpath,$(MKFILE_DIR) -lskycoin-crypto $(LIBS) $(TESTLIBS) -o test_skycoin_crypto
 
 test: test_skycoin_crypto ## Run test suite for Skycoin cipher library for firmware
 	./test_skycoin_crypto
@@ -96,6 +104,7 @@ clean: ## Delete all temporary files
 	rm -f $(TOOLS_DIR)/*.o
 	rm -f $(MKFILE_DIR)/tools/*.o
 	rm -f $(MKFILE_DIR)/*.a
+	rm -rf lib
 
 coverage: test_skycoin_crypto
 	gcov -n -b $(SRCS) test_skycoin_crypto.c

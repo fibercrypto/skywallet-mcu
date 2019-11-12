@@ -42,6 +42,7 @@ tiny-firmware/test_skycoin-emulator
 **/*.img
 **/*.bin
 releases/*
+test_hardwarewallet
 
 # Debug files
 *.dSYM/
@@ -72,6 +73,8 @@ test_skycoin_crypto
 .vscode
 .idea
 
+#Link
+tiny-firmware/vendor/libskycoin
 # File check-coverage
 **/*.gcda
 **/*.gcno

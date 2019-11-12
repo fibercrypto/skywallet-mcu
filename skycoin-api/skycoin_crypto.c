@@ -47,9 +47,25 @@ void tohex(char* str, const uint8_t* buffer, int buffer_length)
     }
 }
 
-void tobuff(const char* str, uint8_t* buf, size_t buffer_length)
+/**
+ * @brief isHexChar check value of input char
+ * @param c input char
+ * @return true if it's a hex valid char.
+ */
+static bool isHexChar(char c) {
+    if (('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F')) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool tobuff(const char* str, uint8_t* buf, size_t buffer_length)
 {
     for (size_t i = 0; i < buffer_length; i++) {
+        if (!isHexChar(str[i]) || !isHexChar(str[i + 1])) {
+            return false;
+        }
         uint8_t c = 0;
         if (str[i * 2] >= '0' && str[i * 2] <= '9') c += (str[i * 2] - '0') << 4;
         if ((str[i * 2] & ~0x20) >= 'A' && (str[i * 2] & ~0x20) <= 'F') c += (10 + (str[i * 2] & ~0x20) - 'A') << 4;
@@ -57,6 +73,7 @@ void tobuff(const char* str, uint8_t* buf, size_t buffer_length)
         if ((str[i * 2 + 1] & ~0x20) >= 'A' && (str[i * 2 + 1] & ~0x20) <= 'F') c += (10 + (str[i * 2 + 1] & ~0x20) - 'A');
         buf[i] = c;
     }
+    return true;
 }
 
 void writebuf_fromhexstr(const char* str, uint8_t* buf)
