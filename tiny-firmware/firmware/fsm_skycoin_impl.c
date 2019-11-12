@@ -63,7 +63,7 @@ msgSkycoinCheckMessageSignatureImpl(SkycoinCheckMessageSignature *msg, Success *
                    "Invalid buffer size for signature");
     uint8_t sig[SKYCOIN_SIG_LEN] = {0};
     // NOTE(): -1 because the end of string ('\0')
-    char address[sizeof(msg->address) - 1];
+    char address[sizeof(msg->address) - 1] = {0};
     uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};
     uint8_t digest[SHA256_DIGEST_LENGTH] = {0};
     if (is_sha256_digest_hex(msg->message)) {
@@ -109,15 +109,9 @@ ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage *msg, ResponseSkycoinSign
     uint8_t digest[SHA256_DIGEST_LENGTH] = {0};
     uint8_t signature[SKYCOIN_SIG_LEN];
     if (msg->has_bip44_addr) {
-        const char* mnemo = storage_getFullSeed();
-        uint8_t seed[512 / 8] = {0};
-        mnemonic_to_seed(mnemo, "", seed, NULL);
-        int ret = hdnode_keypair_for_branch(
-            seed, sizeof(seed), bip44_purpose, msg->bip44_addr.coin_type,
-            msg->bip44_addr.account, msg->bip44_addr.change,
-            msg->bip44_addr.address_start_index, seckey, pubkey);
-        if (ret != 1) {
-            return ErrAddressGeneration;
+        ErrCode_t err = keyPairFromHdw(msg, seckey, pubkey);
+        if (err != ErrOk) {
+            return err;
         }
     } else if (fsm_getKeyPairAtIndex(1, pubkey, seckey, NULL, msg->address_n) != ErrOk) {
         return ErrInvalidValue;
@@ -154,27 +148,9 @@ ErrCode_t msgSkycoinAddressImpl(SkycoinAddress *msg, ResponseSkycoinAddress *res
 
     CHECK_MNEMONIC_RET_ERR_CODE
     if (msg->has_bip44_addr) {
-        const char* mnemo = storage_getFullSeed();
-        uint8_t seed[512 / 8] = {0};
-        mnemonic_to_seed(mnemo, "", seed, NULL);
-        resp->addresses_count = 0;
-        for (uint32_t i = 0; i < msg->bip44_addr.address_n; ++i) {
-            char addr[100] = {0};
-            size_t addr_size = sizeof(addr);
-            int ret = hdnode_address_for_branch(
-                seed, sizeof(seed), bip44_purpose, msg->bip44_addr.coin_type,
-                msg->bip44_addr.account, msg->bip44_addr.change,
-                msg->bip44_addr.address_start_index + i, addr, &addr_size);
-            if (ret != 1) {
-                return ErrAddressGeneration;
-            }
-            if (addr_size > sizeof(resp->addresses[i])) {
-                return ErrFailed;
-            }
-            memcpy(resp->addresses[i], addr, addr_size);
-            printf("%s\n", resp->addresses[i]);
-            // TODO addresses_count
-            ++(resp->addresses_count);
+        ErrCode_t err = addressFromHdw(msg, resp);
+        if (err != ErrOk) {
+            return err;
         }
     } else {
         if (fsm_getKeyPairAtIndex(msg->address_n, pubkey, seckey, resp, start_index) != ErrOk) {
@@ -198,7 +174,7 @@ msgTransactionSignImpl(TransactionSign *msg, ErrCode_t (*funcConfirmTxn)(char *,
     }
 #if EMULATOR
     printf("%s: %d. nbOut: %d\n",
-        _("Transaction signed nbIn"),
+          _("Transaction signed nbIn"),
         msg->nbIn, msg->nbOut);
 
     for (uint32_t i = 0; i < msg->nbIn; ++i) {
@@ -237,23 +213,11 @@ msgTransactionSignImpl(TransactionSign *msg, ErrCode_t (*funcConfirmTxn)(char *,
         " %s", msg->transactionOut[i].hour, hourString);
 
         if (msg->transactionOut[i].has_bip44_addr) {
-            const char* mnemo = storage_getFullSeed();
-            uint8_t seed[512 / 8] = {0};
-            mnemonic_to_seed(mnemo, "", seed, NULL);
             char addr[100] = {0};
             size_t addr_size = sizeof(addr);
-            int ret = hdnode_address_for_branch(
-                seed,
-                sizeof(seed),
-                bip44_purpose,
-                msg->transactionOut[i].bip44_addr.coin_type,
-                msg->transactionOut[i].bip44_addr.account,
-                msg->transactionOut[i].bip44_addr.change,
-                msg->transactionOut[i].bip44_addr.address_start_index,
-                addr,
-                &addr_size);
-            if (ret != 1) {
-                return ErrAddressGeneration;
+            ErrCode_t err = addressFromHdwWithTransactionOutput(msg->transactionOut[i], addr, &addr_size);
+            if (err != ErrOk) {
+                return err;
             }
             if (strcmp(msg->transactionOut[i].address, addr) != 0) {
                 // fsm_sendFailure(FailureType_Failure_AddressGeneration, _("Wrong return address"));
