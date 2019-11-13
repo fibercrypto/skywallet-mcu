@@ -1,3 +1,4 @@
 [submodule "tiny-firmware/protob"]
 	path = tiny-firmware/protob
 	url = https://github.com/fibercrypto/skywallet-protob.git
+	branch = develop
