@@ -350,17 +350,6 @@ void testVectorKeyPairs(testMasterKey vector) {
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(vector.depth, master_node.depth);
   ck_assert_int_eq(vector.childNumber, master_node.child_num);
-  char xpriv_b58_ser[1000] = {0};
-  ret = hdnode_serialize_private(&master_node, master_node.parent_fingerprint,
-                                 0, xpriv_b58_ser, sizeof(xpriv_b58_ser));
-  ck_assert_int_gt(ret, 0);
-  ck_assert_str_eq(vector.privKey, xpriv_b58_ser);
-
-  char xpub_b58_ser[1000] = {0};
-  ret = hdnode_serialize_public(&master_node, master_node.parent_fingerprint, 0,
-                                xpub_b58_ser, sizeof(xpub_b58_ser));
-  ck_assert_int_gt(ret, 0);
-  ck_assert_mem_eq(vector.pubKey, xpub_b58_ser, sizeof(vector.pubKey));
 
   //    TODO
   //	wif :=
@@ -375,7 +364,7 @@ void testVectorKeyPairs(testMasterKey vector) {
   char finger_print[sizeof(fp) * 2] = {0};
   tohex(finger_print, (uint8_t*)&fp, sizeof(fp));
   //    TODO
-  ck_assert_str_eq(vector.fingerprint, finger_print);
+  ck_assert_mem_eq(vector.fingerprint, finger_print, sizeof(finger_print));
 
   //    TODO
   //	require.Equal(t, vector.identifier,
@@ -390,13 +379,6 @@ void testVectorKeyPairs(testMasterKey vector) {
   memcpy(&xpriv, private_wallet_version, sizeof(xpriv));
   memcpy(&xpub, public_wallet_version, sizeof(xpub));
   uint32_t fingerprint = 0;
-  HDNode master_priv_des, master_pub_des;
-  ret = hdnode_deserialize(xpriv_b58_ser, xpub, xpriv, SECP256K1_NAME,
-                           &master_priv_des, &fingerprint);
-  ck_assert_int_eq(ret, 0);
-  ret = hdnode_deserialize(xpub_b58_ser, xpub, xpriv, SECP256K1_NAME,
-                           &master_pub_des, &fingerprint);
-  ck_assert_int_eq(ret, 0);
 
   // Iterate over the entire child chain and test the given keys
   for (size_t i = 0; i < vector.childrenCount; ++i) {
@@ -421,12 +403,12 @@ void testVectorKeyPairs(testMasterKey vector) {
                      sizeof(child_node.private_key));
 
     // Assert correctness
-    memset(xpriv_b58_ser, 0, sizeof(xpriv_b58_ser));
+    char xpriv_b58_ser[200] = {0};
     ret = hdnode_serialize_private(&child_node, child_node.parent_fingerprint,
                                    0, xpriv_b58_ser, sizeof(xpriv_b58_ser));
     ck_assert_int_gt(ret, 0);
     ck_assert_str_eq(testChildkey.privKey, xpriv_b58_ser);
-    memset(xpub_b58_ser, 0, sizeof(xpub_b58_ser));
+    char xpub_b58_ser[200] = {0};
     hdnode_fill_public_key(&child_node);
     ret = hdnode_serialize_public(&child_node, child_node.parent_fingerprint, 0,
                                   xpub_b58_ser, sizeof(xpub_b58_ser));
