@@ -7,7 +7,7 @@
 .PHONY: bootloader-clean release-bootloader release-bootloader-mem-protect
 .PHONY: firmware-clean release-firmware
 .PHONY: release-combined release-combined-mem-protect check-coverage
-.PHONY: setup-libskycoin
+.PHONY: setup-libskycoin test-libsky-compat
 
 FIRMWARE_SIGNATURE_SEC_KEY  ?= ab01d85ecaa5c851ad1e7bd2ba4ca179bbac52588779880cf47b99c15faa729e
 FIRMWARE_SIGNATURE_PUB_KEY1 ?= 03d7fe879bea92c657797881cc2437fea86337ed4dce19859f43d023c1772c81dd
