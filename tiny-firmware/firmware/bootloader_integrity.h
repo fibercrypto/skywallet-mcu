@@ -9,6 +9,9 @@
  *
  */
 
-#include <check.h>
+#ifndef HARDWARE_WALLET_BOOTLOADER_CHECK_H
+#define HARDWARE_WALLET_BOOTLOADER_CHECK_H
 
-TCase* add_fsm_tests(TCase* tc);
+int check_bootloader(void);
+
+#endif //HARDWARE_WALLET_BOOTLOADER_CHECK_H

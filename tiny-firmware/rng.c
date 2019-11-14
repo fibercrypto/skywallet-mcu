@@ -21,10 +21,12 @@
 #include <libopencm3/stm32/f2/rng.h>
 #include <libopencm3/stm32/memorymap.h>
 
-#include "rng.h"
+#include "tiny-firmware/rng.h"
 
 #if !EMULATOR
-uint32_t random32(void)
+
+// Implement _random32() Skycoin crypto API primitive using device TRNG
+uint32_t _random32(void)
 {
     static uint32_t last = 0, new = 0;
     while (new == last) {

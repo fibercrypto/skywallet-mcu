@@ -17,9 +17,10 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "rng.h"
+#include "tiny-firmware/rng.h"
 
-uint32_t random32(void)
+// Implement _random32() Skycoin crypto API primitive in emulator
+uint32_t _random32(void)
 {
     static uint32_t last = 0;
     uint32_t new;

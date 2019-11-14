@@ -26,22 +26,23 @@
 
 #include "messages.pb.h"
 
-#include "bip32.h"
-#include "bip39.h"
-#include "firmware/entropy.h"
-#include "gettext.h"
-#include "hmac.h"
-#include "layout2.h"
-#include "memory.h"
-#include "memzero.h"
-#include "protect.h"
-#include "rng.h"
-#include "sha2.h"
-#include "skywallet.h"
-#include "storage.h"
-#include "supervise.h"
-#include "usb.h"
-#include "util.h"
+#include "tiny-firmware/util.h"
+#include "tiny-firmware/memory.h"
+#include "tiny-firmware/rng.h"
+#include "tiny-firmware/supervise.h"
+#include "tiny-firmware/firmware/skywallet.h"
+#include "skycoin-crypto/tools/sha2.h"
+#include "skycoin-crypto/tools/hmac.h"
+#include "skycoin-crypto/tools/bip32.h"
+#include "skycoin-crypto/tools/bip39.h"
+#include "tiny-firmware/firmware/layout2.h"
+#include "tiny-firmware/usb.h"
+#include "tiny-firmware/firmware/gettext.h"
+#include "tiny-firmware/firmware/layout2.h"
+#include "skycoin-crypto/tools/memzero.h"
+#include "tiny-firmware/firmware/protect.h"
+#include "tiny-firmware/firmware/entropy.h"
+#include "tiny-firmware/firmware/storage.h"
 
 /* magic constant to check validity of storage block */
 static const uint32_t storage_magic = 0x726f7473; // 'stor' as uint32_t
@@ -238,6 +239,8 @@ bool storage_from_flash(void)
 void storage_init(void)
 {
     // NOTE(): storage_uuid is loaded from main function
+    // but there is chance it won't be updated
+    // e.g. running tests
     data2hex(storage_uuid, sizeof(storage_uuid), storage_uuid_str);
     if (!storage_from_flash()) {
         storage_wipe();
@@ -518,7 +521,7 @@ const char* storage_getFullSeed(void)
     if (!storage_hasPassphraseProtection()) {
         return storage_getMnemonic();
     }
-    if (sessionPassphraseCached || protectPassphrase()) {
+    if ((sessionPassphraseCached || protectPassphrase()) && strlen(sessionPassphrase) > 0) {
         sprintf(sessionSeed, "%s %s", storage_getMnemonic(), sessionPassphrase);
         return sessionSeed;
     }
@@ -760,6 +763,8 @@ uint32_t storage_getFlags(void)
     return storageRom->has_flags ? storageRom->flags : 0;
 }
 
+extern uint8_t int_entropy[32];
+
 void storage_wipe(void)
 {
     session_clear(true);
@@ -774,4 +779,5 @@ void storage_wipe(void)
     storageUpdate.has_label = true;
     strncpy(storageUpdate.label, storage_uuid_str, sizeof(storageUpdate.label));
     storage_update();
+    memset(int_entropy, 0, sizeof(int_entropy));
 }

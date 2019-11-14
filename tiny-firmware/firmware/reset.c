@@ -18,26 +18,35 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "reset.h"
-#include "bip39.h"
-#include "entropy.h"
-#include "fsm.h"
-#include "gettext.h"
-#include "layout2.h"
-#include "messages.h"
-#include "protect.h"
-#include "rng.h"
-#include "sha2.h"
-#include "storage.h"
+#include "tiny-firmware/firmware/reset.h"
+#include "tiny-firmware/firmware/storage.h"
+#include "tiny-firmware/rng.h"
+#include "skycoin-crypto/tools/sha2.h"
+#include "tiny-firmware/firmware/fsm.h"
 #include "types.pb.h"
-#include "util.h"
+#include "tiny-firmware/firmware/protect.h"
+#include "skycoin-crypto/tools/bip39.h"
+#include "tiny-firmware/util.h"
+#include "tiny-firmware/firmware/gettext.h"
+#include "tiny-firmware/firmware/entropy.h"
+#include "tiny-firmware/firmware/layout2.h"
+#include "tiny-firmware/firmware/messages.h"
 
 uint32_t strength;
-uint8_t int_entropy[32];
+uint8_t int_entropy[32] = {0};
 bool skip_backup = false;
 
 void reset_init(bool display_random, uint32_t _strength, bool passphrase_protection, bool pin_protection, const char* language, const char* label, bool _skip_backup)
 {
+    reset_init_ex(display_random, _strength, passphrase_protection, pin_protection, language, label, _skip_backup, NULL);
+}
+
+void reset_init_ex(bool display_random, uint32_t _strength, bool passphrase_protection, bool pin_protection, const char* language, const char* label, bool _skip_backup, const char* (*funcRequestPin)(PinMatrixRequestType, const char*))
+{
+    if (funcRequestPin == NULL) {
+        funcRequestPin = requestPin;
+    }
+
     if (_strength != 128 && _strength != 192 && _strength != 256) {
         return;
     }
@@ -45,32 +54,34 @@ void reset_init(bool display_random, uint32_t _strength, bool passphrase_protect
     strength = _strength;
     skip_backup = _skip_backup;
 
-    random_buffer(int_entropy, 32);
-
-    char ent_str[4][17];
-    data2hex(int_entropy, 8, ent_str[0]);
-    data2hex(int_entropy + 8, 8, ent_str[1]);
-    data2hex(int_entropy + 16, 8, ent_str[2]);
-    data2hex(int_entropy + 24, 8, ent_str[3]);
+    random_salted_buffer(int_entropy, 32);
 
     if (display_random) {
+        char ent_str[4][17];
+        data2hex(int_entropy, 8, ent_str[0]);
+        data2hex(int_entropy + 8, 8, ent_str[1]);
+        data2hex(int_entropy + 16, 8, ent_str[2]);
+        data2hex(int_entropy + 24, 8, ent_str[3]);
+
         layoutDialogSwipe(&bmp_icon_info, _("Cancel"), _("Continue"), NULL, _("Internal entropy:"), ent_str[0], ent_str[1], ent_str[2], ent_str[3], NULL);
         if (!protectButton(ButtonRequestType_ButtonRequest_ResetDevice, false)) {
-            fsm_sendFailure(FailureType_Failure_ActionCancelled, NULL);
+            fsm_sendFailure(FailureType_Failure_ActionCancelled, NULL, 0);
             layoutHome();
             return;
         }
     }
 
-    if (pin_protection && !protectChangePin()) {
-        fsm_sendFailure(FailureType_Failure_PinMismatch, NULL);
+    if (pin_protection && !protectChangePinEx(funcRequestPin)) {
+        fsm_sendFailure(FailureType_Failure_PinMismatch, NULL, 0);
         layoutHome();
         return;
     }
 
     storage_setPassphraseProtection(passphrase_protection);
     storage_setLanguage(language);
-    storage_setLabel(label);
+    if (label != NULL && strcmp("", label) != 0) {
+        storage_setLabel(label);
+    }
     storage_update();
 
     EntropyRequest resp;
@@ -98,12 +109,11 @@ ErrCode_t reset_entropy(void)
 
 static char current_word[10];
 
-// separated == true if called as a separate workflow via BackupMessage
-void reset_backup(bool separated)
+ErrCode_t reset_backup(bool separated)
 {
     if (!storage_needsBackup()) {
-        fsm_sendFailure(FailureType_Failure_UnexpectedMessage, _("Seed already backed up"));
-        return;
+        fsm_sendFailure(FailureType_Failure_UnexpectedMessage, _("Seed already backed up"), 0);
+        return ErrUnexpectedMessage;
     }
 
     storage_setUnfinishedBackup(true);
@@ -135,8 +145,8 @@ void reset_backup(bool separated)
                     session_clear(true);
                 }
                 layoutHome();
-                fsm_sendFailure(FailureType_Failure_ActionCancelled, NULL);
-                return;
+                fsm_sendFailure(FailureType_Failure_ActionCancelled, NULL, 0);
+                return ErrActionCancelled;
             }
             word_pos++;
         }
@@ -146,9 +156,10 @@ void reset_backup(bool separated)
 
     if (!separated) {
         storage_update();
-        fsm_sendSuccess(_("Device successfully initialized"));
+        fsm_sendSuccess(_("Device successfully initialized"), 0);
     }
     layoutHome();
+    return ErrOk;
 }
 
 #if DEBUG_LINK

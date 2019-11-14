@@ -1,12 +1,17 @@
+![hardware-wallet-logo](https://user-images.githubusercontent.com/8619106/56054900-b1f9b680-5d75-11e9-8deb-cf657cfd0c55.png)
+
 # Skycoin hardware wallet
 
-[![Build Status](https://travis-ci.com/skycoin/hardware-wallet.svg?branch=master)](https://travis-ci.com/skycoin/hardware-wallet)
+[![Build Status](https://travis-ci.com/skycoin/hardware-wallet.svg?branch=develop)](https://travis-ci.com/skycoin/hardware-wallet)
+
+**Note**: This repo is no longer maintained. Please refer to the new [Skywallet](https://github.com/SkycoinProject/hardware-wallet) repo. 
 
 ## Table of contents
 
 <!-- MarkdownTOC levels="1,2,3,4,5" autolink="true" bracket="round" -->
+
 - [Overview](#overview)
-- [FAQ](#FAQ)
+- [FAQ](#faq)
 - [Install tools](#install-tools)
 - [Build instructions:](#build-instructions)
   - [Build and run emulator](#build-and-run-emulator)
@@ -23,13 +28,16 @@
     - [Versioning combined binary builds](#versioning-combined-binary-builds)
     - [Versioning libraries](#versioning-libraries)
   - [Running tests](#running-tests)
-  - [Validate the TRNG](#Validate-the-TRNG)
-    - [Files description](#Files-description)
+    - [Generating tests code coverage](#generating-tests-code-coverage)
+    - [Running libskycoin compatibility tests](#running-libskycoin-compatibility-tests)
+  - [Validate the TRNG](#validate-the-trng)
+      - [Files description](#files-description)
   - [Releases](#releases)
     - [Skycoin firmware releases](#skycoin-firmware-releases)
     - [Update the version](#update-the-version)
     - [Pre-release testing](#pre-release-testing)
     - [Creating release builds](#creating-release-builds)
+
 <!-- /MarkdownTOC -->
 
 ## Overview
@@ -57,13 +65,17 @@ Follow the instructions written on [tiny-firware/README.md](https://github.com/s
 
 ## Build instructions:
 
-### Build and run emulator
-
-Update submodules:
+Immediately after cloning this repository make sure submoudules are up-to-date by executing the following command. All other commands expect this step completed first.
 
 ```
 git submodule update --init --recursive
+```
 
+Should you find any issues while running any of the commands that follow please consult [FAQ](FAQ.md) before [reporting a bug](ihttps://github.com/skycoin/hardware-wallet/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
+
+### Build and run emulator
+
+```
 make clean && make run-emulator
 ```
 
@@ -138,6 +150,8 @@ The firmware defines a contract enforced upon all client libraries communicating
 - **Minor version number** should be increased for releases adding incremental backwards-compatible changes to the firmware contract
 - **Patch version number** should be increased for bug fix releases and similar changes keeping firmware contract unchanged
 
+Firmware binary filename is `skywallet-firmware-v$(VERSION_FIRMWARE).bin` e.g. `skywallet-firmware-v1.7.0.bin` .
+
 #### Bootloader version scheme
 
 Bootloader versioning is independent and follows [semantic versioning](http://semver.org) rules.
@@ -145,6 +159,8 @@ Bootloader versioning is independent and follows [semantic versioning](http://se
 - **Major version number** indicates major changes in bootloader code
 - **Minor version number** is used for progressive backwards-compatible changes
 - **Patch version number** increased for bug fix releases
+
+Bootloader binary filename is `skywallet-bootloader-mem-protect-v$(VERSION_BOOTLOADER).bin` if compiled with memory protection enabled, else `skywallet-bootloader-no-memory-protect-v$(VERSION_BOOTLOADER).bin`. For instance, `skywallet-bootloader-mem-protect-v1.0.2.bin` or  `skywallet-bootloader-no-memory-protect-v1.0.2.bin` could be bootloader file names.
 
 #### Versioning combined binary builds
 
@@ -157,6 +173,8 @@ The project releases production-ready binaries combining firmware and bootloader
 
 Version identifiers are strings including, in the same order, the numbers mentioned above separated by dots.
 
+Combined binary filename is `skywallet-full-mem-protect-$(COMBINED_VERSION).bin` if compiled with memory protection enabled, else `skywallet-full-no-mem-protect-$(COMBINED_VERSION).bin` e.g. `skywallet-full-no-mem-protect-102.170.1.1.bin` and `skywallet-full-mem-protect-102.107.1.1.bin`.
+
 #### Versioning libraries
 
 In order to identify at first sight the features supported by a particular release of a client library, its major and minor version numbers should match the corresponding values of the version of the firmware they were built (tested) for. It is expected that the aforementioned library will be able to communicate to any firmware, as long as both versions (client and firmware) have the same major version number and firmware minor number is greater than the one of the library.
@@ -168,6 +186,17 @@ The project includes a test suite. In order to run it just execute the following
 ```
 make clean && make test
 ```
+
+#### Generating tests code coverage
+
+To generate code coverage html report you need to have `lcov` available in your `PATH`, in a debian based system you can run `apt install lcov`, lcov can be available using `brew` on osx too, but in the most general case you can follow the the official [install instructions](https://github.com/linux-test-project/lcov/blob/4ff2ed639ec25c271eb9aa2fcdadd30bfab33e4b/README).
+After having this tool you can run `make check-coverage`, if not errors found you can find the result in `coverage/index.html`.
+
+#### Running libskycoin compatibility tests
+
+Due to a Skycoin and crypto-api (in this firmware project) incompatibility it was required to make use of an [Adapter Pattern](https://en.wikipedia.org/wiki/Adapter_pattern).
+After having a higher compatibility level (implemented in `skycoin-api/libskycoin-wrapper.c`) then you can run a subset of the libskycoin tests against this crypto API.
+You can run this test battery by typing the following command: `make test-libsky-compat`
 
 ### Validate the TRNG
 
@@ -271,6 +300,8 @@ To update firmware the device must be in "bootloader mode". Press both buttons, 
 0. Update `CHANGELOG.md`: move the "unreleased" changes to the version and add the date.
 0. Follow the steps in [pre-release testing](#pre-release-testing)
 0. Make a PR merging the release branch into `master`
+0. Ensure changes needed in protobuffer specs are merged into its `master` branch
+0. Ensure protobuf specs sub-module will track changes from its `master` branch after merge
 0. Review the PR and merge it
 0. Tag the `master` branch with the version number. Version tags start with `v`, e.g. `v0.20.0`. Sign the tag. If you have your GPG key in github, creating a release on the Github website will automatically tag the release. It can be tagged from the command line with `git tag -as v0.20.0 $COMMIT_ID`, but Github will not recognize it as a "release".
 0. Tag the changeset of the `protob` submodule checkout with the same version number as above.
@@ -307,3 +338,40 @@ The following instruction creates a full release:
 make release
 ```
 Firmware version will be retrieved automatically from `git`, and bootloader version will be take from `tiny-firmware/VERSION`.
+
+## Responsible Disclosure
+
+Security flaws in Skywallet source or infrastructure can be sent to security@skycoin.net.
+Bounties are available for accepted critical bug reports.
+
+PGP Key for signing:
+
+```
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mDMEWaj46RYJKwYBBAHaRw8BAQdApB44Kgde4Kiax3M9Ta+QbzKQQPoUHYP51fhN
+1XTSbRi0I0daLUMgU0tZQ09JTiA8dG9rZW5AcHJvdG9ubWFpbC5jb20+iJYEExYK
+AD4CGwMFCwkIBwIGFQgJCgsCBBYCAwECHgECF4AWIQQQpyK3by/+e9I4AiJYAWMb
+0nx4dAUCWq/TNwUJCmzbzgAKCRBYAWMb0nx4dKzqAP4tKJIk1vV2bO60nYdEuFB8
+FAgb5ITlkj9PyoXcunETVAEAhigo4miyE/nmE9JT3Q/ZAB40YXS6w3hWSl3YOF1P
+VQq4OARZqPjpEgorBgEEAZdVAQUBAQdAa8NkEMxo0dr2x9PlNjTZ6/gGwhaf5OEG
+t2sLnPtYxlcDAQgHiH4EGBYKACYCGwwWIQQQpyK3by/+e9I4AiJYAWMb0nx4dAUC
+Wq/TTQUJCmzb5AAKCRBYAWMb0nx4dFPAAQD7otGsKbV70UopH+Xdq0CDTzWRbaGw
+FAoZLIZRcFv8zwD/Z3i9NjKJ8+LS5oc8rn8yNx8xRS+8iXKQq55bDmz7Igw=
+=5fwW
+-----END PGP PUBLIC KEY BLOCK-----
+```
+
+Key ID: [0x5801631BD27C7874](https://pgp.mit.edu/pks/lookup?search=0x5801631BD27C7874&op=index)
+
+The fingerprint for this key is:
+
+```
+pub   ed25519 2017-09-01 [SC] [expires: 2023-03-18]
+      10A7 22B7 6F2F FE7B D238  0222 5801 631B D27C 7874
+uid                      GZ-C SKYCOIN <token@protonmail.com>
+sub   cv25519 2017-09-01 [E] [expires: 2023-03-18]
+```
+
+Keybase.io account: https://keybase.io/gzc
+

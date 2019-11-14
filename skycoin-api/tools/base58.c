@@ -252,8 +252,7 @@ int b58check(const void* bin, size_t binsz, HasherType hasher_type, const char* 
         return -1;
 
     // Check number of zeros is correct AFTER verifying checksum (to avoid possibility of accessing base58str beyond the end)
-    for (i = 0; binc[i] == '\0' && base58str[i] == '1'; ++i) {
-    } // Just finding the end of zeros, nothing to do in loop
+    for (i = 0; binc[i] == '\0' && base58str[i] == '1'; ++i) {} // Just finding the end of zeros, nothing to do in loop
     if (binc[i] == '\0' || base58str[i] == '1')
         return -3;
 
