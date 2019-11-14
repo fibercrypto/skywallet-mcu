@@ -22,6 +22,8 @@
 #include "tools/ecdsa.h"
 #include "tools/secp256k1.h"
 #include "tools/sha2.h" //SHA256_DIGEST_LENGTH
+#include "tools/test_bip32.h"
+#include "tools/test_bip44.h"
 
 #define FROMHEX_MAXLEN 512
 
@@ -636,7 +638,7 @@ START_TEST(test_deterministic_key_pair_iterator)
     ret = deterministic_key_pair_iterator((const uint8_t*)seed, 64, next_seed, seckey, pubkey);
     ck_assert_int_eq(ret, 0);
     memcpy(seed, next_seed, 32);
-    for (int i = 1; i<1024; i++) {
+    for (int i = 1; i < 1024; i++) {
         ret = deterministic_key_pair_iterator((const uint8_t*)seed, 32, next_seed, seckey, pubkey);
         ck_assert_int_eq(ret, 0);
         memcpy(seed, next_seed, 32);
@@ -795,7 +797,7 @@ START_TEST(test_ecdsa_sign_digest_inner)
 
     bn_read_be(digest, &z);
     bn_read_be(nonce, &k);
-    res = ecdsa_sign_digest_inner(curve->params, seckey, &z, &k,  signature, &recid, NULL);
+    res = ecdsa_sign_digest_inner(curve->params, seckey, &z, &k, signature, &recid, NULL);
     ck_assert_int_eq(res, 0);
     ck_assert_mem_eq(signature, fromhex("98f9d784ba6c5c77bb7323d044c0fc9f2b27baa0a5b0718fe88596cc566819801ca662aaefd6cc958ba4604fea999db133a75bf34c13334dabac7124ff0cfcc1"), 64);
     ck_assert_int_eq(recid, 0);
@@ -1398,6 +1400,8 @@ Suite* test_suite(void)
     tcase_add_test(tc, test_addtransactioninput);
     tcase_add_test(tc, test_ecdh);
     suite_add_tcase(s, tc);
+    load_bip32_testcase(s);
+    load_bip44_testcase(s);
 
     return s;
 }

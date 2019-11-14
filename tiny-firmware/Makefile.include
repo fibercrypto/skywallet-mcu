@@ -7,6 +7,7 @@ CFLAGS+=-DVERSION_MAJOR=$(VERSION_MAJOR)
 CFLAGS+=-DVERSION_MINOR=$(VERSION_MINOR)
 CFLAGS+=-DVERSION_PATCH=$(VERSION_PATCH)
 
+CFLAGS += -DUSE_CARDANO=0 -DUSE_CARDANO=0 -DUSE_BIP32_25519_CURVES=0 -DUSE_MONERO=0
 ifeq ($(VERSION_IS_SEMANTIC_COMPLIANT),0)
 ifneq ($(BOOTLOADER),1)
 $(warning "firmware version $(VERSION_FIRMWARE)...")
@@ -96,6 +97,7 @@ CFLAGS   += $(OPTFLAGS) \
             -DRAND_PLATFORM_INDEPENDENT=1 \
             -I$(TOOLCHAIN_DIR)/include \
             -I$(GLOBAL_PATH) \
+            -I$(GLOBAL_PATH)/skycoin-api \
             -isystem$(TOP_DIR)vendor/
 
 LDFLAGS  += -L$(TOP_DIR) \

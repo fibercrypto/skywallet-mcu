@@ -28,6 +28,7 @@
 #include "skycoin-crypto/tools/bip32.h"
 #include "skycoin-crypto/tools/bip39.h"
 #include "skycoin-crypto/check_digest.h"
+#include "skycoin-crypto/tools/bip44.h"
 #include "tiny-firmware/firmware/droplet.h"
 #include "tiny-firmware/firmware/entropy.h"
 #include "tiny-firmware/firmware/fsm.h"
@@ -50,6 +51,8 @@
 #include "tiny-firmware/firmware/skyparams.h"
 #include "fsm_skycoin_impl.h"
 
+extern const uint32_t bip44_purpose;
+
 ErrCode_t
 msgSkycoinCheckMessageSignatureImpl(SkycoinCheckMessageSignature *msg, Success *successResp, Failure *failureResp) {
     // NOTE(): -1 because the end of string ('\0')
@@ -60,7 +63,7 @@ msgSkycoinCheckMessageSignatureImpl(SkycoinCheckMessageSignature *msg, Success *
                    "Invalid buffer size for signature");
     uint8_t sig[SKYCOIN_SIG_LEN] = {0};
     // NOTE(): -1 because the end of string ('\0')
-    char address[sizeof(msg->address) - 1];
+    char address[sizeof(msg->address) - 1] = {0};
     uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};
     uint8_t digest[SHA256_DIGEST_LENGTH] = {0};
     if (is_sha256_digest_hex(msg->message)) {
@@ -100,14 +103,17 @@ ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage *msg, ResponseSkycoinSign
     // NOTE: twise the SKYCOIN_SIG_LEN because the hex format
     _Static_assert(sizeof(resp->signed_message) >= 2 * SKYCOIN_SIG_LEN,
                    "hex SKYCOIN_SIG_LEN do not fit in the response");
-    if (storage_hasMnemonic() == false) {
-        return ErrMnemonicRequired;
-    }
+    CHECK_MNEMONIC_RET_ERR_CODE
     uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};
     uint8_t seckey[SKYCOIN_SECKEY_LEN] = {0};
     uint8_t digest[SHA256_DIGEST_LENGTH] = {0};
     uint8_t signature[SKYCOIN_SIG_LEN];
-    if (fsm_getKeyPairAtIndex(1, pubkey, seckey, NULL, msg->address_n) != ErrOk) {
+    if (msg->has_bip44_addr) {
+        ErrCode_t err = keyPairFromHdw(msg, seckey, pubkey);
+        if (err != ErrOk) {
+            return err;
+        }
+    } else if (fsm_getKeyPairAtIndex(1, pubkey, seckey, NULL, msg->address_n) != ErrOk) {
         return ErrInvalidValue;
     }
     if (is_sha256_digest_hex(msg->message)) {
@@ -135,22 +141,24 @@ ErrCode_t msgSkycoinAddressImpl(SkycoinAddress *msg, ResponseSkycoinAddress *res
     uint8_t seckey[32] = {0};
     uint8_t pubkey[33] = {0};
     uint32_t start_index = !msg->has_start_index ? 0 : msg->start_index;
-    if (!protectPin(true)) {
-        return ErrPinRequired;
-    }
+    CHECK_PIN_RET_ERR_CODE
     if (msg->address_n > 99) {
         return ErrTooManyAddresses;
     }
 
-    if (storage_hasMnemonic() == false) {
-        return ErrMnemonicRequired;
-    }
-
-    if (fsm_getKeyPairAtIndex(msg->address_n, pubkey, seckey, resp, start_index) != ErrOk) {
-        return ErrAddressGeneration;
-    }
-    if (msg->address_n == 1 && msg->has_confirm_address && msg->confirm_address) {
-        return ErrUserConfirmation;
+    CHECK_MNEMONIC_RET_ERR_CODE
+    if (msg->has_bip44_addr) {
+        ErrCode_t err = addressFromHdw(msg, resp);
+        if (err != ErrOk) {
+            return err;
+        }
+    } else {
+        if (fsm_getKeyPairAtIndex(msg->address_n, pubkey, seckey, resp, start_index) != ErrOk) {
+            return ErrAddressGeneration;
+        }
+        if (msg->address_n == 1 && msg->has_confirm_address && msg->confirm_address) {
+            return ErrUserConfirmation;
+        }
     }
     return ErrOk;
 }
@@ -166,7 +174,7 @@ msgTransactionSignImpl(TransactionSign *msg, ErrCode_t (*funcConfirmTxn)(char *,
     }
 #if EMULATOR
     printf("%s: %d. nbOut: %d\n",
-        _("Transaction signed nbIn"),
+          _("Transaction signed nbIn"),
         msg->nbIn, msg->nbOut);
 
     for (uint32_t i = 0; i < msg->nbIn; ++i) {
@@ -204,7 +212,22 @@ msgTransactionSignImpl(TransactionSign *msg, ErrCode_t (*funcConfirmTxn)(char *,
         PRIu64
         " %s", msg->transactionOut[i].hour, hourString);
 
-        if (msg->transactionOut[i].has_address_index) {
+        if (msg->transactionOut[i].has_bip44_addr) {
+            char addr[100] = {0};
+            size_t addr_size = sizeof(addr);
+            ErrCode_t err = addressFromHdwWithTransactionOutput(msg->transactionOut[i], addr, &addr_size);
+            if (err != ErrOk) {
+                return err;
+            }
+            if (strcmp(msg->transactionOut[i].address, addr) != 0) {
+                // fsm_sendFailure(FailureType_Failure_AddressGeneration, _("Wrong return address"));
+#if EMULATOR
+                printf("Internal address: %s, message address: %s\n", addr, msg->transactionOut[i].address);
+                printf("Comparaison size %ld\n", addr_size);
+#endif
+                return ErrAddressGeneration;
+            }
+        } else if (msg->transactionOut[i].has_address_index) {
             uint8_t pubkey[33] = {0};
             uint8_t seckey[32] = {0};
             size_t size_address = 36;
@@ -234,17 +257,21 @@ msgTransactionSignImpl(TransactionSign *msg, ErrCode_t (*funcConfirmTxn)(char *,
                               msg->transactionOut[i].address);
     }
 
-    if (!protectPin(false)) {
-        return ErrPinRequired;
-    }
+    CHECK_PIN_UNCACHED_RET_ERR_CODE
 
     for (uint32_t i = 0; i < msg->nbIn; ++i) {
         uint8_t digest[32] = {0};
         transaction_msgToSign(&transaction, i, digest);
         // Only sign inputs owned by Skywallet device
-        if (msg->transactionIn[i].has_index) {
-            if (msgSignTransactionMessageImpl(digest, msg->transactionIn[i].index,
-                                              resp->signatures[resp->signatures_count]) != ErrOk) {
+        if (msg->transactionIn[i].has_bip44_addr) {
+            if (signTransactionMessageFromHDW(digest, msg->transactionIn[i].bip44_addr, resp->signatures[resp->signatures_count]) != ErrOk) {
+                //fsm_sendFailure(FailureType_Failure_InvalidSignature, NULL);
+                //layoutHome();
+                return ErrInvalidSignature;
+            }
+        } else if (msg->transactionIn[i].has_index) {
+            // signTransactionMessage
+            if (msgSignTransactionMessageImpl(digest, msg->transactionIn[i].index, resp->signatures[resp->signatures_count]) != ErrOk) {
                 //fsm_sendFailure(FailureType_Failure_InvalidSignature, NULL);
                 //layoutHome();
                 return ErrInvalidSignature;

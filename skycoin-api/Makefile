@@ -41,13 +41,36 @@ ifeq ($(UNAME_S), Darwin)
 	TESTINC+=-isystem $(CHECK_PATH)/include
 endif
 endif
-CFLAGS += -I$(MKFILE_DIR) $(INC)
-CFLAGS += -I../tiny-firmware/vendor/libskycoin/include
+INC += -I../tiny-firmware/vendor/libskycoin/include
+INC += -I$(MKFILE_DIR)
+INC += -I.
+CFLAGS += $(INC)
+CFLAGS += -DUSE_CARDANO=0 -DUSE_CARDANO=0 -DUSE_BIP32_25519_CURVES=0 -DUSE_MONERO=0
 
 SRCS += skycoin_crypto.c
 SRCS += skycoin_signature.c
 SRCS += check_digest.c
-SRCS += $(shell ls $(TOOLS_DIR)/*.c)
+# --hide="*test_*"
+SRCS += $(shell ls $(TOOLS_DIR)/*.c | grep -v test_)
+SRCS += sha3.c
+SRCS += blake2b.c
+SRCS += groestl.c
+SRCS += address.c
+SRCS += aes/aes_modes.c
+SRCS += aes/aescrypt.c
+SRCS += aes/aeskey.c
+SRCS += aes/aestab.c
+#SRCS += aes/aestst.c
+SRCS += ed25519-donna/curve25519-donna-32bit.c
+SRCS += ed25519-donna/curve25519-donna-helpers.c
+SRCS += ed25519-donna/curve25519-donna-scalarmult-base.c
+SRCS += ed25519-donna/ed25519-donna-32bit-tables.c
+SRCS += ed25519-donna/ed25519-donna-basepoint-table.c
+SRCS += ed25519-donna/ed25519-donna-impl-base.c
+SRCS += ed25519-donna/ed25519-keccak.c
+SRCS += ed25519-donna/ed25519-sha3.c
+SRCS += ed25519-donna/ed25519.c
+SRCS += ed25519-donna/modm-donna-32bit.c
 
 OBJS   = $(SRCS:.c=.o)
 
@@ -82,7 +105,7 @@ libskycoin-crypto.a: skycoin_crypto.o $(OBJS)
 	$(AR) rcs libskycoin-crypto.a skycoin_crypto.o $(OBJS)
 
 libskycoin-wrapper.o: libskycoin-wrapper.c
-	$(CC) -std=c99 -isystem../tiny-firmware/vendor/libskycoin/include -Itools -o libskycoin-wrapper.o -c libskycoin-wrapper.c
+	$(CC) -std=c99 $(INC) -o libskycoin-wrapper.o -c libskycoin-wrapper.c
 
 libskycoin-crypto-wrapper.a: libskycoin-wrapper.o libskycoin-crypto.a
 	@mkdir -p lib
@@ -91,8 +114,15 @@ libskycoin-crypto-wrapper.a: libskycoin-wrapper.o libskycoin-crypto.a
 test_skycoin_crypto.o: test_skycoin_crypto.c
 	$(CC) $(CFLAGS) $(TESTINC) -o $@ -c $<
 
-test_skycoin_crypto: test_skycoin_crypto.o libskycoin-crypto.so
-	$(CC) test_skycoin_crypto.o $(OBJS) -Llib/ -L. -Wl,-rpath,$(MKFILE_DIR) -lskycoin-crypto $(LIBS) $(TESTLIBS) -o test_skycoin_crypto
+tools/test_bip32.o: tools/test_bip32.c
+	$(CC) $(CFLAGS) $(TESTINC) -o $@ -c $<
+
+tools/test_bip44.o: tools/test_bip44.c
+	$(CC) $(CFLAGS) $(TESTINC) -o $@ -c $<
+
+test_skycoin_crypto: test_skycoin_crypto.o tools/test_bip32.o tools/test_bip44.o libskycoin-crypto.so
+	$(CC) -o test_skycoin_crypto test_skycoin_crypto.o tools/test_bip32.o tools/test_bip44.o $(OBJS) -L. -Llib/ -Wl,-rpath,$(MKFILE_DIR) -lskycoin-crypto $(LIBS) $(TESTLIBS)
+#	$(CC) test_skycoin_crypto.o $(OBJS) -Llib/ -L. -Wl,-rpath,$(MKFILE_DIR) -lskycoin-crypto $(LIBS) $(TESTLIBS) -o test_skycoin
 
 test: test_skycoin_crypto ## Run test suite for Skycoin cipher library for firmware
 	./test_skycoin_crypto
@@ -104,6 +134,7 @@ clean: ## Delete all temporary files
 	rm -f $(TOOLS_DIR)/*.o
 	rm -f $(MKFILE_DIR)/tools/*.o
 	rm -f $(MKFILE_DIR)/*.a
+	rm -f $(OBJS)
 	rm -rf lib
 
 coverage: test_skycoin_crypto

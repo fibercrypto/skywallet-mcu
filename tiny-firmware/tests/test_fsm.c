@@ -417,12 +417,109 @@ START_TEST(test_msgChangePinSecondRejected)
 }
 END_TEST
 
+START_TEST(test_msgSkycoinCheckMessageSignatureBip44Ok)
+{
+    for (size_t wi = 0; wi < sizeof(wcs)/sizeof(*wcs); ++wi) {
+        // NOTE(): Given
+        forceGenerateMnemonic(wcs[wi]);
+        SkycoinAddress msgSkyAddress = SkycoinAddress_init_zero;
+        Bip44AddrIndex bip44 = Bip44AddrIndex_init_zero;
+        bip44.coin_type = 0x80000000 + 8000;
+        bip44.account = 0x80000000;
+        bip44.change = 0;
+        bip44.address_start_index = 0;
+        bip44.address_n = 1;
+        msgSkyAddress.bip44_addr = bip44;
+        msgSkyAddress.has_bip44_addr = true;
+        uint8_t msg_resp_addr[MSG_OUT_SIZE] __attribute__((aligned)) = {0};
+        ResponseSkycoinAddress* respAddress = (ResponseSkycoinAddress*)(void*)msg_resp_addr;
+        ErrCode_t err = msgSkycoinAddressImpl(&msgSkyAddress, respAddress);
+        ck_assert_int_eq(ErrOk, err);
+        ck_assert_int_eq(respAddress->addresses_count, 1);
+        // NOTE(): `raw_msg` hash become from:
+        // https://github.com/skycoin/skycoin/blob/develop/src/cipher/testsuite/testdata/input-hashes.golden
+        char raw_msg[] = {"66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"};
+        SkycoinSignMessage msgSign = SkycoinSignMessage_init_zero;
+        strncpy(msgSign.message, raw_msg, sizeof(msgSign.message));
+        msgSign.address_n = 0;
+        msgSign.bip44_addr = bip44;
+        msgSign.has_bip44_addr = true;
+
+        // NOTE(): When
+        uint8_t msg_resp_sign[MSG_OUT_SIZE] __attribute__((aligned)) = {0};
+        ResponseSkycoinSignMessage* respSign = (ResponseSkycoinSignMessage*)(void*)msg_resp_sign;
+        ck_assert_int_eq(ErrOk, msgSkycoinSignMessageImpl(&msgSign, respSign));
+        SkycoinCheckMessageSignature checkMsg = SkycoinCheckMessageSignature_init_zero;
+        memcpy(checkMsg.message, msgSign.message, sizeof(checkMsg.message));
+        memcpy(checkMsg.address, respAddress->addresses[0], sizeof(checkMsg.address));
+        memcpy(checkMsg.signature, respSign->signed_message, sizeof(checkMsg.signature));
+        Success successRespCheck = Success_init_zero;
+        Failure failRespCheck = Failure_init_zero;
+        err = msgSkycoinCheckMessageSignatureImpl(
+            &checkMsg, &successRespCheck, &failRespCheck);
+
+        // NOTE(): Then
+        ck_assert_int_eq(ErrOk, err);
+        ck_assert(successRespCheck.has_message);
+        int address_diff = strncmp(
+            respAddress->addresses[0],
+            successRespCheck.message,
+            sizeof(respAddress->addresses[0]));
+        if (address_diff) {
+            fprintf(stderr, "\nrespAddress->addresses[0]: ");
+            for (size_t i = 0; i < sizeof(respAddress->addresses[0]); ++i) {
+                fprintf(stderr, "%c", respAddress->addresses[0][i]);
+            }
+            fprintf(stderr, "\nrespCheck->message: ");
+            for (size_t i = 0; i < sizeof(successRespCheck.message); ++i) {
+                fprintf(stderr, "%c", successRespCheck.message[i]);
+            }
+            fprintf(stderr, "\n");
+        }
+        ck_assert_int_eq(0, address_diff);
+    }
+}
+END_TEST
+
+START_TEST(test_generateAddressBip44)
+{
+    // NOTE(): Given
+    char mnem_str[] = {"apple again now trial car member express concert antenna panda shuffle topple"};
+    SetMnemonic setMnem = SetMnemonic_init_zero;
+    memcpy(setMnem.mnemonic, mnem_str, sizeof(mnem_str));
+    ErrCode_t err = msgSetMnemonicImpl(&setMnem);
+    ck_assert_int_eq(ErrOk, err);
+
+    Bip44AddrIndex bip44 = Bip44AddrIndex_init_zero;
+    bip44.coin_type = 0x80000000 + 8000;
+    bip44.account = 0x80000000;
+    bip44.change = 0;
+    bip44.address_start_index = 0;
+    bip44.address_n = 1;
+    SkycoinAddress msgSkyAddress = SkycoinAddress_init_zero;
+    msgSkyAddress.bip44_addr = bip44;
+    msgSkyAddress.has_bip44_addr = true;
+    msgSkyAddress.address_n = 1;
+
+    uint8_t msg_resp_addr[MSG_OUT_SIZE] __attribute__((aligned)) = {0};
+    ResponseSkycoinAddress* respAddress = (ResponseSkycoinAddress*)(void*)msg_resp_addr;
+    err = msgSkycoinAddressImpl(&msgSkyAddress, respAddress);
+    ck_assert_int_eq(ErrOk, err);
+    ck_assert_int_eq(respAddress->addresses_count, 1);
+    // Test data generated with skycoin cli
+    // go run cli.go walletCreate /tmp/aaa.wlt -s "apple again now trial car member express concert antenna panda shuffle topple" -t "bip44"
+    char expected_addr[] = {"Qhi8XDLQzrzR5owkbhX2Dmbg27cYTZaVyk"};
+    ck_assert_str_eq(expected_addr, respAddress->addresses[0]);
+}
+END_TEST
+
 // define test cases
 TCase* add_fsm_tests(TCase* tc)
 {
     tcase_add_checked_fixture(tc, setup_tc_fsm, teardown_tc_fsm);
     tcase_add_test(tc, test_msgGenerateMnemonicImplOk);
     tcase_add_test(tc, test_msgGenerateMnemonicImplShouldFailIfItWasDone);
+    tcase_add_test(tc, test_msgSkycoinCheckMessageSignatureBip44Ok);
     tcase_add_test(tc, test_msgGenerateMnemonicImplShouldFailForWrongSeedCount);
     tcase_add_test(tc, test_msgApplySettingsLabelSuccess);
     tcase_add_test(tc, test_msgFeaturesLabelDefaultsToDeviceId);
@@ -439,5 +536,6 @@ TCase* add_fsm_tests(TCase* tc)
     tcase_add_test(tc, test_msgChangePinEditSuccess);
     tcase_add_test(tc, test_msgChangePinRemoveSuccess);
     tcase_add_test(tc, test_isSha256DigestHex);
+    tcase_add_test(tc, test_generateAddressBip44);
     return tc;
 }
