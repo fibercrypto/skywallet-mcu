@@ -18,38 +18,38 @@
 #include <pb_decode.h>
 #include <pb_encode.h>
 
+#include "messages.pb.h"
+#include "skycoin-crypto/check_digest.h"
+#include "skycoin-crypto/skycoin_crypto.h"
 #include "skycoin-crypto/tools/base58.h"
 #include "skycoin-crypto/tools/bip32.h"
 #include "skycoin-crypto/tools/bip39.h"
-#include "skycoin-crypto/check_digest.h"
+#include "skycoin-crypto/tools/rand.h"
 #include "tiny-firmware/firmware/droplet.h"
 #include "tiny-firmware/firmware/entropy.h"
 #include "tiny-firmware/firmware/error.h"
-#include "tiny-firmware/firmware/fsm_impl.h"
 #include "tiny-firmware/firmware/fsm.h"
+#include "tiny-firmware/firmware/fsm_impl.h"
+#include "tiny-firmware/firmware/fsm_skycoin_impl.h"
 #include "tiny-firmware/firmware/gettext.h"
 #include "tiny-firmware/firmware/layout2.h"
-#include "tiny-firmware/memory.h"
 #include "tiny-firmware/firmware/messages.h"
-#include "tiny-firmware/oled.h"
 #include "tiny-firmware/firmware/pinmatrix.h"
 #include "tiny-firmware/firmware/protect.h"
-#include "messages.pb.h"
-#include "skycoin-crypto/tools/rand.h"
 #include "tiny-firmware/firmware/recovery.h"
 #include "tiny-firmware/firmware/reset.h"
-#include "tiny-firmware/rng.h"
-#include "tiny-firmware/setup.h"
-#include "skycoin-crypto/skycoin_crypto.h"
 #include "tiny-firmware/firmware/skyparams.h"
 #include "tiny-firmware/firmware/storage.h"
+#include "tiny-firmware/memory.h"
+#include "tiny-firmware/oled.h"
+#include "tiny-firmware/rng.h"
+#include "tiny-firmware/setup.h"
 #include "tiny-firmware/tests/test_fsm.h"
 #include "tiny-firmware/tests/test_many_address_golden.h"
 #include "tiny-firmware/usb.h"
 #include "tiny-firmware/util.h"
 #include <inttypes.h>
 #include <stdio.h>
-#include "tiny-firmware/firmware/fsm_skycoin_impl.h"
 
 #include "test_pin.h"
 
@@ -89,7 +89,7 @@ bool is_base16_char(char c)
 
 START_TEST(test_msgGenerateMnemonicImplOk)
 {
-    for (size_t wi = 0; wi < sizeof(wcs)/sizeof(*wcs); ++wi) {
+    for (size_t wi = 0; wi < sizeof(wcs) / sizeof(*wcs); ++wi) {
         storage_wipe();
         GenerateMnemonic msg = GenerateMnemonic_init_zero;
         msg.word_count = wcs[wi];
@@ -155,7 +155,7 @@ END_TEST
 
 START_TEST(test_isSha256DigestHex)
 {
-    for (size_t wi = 0; wi < sizeof(wcs)/sizeof(*wcs); ++wi) {
+    for (size_t wi = 0; wi < sizeof(wcs) / sizeof(*wcs); ++wi) {
         forceGenerateMnemonic(wcs[wi]);
         char raw_msg_hex[] = {"32018964c1ac8c2a536b59dd830a80b9d4ce3bb1ad6a182c13b36240ebf4ec11"};
         uint8_t raw_msg[sizeof(raw_msg_hex)] = {0};
@@ -165,8 +165,7 @@ START_TEST(test_isSha256DigestHex)
         SkycoinSignMessage msg = SkycoinSignMessage_init_zero;
         strncpy(
             msg.message, (char*)raw_msg,
-            sizeof(raw_msg) < sizeof(msg.message)
-                    ? sizeof(raw_msg) : sizeof(msg.message));
+            sizeof(raw_msg) < sizeof(msg.message) ? sizeof(raw_msg) : sizeof(msg.message));
         RESP_INIT(ResponseSkycoinSignMessage);
         msgSkycoinSignMessageImpl(&msg, resp);
         // NOTE(): ecdsa signature have 65 bytes,
@@ -419,7 +418,7 @@ END_TEST
 
 START_TEST(test_msgSkycoinCheckMessageSignatureBip44Ok)
 {
-    for (size_t wi = 0; wi < sizeof(wcs)/sizeof(*wcs); ++wi) {
+    for (size_t wi = 0; wi < sizeof(wcs) / sizeof(*wcs); ++wi) {
         // NOTE(): Given
         forceGenerateMnemonic(wcs[wi]);
         SkycoinAddress msgSkyAddress = SkycoinAddress_init_zero;

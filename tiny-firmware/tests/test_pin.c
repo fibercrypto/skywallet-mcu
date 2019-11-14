@@ -41,4 +41,3 @@ const char* pin_reader_wrong(PinMatrixRequestType pinReqType, const char* text)
     }
     return "789";
 }
-

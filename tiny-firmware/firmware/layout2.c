@@ -23,16 +23,15 @@
 #include <string.h>
 
 #include "skycoin-crypto/tools/bignum.h"
+#include "skycoin-crypto/tools/secp256k1.h"
+#include "string.h"
 #include "tiny-firmware/firmware/gettext.h"
 #include "tiny-firmware/firmware/layout2.h"
-#include "tiny-firmware/oled.h"
-#include "tiny-firmware/gen/bitmaps.h"
-#include "tiny-firmware/util.h"
-#include "tiny-firmware/timer.h"
 #include "tiny-firmware/firmware/storage.h"
-#include "string.h"
-#include "skycoin-crypto/tools/secp256k1.h"
-#include "tiny-firmware/firmware/gettext.h"
+#include "tiny-firmware/gen/bitmaps.h"
+#include "tiny-firmware/oled.h"
+#include "tiny-firmware/timer.h"
+#include "tiny-firmware/util.h"
 
 #define BITCOIN_DIVISIBILITY (8)
 #define BIP32_MAX_LAST_ELEMENT 1000000

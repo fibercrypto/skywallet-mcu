@@ -11,14 +11,14 @@
 
 #include <check.h>
 
+#include "test_bip32.h"
 #include "tiny-firmware/tests/test_droplet.h"
 #include "tiny-firmware/tests/test_fsm.h"
 #include "tiny-firmware/tests/test_fsm_skycoin.h"
 #include "tiny-firmware/tests/test_protect.h"
-#include "tiny-firmware/tests/test_serialno.h"
 #include "tiny-firmware/tests/test_reset.h"
+#include "tiny-firmware/tests/test_serialno.h"
 #include "tiny-firmware/tests/test_timer.h"
-#include "test_bip32.h"
 
 // define test suite and cases
 Suite* test_suite(void)

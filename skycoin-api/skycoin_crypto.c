@@ -17,16 +17,17 @@
 #include "skycoin_constants.h"
 #include "skycoin_signature.h"
 #include "tools/base58.h"
-#include "tools/secp256k1.h"
 #include "tools/curves.h"
 #include "tools/ecdsa.h"
 #include "tools/ripemd160.h"
+#include "tools/secp256k1.h"
 #include "tools/sha2.h"
 
 extern void bn_print(const bignum256* a);
 
-bool verify_pub_key(const uint8_t* pub_key) {
-    const curve_info *info = get_curve_by_name(SECP256K1_NAME);
+bool verify_pub_key(const uint8_t* pub_key)
+{
+    const curve_info* info = get_curve_by_name(SECP256K1_NAME);
     if (!info) {
         return false;
     }
@@ -52,7 +53,8 @@ void tohex(char* str, const uint8_t* buffer, int buffer_length)
  * @param c input char
  * @return true if it's a hex valid char.
  */
-static bool isHexChar(char c) {
+static bool isHexChar(char c)
+{
     if (('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F')) {
         return true;
     } else {
@@ -182,12 +184,12 @@ int secp256k1sum(const uint8_t* seed, const size_t seed_length, uint8_t* digest)
     SKYCOIN CIPHER AUDIT
     Compare to function: secp256k1.Secp256k1Hash
     */
-    uint8_t seckey[SKYCOIN_SECKEY_LEN] = {0};                           // generateKey(sha256(seed))
+    uint8_t seckey[SKYCOIN_SECKEY_LEN] = {0}; // generateKey(sha256(seed))
     uint8_t dummy_seckey[SKYCOIN_SECKEY_LEN] = {0};
-    uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};                           // generateKey(sha256(sha256(seed))
-    uint8_t hash[SHA256_DIGEST_LENGTH] = {0};                           // sha256(seed)
-    uint8_t hash2[SHA256_DIGEST_LENGTH] = {0};                          // sha256(sha256(seed))
-    uint8_t ecdh_key[SKYCOIN_PUBKEY_LEN] = {0};                         // ecdh(pubkey, seckey)
+    uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};   // generateKey(sha256(sha256(seed))
+    uint8_t hash[SHA256_DIGEST_LENGTH] = {0};   // sha256(seed)
+    uint8_t hash2[SHA256_DIGEST_LENGTH] = {0};  // sha256(sha256(seed))
+    uint8_t ecdh_key[SKYCOIN_PUBKEY_LEN] = {0}; // ecdh(pubkey, seckey)
 
     // hash = sha256(seed)
     sha256sum(seed, hash, seed_length);
@@ -239,31 +241,31 @@ int deterministic_key_pair_iterator(const uint8_t* seed, const size_t seed_lengt
         return -1;
     }
 
-    #if DEBUG_DETERMINISTIC_KEY_PAIR_ITERATOR
+#if DEBUG_DETERMINISTIC_KEY_PAIR_ITERATOR
     char buf[256];
     tohex(buf, seed, seed_length);
     printf("seedIn: %s\n", buf);
     tohex(buf, next_seed, SHA256_DIGEST_LENGTH);
     printf("next_seed: %s\n", buf);
-    #endif
+#endif
 
     sha256sum_two(seed, seed_length, next_seed, SHA256_DIGEST_LENGTH, seed2);
 
-    #if DEBUG_DETERMINISTIC_KEY_PAIR_ITERATOR
+#if DEBUG_DETERMINISTIC_KEY_PAIR_ITERATOR
     tohex(buf, seed2, SHA256_DIGEST_LENGTH);
     printf("seed2: %s\n", buf);
-    #endif
+#endif
 
     if (0 != deterministic_key_pair_iterator_step(seed2, seckey, pubkey)) {
         return -1;
     }
 
-    #if DEBUG_DETERMINISTIC_KEY_PAIR_ITERATOR
+#if DEBUG_DETERMINISTIC_KEY_PAIR_ITERATOR
     tohex(buf, seckey, SKYCOIN_SECKEY_LEN);
     printf("seckey: %s\n", buf);
     tohex(buf, pubkey, SKYCOIN_PUBKEY_LEN);
     printf("pubkey: %s\n", buf);
-    #endif
+#endif
 
     return 0;
 }
@@ -456,44 +458,51 @@ void transaction_msgToSign(Transaction* self, uint8_t index, uint8_t* msg_digest
 
 static TxSignContext context;
 
-TxSignContext* TxSignCtx_Init() {
+TxSignContext* TxSignCtx_Init()
+{
     context.state = Start;
     context.mnemonic_change = false;
     return &context;
 }
 
-TxSignContext* TxSignCtx_Get(){
+TxSignContext* TxSignCtx_Get()
+{
     return &context;
 }
 
-void TxSignCtx_printSHA256(TxSignContext* ctx) {
+void TxSignCtx_printSHA256(TxSignContext* ctx)
+{
     uint8_t* buffer = (uint8_t*)ctx->sha256_ctx.buffer;
-    for(uint8_t i = 0; i < 64; ++i)
-        printf("%u ",buffer[i]);
+    for (uint8_t i = 0; i < 64; ++i)
+        printf("%u ", buffer[i]);
     printf("\n");
 }
 
-void TxSignCtx_printInnerHash(TxSignContext* ctx) {
+void TxSignCtx_printInnerHash(TxSignContext* ctx)
+{
     char innerHash[64];
-    tohex(innerHash,ctx->innerHash,32);
-    printf("Inner hash: %s\n",innerHash);
+    tohex(innerHash, ctx->innerHash, 32);
+    printf("Inner hash: %s\n", innerHash);
 }
 
-void TxSignCtx_AddSizePrefix(TxSignContext* ctx, uint8_t count) {
+void TxSignCtx_AddSizePrefix(TxSignContext* ctx, uint8_t count)
+{
     uint8_t data[4];
     memcpy(data, &count, 1);
     memset(data + 1, 0, 3);
     sha256_Update(&ctx->sha256_ctx, data, 4);
 }
 
-void TxSignCtx_UpdateInputs(TxSignContext* ctx, uint8_t inputs [7][32], uint8_t count) {
-    for(uint8_t i = 0; i < count; ++i) {
-        sha256_Update(&ctx->sha256_ctx,inputs[i], 32);
-        ctx->current_nbIn +=1;
+void TxSignCtx_UpdateInputs(TxSignContext* ctx, uint8_t inputs[7][32], uint8_t count)
+{
+    for (uint8_t i = 0; i < count; ++i) {
+        sha256_Update(&ctx->sha256_ctx, inputs[i], 32);
+        ctx->current_nbIn += 1;
     }
 }
 
-void TxSignCtx_UpdateOutputs(TxSignContext* ctx, TransactionOutput outputs[7], uint8_t count){
+void TxSignCtx_UpdateOutputs(TxSignContext* ctx, TransactionOutput outputs[7], uint8_t count)
+{
     for (uint8_t i = 0; i < count; ++i) {
         uint8_t data[40];
         uint8_t bitcount = 0;
@@ -510,16 +519,18 @@ void TxSignCtx_UpdateOutputs(TxSignContext* ctx, TransactionOutput outputs[7], u
         memset(data + bitcount, 0, 4);
         bitcount += 4;
         sha256_Update(&ctx->sha256_ctx, data, bitcount);
-        ctx->current_nbOut+=1;
+        ctx->current_nbOut += 1;
     }
 }
 
-void TxSignCtx_finishInnerHash(TxSignContext* ctx){
+void TxSignCtx_finishInnerHash(TxSignContext* ctx)
+{
     sha256_Final(&ctx->sha256_ctx, ctx->innerHash);
     ctx->has_innerHash = true;
 }
 
-void TxSignCtx_Destroy(TxSignContext* ctx){
-    memset(ctx,0,sizeof(TxSignContext));
+void TxSignCtx_Destroy(TxSignContext* ctx)
+{
+    memset(ctx, 0, sizeof(TxSignContext));
     ctx->state = Destroyed;
 }

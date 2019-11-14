@@ -27,7 +27,8 @@
 #if !EMULATOR
 #define bootloader_vec ((vector_table_t*)0x20000000)
 
-void __attribute__((noreturn)) run_bootloader(void) {
+void __attribute__((noreturn)) run_bootloader(void)
+{
     extern uint8_t __bootloader_start__[];
     extern uint8_t __bootloader_size__[];
 
@@ -35,7 +36,7 @@ void __attribute__((noreturn)) run_bootloader(void) {
     memset_reg(_ram_start, _ram_end, 0);
 
     // copy bootloader
-    memcpy(bootloader_vec, __bootloader_start__, (size_t) __bootloader_size__);
+    memcpy(bootloader_vec, __bootloader_start__, (size_t)__bootloader_size__);
 
     load_vector_table(bootloader_vec);
 }

@@ -29,12 +29,12 @@
 #include "tiny-firmware/bootloader/usb.h"
 
 #include "tiny-firmware/buttons.h"
-#include "tiny-firmware/setup.h"
-#include "tiny-firmware/oled.h"
-#include "tiny-firmware/util.h"
 #include "tiny-firmware/layout.h"
-#include "tiny-firmware/serialno.h"
+#include "tiny-firmware/oled.h"
 #include "tiny-firmware/rng.h"
+#include "tiny-firmware/serialno.h"
+#include "tiny-firmware/setup.h"
+#include "tiny-firmware/util.h"
 
 void layoutFirmwareHash(const uint8_t* hash)
 {

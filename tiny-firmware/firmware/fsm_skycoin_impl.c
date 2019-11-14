@@ -20,14 +20,18 @@
 
 #include <libopencm3/stm32/flash.h>
 
+#include <inttypes.h>
 #include <libopencm3/stm32/flash.h>
 #include <stdio.h>
-#include <inttypes.h>
 
+#include "fsm_skycoin_impl.h"
+#include "skycoin-crypto/check_digest.h"
+#include "skycoin-crypto/skycoin_constants.h"
+#include "skycoin-crypto/skycoin_crypto.h"
+#include "skycoin-crypto/skycoin_signature.h"
 #include "skycoin-crypto/tools/base58.h"
 #include "skycoin-crypto/tools/bip32.h"
 #include "skycoin-crypto/tools/bip39.h"
-#include "skycoin-crypto/check_digest.h"
 #include "skycoin-crypto/tools/bip44.h"
 #include "tiny-firmware/firmware/droplet.h"
 #include "tiny-firmware/firmware/entropy.h"
@@ -36,31 +40,28 @@
 #include "tiny-firmware/firmware/gettext.h"
 #include "tiny-firmware/firmware/layout2.h"
 #include "tiny-firmware/firmware/messages.h"
-#include "tiny-firmware/firmware/storage.h"
-#include "tiny-firmware/rng.h"
-#include "tiny-firmware/oled.h"
 #include "tiny-firmware/firmware/protect.h"
 #include "tiny-firmware/firmware/recovery.h"
 #include "tiny-firmware/firmware/reset.h"
+#include "tiny-firmware/firmware/skyparams.h"
+#include "tiny-firmware/firmware/storage.h"
 #include "tiny-firmware/memory.h"
+#include "tiny-firmware/oled.h"
+#include "tiny-firmware/rng.h"
 #include "tiny-firmware/usb.h"
 #include "tiny-firmware/util.h"
-#include "skycoin-crypto/skycoin_constants.h"
-#include "skycoin-crypto/skycoin_crypto.h"
-#include "skycoin-crypto/skycoin_signature.h"
-#include "tiny-firmware/firmware/skyparams.h"
-#include "fsm_skycoin_impl.h"
 
 extern const uint32_t bip44_purpose;
 
 ErrCode_t
-msgSkycoinCheckMessageSignatureImpl(SkycoinCheckMessageSignature *msg, Success *successResp, Failure *failureResp) {
+msgSkycoinCheckMessageSignatureImpl(SkycoinCheckMessageSignature* msg, Success* successResp, Failure* failureResp)
+{
     // NOTE(): -1 because the end of string ('\0')
     // /2 because the hex to buff conversion.
     _Static_assert((sizeof(msg->message) - 1) / 2 == SHA256_DIGEST_LENGTH,
-                   "Invalid buffer size for message");
+        "Invalid buffer size for message");
     _Static_assert((sizeof(msg->signature) - 1) / 2 == SKYCOIN_SIG_LEN,
-                   "Invalid buffer size for signature");
+        "Invalid buffer size for signature");
     uint8_t sig[SKYCOIN_SIG_LEN] = {0};
     // NOTE(): -1 because the end of string ('\0')
     char address[sizeof(msg->address) - 1] = {0};
@@ -69,7 +70,7 @@ msgSkycoinCheckMessageSignatureImpl(SkycoinCheckMessageSignature *msg, Success *
     if (is_sha256_digest_hex(msg->message)) {
         tobuff(msg->message, digest, MIN(sizeof(digest), sizeof(msg->message)));
     } else {
-        sha256sum((const uint8_t *) msg->message, digest, strlen(msg->message));
+        sha256sum((const uint8_t*)msg->message, digest, strlen(msg->message));
     }
     tobuff(msg->signature, sig, sizeof(sig));
     ErrCode_t ret = (skycoin_ecdsa_verify_digest_recover(sig, digest, pubkey) == 0) ? ErrOk : ErrInvalidSignature;
@@ -99,10 +100,11 @@ msgSkycoinCheckMessageSignatureImpl(SkycoinCheckMessageSignature *msg, Success *
     return ErrOk;
 }
 
-ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage *msg, ResponseSkycoinSignMessage *resp) {
+ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage* msg, ResponseSkycoinSignMessage* resp)
+{
     // NOTE: twise the SKYCOIN_SIG_LEN because the hex format
     _Static_assert(sizeof(resp->signed_message) >= 2 * SKYCOIN_SIG_LEN,
-                   "hex SKYCOIN_SIG_LEN do not fit in the response");
+        "hex SKYCOIN_SIG_LEN do not fit in the response");
     CHECK_MNEMONIC_RET_ERR_CODE
     uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};
     uint8_t seckey[SKYCOIN_SECKEY_LEN] = {0};
@@ -119,7 +121,7 @@ ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage *msg, ResponseSkycoinSign
     if (is_sha256_digest_hex(msg->message)) {
         writebuf_fromhexstr(msg->message, digest);
     } else {
-        sha256sum((const uint8_t *) msg->message, digest, strlen(msg->message));
+        sha256sum((const uint8_t*)msg->message, digest, strlen(msg->message));
     }
     int res = skycoin_ecdsa_sign_digest(seckey, digest, signature);
     if (res == -2) {
@@ -137,7 +139,8 @@ ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage *msg, ResponseSkycoinSign
     return ErrOk;
 }
 
-ErrCode_t msgSkycoinAddressImpl(SkycoinAddress *msg, ResponseSkycoinAddress *resp) {
+ErrCode_t msgSkycoinAddressImpl(SkycoinAddress* msg, ResponseSkycoinAddress* resp)
+{
     uint8_t seckey[32] = {0};
     uint8_t pubkey[33] = {0};
     uint32_t start_index = !msg->has_start_index ? 0 : msg->start_index;
@@ -164,8 +167,8 @@ ErrCode_t msgSkycoinAddressImpl(SkycoinAddress *msg, ResponseSkycoinAddress *res
 }
 
 ErrCode_t
-msgTransactionSignImpl(TransactionSign *msg, ErrCode_t (*funcConfirmTxn)(char *, char *, TransactionSign *, uint32_t),
-                       ResponseTransactionSign *resp) {
+msgTransactionSignImpl(TransactionSign* msg, ErrCode_t (*funcConfirmTxn)(char*, char*, TransactionSign*, uint32_t), ResponseTransactionSign* resp)
+{
     if (msg->nbIn > sizeof(msg->transactionIn) / sizeof(*msg->transactionIn)) {
         return ErrInvalidArg;
     }
@@ -174,7 +177,7 @@ msgTransactionSignImpl(TransactionSign *msg, ErrCode_t (*funcConfirmTxn)(char *,
     }
 #if EMULATOR
     printf("%s: %d. nbOut: %d\n",
-          _("Transaction signed nbIn"),
+        _("Transaction signed nbIn"),
         msg->nbIn, msg->nbOut);
 
     for (uint32_t i = 0; i < msg->nbIn; ++i) {
@@ -198,19 +201,16 @@ msgTransactionSignImpl(TransactionSign *msg, ErrCode_t (*funcConfirmTxn)(char *,
         char strHour[30];
         char strCoin[30];
         char strValue[20];
-        char *coinString = msg->transactionOut[i].coin == 1000000 ? _("coin") : _("coins");
-        char *hourString = (msg->transactionOut[i].hour == 1 || msg->transactionOut[i].hour == 0) ? _("hour") : _(
-                "hours");
-        char *strValueMsg = sprint_coins(msg->transactionOut[i].coin, SKYPARAM_DROPLET_PRECISION_EXP, sizeof(strValue),
-                                         strValue);
+        char* coinString = msg->transactionOut[i].coin == 1000000 ? _("coin") : _("coins");
+        char* hourString = (msg->transactionOut[i].hour == 1 || msg->transactionOut[i].hour == 0) ? _("hour") : _("hours");
+        char* strValueMsg = sprint_coins(msg->transactionOut[i].coin, SKYPARAM_DROPLET_PRECISION_EXP, sizeof(strValue),
+            strValue);
         if (strValueMsg == NULL) {
             // FIXME: For Skycoin coin supply and precision buffer size should be enough
             strcpy(strCoin, "too many coins");
         }
         sprintf(strCoin, "%s %s %s", _("send"), strValueMsg, coinString);
-        sprintf(strHour, "%"
-        PRIu64
-        " %s", msg->transactionOut[i].hour, hourString);
+        sprintf(strHour, "%" PRIu64 " %s", msg->transactionOut[i].hour, hourString);
 
         if (msg->transactionOut[i].has_bip44_addr) {
             char addr[100] = {0};
@@ -254,7 +254,7 @@ msgTransactionSignImpl(TransactionSign *msg, ErrCode_t (*funcConfirmTxn)(char *,
                 return err;
         }
         transaction_addOutput(&transaction, msg->transactionOut[i].coin, msg->transactionOut[i].hour,
-                              msg->transactionOut[i].address);
+            msg->transactionOut[i].address);
     }
 
     CHECK_PIN_UNCACHED_RET_ERR_CODE

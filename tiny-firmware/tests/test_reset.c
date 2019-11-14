@@ -13,12 +13,12 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "tiny-firmware/tests/test_pin.h"
-#include "tiny-firmware/tests/test_reset.h"
 #include "skycoin-crypto/tools/rand.h"
 #include "tiny-firmware/firmware/reset.h"
-#include "tiny-firmware/setup.h"
 #include "tiny-firmware/firmware/storage.h"
+#include "tiny-firmware/setup.h"
+#include "tiny-firmware/tests/test_pin.h"
+#include "tiny-firmware/tests/test_reset.h"
 
 #define TEST_SERIALNO "DC5E1023685C298CA8E27611"
 
@@ -108,7 +108,7 @@ START_TEST(test_reset_initWithInvalidStrength)
                     reset_init(display_random, 160, passphrase_protection, pin_protection, "english", "lbl", skip_backup);
                     char testMsg[256];
                     sprintf(testMsg, "Invoke reset_init with display_random=%d strength=%d passphrase=%d pin=%d lang=%s label=%s skip_backup=%d",
-                            display_random, 160, passphrase_protection, pin_protection, "english", "lbl", skip_backup);
+                        display_random, 160, passphrase_protection, pin_protection, "english", "lbl", skip_backup);
                     assert_storage_snapshot_eq(testMsg);
                 }
             }
@@ -169,7 +169,8 @@ START_TEST(test_reset_initCorrectPin)
 }
 END_TEST
 
-TCase *add_reset_tests(TCase *tc) {
+TCase* add_reset_tests(TCase* tc)
+{
     // FIXME: test cases for reset_init_ex with display_random=true (needs mocking of button ACK)
     tcase_add_checked_fixture(tc, setup_tc_reset, teardown_tc_reset);
     tcase_add_test(tc, test_reset_initWithInvalidStrength);
@@ -179,4 +180,3 @@ TCase *add_reset_tests(TCase *tc) {
     tcase_add_test(tc, test_reset_initCorrectPin);
     return tc;
 }
-

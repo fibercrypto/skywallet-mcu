@@ -13,17 +13,18 @@
 
 #include <string.h>
 
+#include "../skycoin_crypto.h"
 #include "rand.h"
 #include "sha2.h"
-#include "../skycoin_crypto.h"
 
 #define INTERNAL_ENTROPY_SIZE SHA256_DIGEST_LENGTH
 
 // Accumulated entropy pool
 static uint8_t entropy_mixer_prev_val[SHA256_DIGEST_LENGTH] = {0};
 
-void backup_entropy_pool(uint8_t* buf){
-  memcpy((void *) buf, (void *) entropy_mixer_prev_val, sizeof(entropy_mixer_prev_val));
+void backup_entropy_pool(uint8_t* buf)
+{
+    memcpy((void*)buf, (void*)entropy_mixer_prev_val, sizeof(entropy_mixer_prev_val));
 }
 
 void entropy_mix_256(const uint8_t* in, size_t in_len, uint8_t* out_mixed_entropy)
@@ -63,7 +64,7 @@ void random_salted_buffer(uint8_t* buf, size_t len)
     uint8_t *bufptr = buf, *tmpptr = tmp, *rndptr = random_chunk;
     size_t i, j;
 
-    for (i = len; i > 0; ) {
+    for (i = len; i > 0;) {
         _random_buffer(random_chunk, SHA256_DIGEST_LENGTH);
         entropy_mix_256(random_chunk, SHA256_DIGEST_LENGTH, tmp);
         for (tmpptr = tmp, rndptr = random_chunk, j = SHA256_DIGEST_LENGTH; i > 0 && j > 0; ++tmpptr, ++bufptr, ++rndptr, --i, --j) {

@@ -26,11 +26,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "blake256.h"
 #include "../blake2b.h"
 #include "../groestl.h"
-#include "sha2.h"
 #include "../sha3.h"
+#include "blake256.h"
+#include "sha2.h"
 
 #define HASHER_DIGEST_LENGTH 32
 

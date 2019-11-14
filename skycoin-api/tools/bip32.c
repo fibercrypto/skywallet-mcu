@@ -31,7 +31,6 @@
 #include "bignum.h"
 #include "bip32.h"
 #include "curves.h"
-#include "skycoin_crypto.h"
 #include "ecdsa.h"
 #include "ed25519-donna/ed25519-sha3.h"
 #include "ed25519-donna/ed25519.h"
@@ -40,6 +39,7 @@
 #include "secp256k1.h"
 #include "sha2.h"
 #include "sha3.h"
+#include "skycoin_crypto.h"
 #if USE_KECCAK
 #include "ed25519-donna/ed25519-keccak.h"
 #endif
@@ -198,23 +198,26 @@ int hdnode_from_seed(const uint8_t* seed, size_t seed_len, const char* curve, HD
     return 1;
 }
 
-static inline const char *begin_of_next_range(const char *in_str, char spl) {
+static inline const char* begin_of_next_range(const char* in_str, char spl)
+{
     size_t i = 0;
     while (in_str[i] != spl && in_str[i] != '\0') {
         ++i;
     }
     if (in_str[i] != '\0') {
-        while (in_str[i] == spl) ++i;
+        while (in_str[i] == spl)
+            ++i;
     }
     return &in_str[i];
 }
 
-static void split_str(const char *in_str, char spl, char const *out[]) {
+static void split_str(const char* in_str, char spl, char const* out[])
+{
     size_t index = 0, out_index = 0;
     out[out_index++] = &in_str[index];
     size_t str_len = strlen(in_str);
     while (index < str_len) {
-        const char *bonr = begin_of_next_range(&in_str[index], spl);
+        const char* bonr = begin_of_next_range(&in_str[index], spl);
         if (*bonr == '\0') {
             return;
         }
@@ -224,7 +227,8 @@ static void split_str(const char *in_str, char spl, char const *out[]) {
     }
 }
 
-static inline int number_from_node(const char *str, uint32_t *out) {
+static inline int number_from_node(const char* str, uint32_t* out)
+{
     size_t digits = 0;
     if (str[0] < '0' || str[0] > '9') {
         return -1;
@@ -243,10 +247,11 @@ static inline int number_from_node(const char *str, uint32_t *out) {
     return 0;
 }
 
-int parse_path(const char* path, uint32_t *out_indexes, size_t *out_indexes_size) {
+int parse_path(const char* path, uint32_t* out_indexes, size_t* out_indexes_size)
+{
     *out_indexes_size = 0;
     // sizeof deep = 256. https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#serialization-format
-    const char *path_indexes[256] = {0};
+    const char* path_indexes[256] = {0};
     split_str(path, '/', path_indexes);
     uint32_t children_index = 0;
     if (!number_from_node(path_indexes[0], &children_index)) { // the 'm' char
@@ -262,7 +267,8 @@ int parse_path(const char* path, uint32_t *out_indexes, size_t *out_indexes_size
     return 0;
 }
 
-int hdnode_public_ckd_from_path(const char *path, HDNode* node) {
+int hdnode_public_ckd_from_path(const char* path, HDNode* node)
+{
     // sizeof deep = 256. https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#serialization-format
     uint32_t out_indexes[256] = {0};
     size_t out_indexes_size = 0;
@@ -279,7 +285,8 @@ int hdnode_public_ckd_from_path(const char *path, HDNode* node) {
     return 0;
 }
 
-int hdnode_private_ckd_from_path(const char *path, HDNode* out) {
+int hdnode_private_ckd_from_path(const char* path, HDNode* out)
+{
     // sizeof deep = 256. https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#serialization-format
     uint32_t out_indexes[256] = {0};
     size_t out_indexes_size = 0;
@@ -296,7 +303,8 @@ int hdnode_private_ckd_from_path(const char *path, HDNode* out) {
     return 1;
 }
 
-int hdnode_private_ckd_from_path_with_seed(const char *path, const uint8_t* seed, int seed_len, const char* curve, HDNode* out) {
+int hdnode_private_ckd_from_path_with_seed(const char* path, const uint8_t* seed, int seed_len, const char* curve, HDNode* out)
+{
     int ret = hdnode_from_seed(seed, seed_len, curve, out);
     if (!ret) {
         return ret;
@@ -656,7 +664,7 @@ int hdnode_private_ckd_cached(HDNode* inout, const uint32_t* i, size_t i_count, 
 }
 #endif
 
-void hdnode_get_address_raw(HDNode* node, uint8_t* addr_raw, size_t *addr_raw_size)
+void hdnode_get_address_raw(HDNode* node, uint8_t* addr_raw, size_t* addr_raw_size)
 {
     const size_t org_addr_raw_size = *addr_raw_size;
     char addr[100] = {0};
@@ -666,15 +674,15 @@ void hdnode_get_address_raw(HDNode* node, uint8_t* addr_raw, size_t *addr_raw_si
     b58tobin(addr_raw, addr_raw_size, addr);
     char tmp_addr[100] = {0};
     memcpy(tmp_addr,
-           addr_raw + (org_addr_raw_size - *addr_raw_size),
-           org_addr_raw_size < *addr_raw_size ? org_addr_raw_size : *addr_raw_size);
+        addr_raw + (org_addr_raw_size - *addr_raw_size),
+        org_addr_raw_size < *addr_raw_size ? org_addr_raw_size : *addr_raw_size);
     memset(addr_raw, 0, org_addr_raw_size);
     memcpy(addr_raw,
-           tmp_addr,
-           org_addr_raw_size < *addr_raw_size ? org_addr_raw_size : *addr_raw_size);
+        tmp_addr,
+        org_addr_raw_size < *addr_raw_size ? org_addr_raw_size : *addr_raw_size);
 }
 
-void hdnode_get_address(HDNode* node, char* addr, size_t *addrsize)
+void hdnode_get_address(HDNode* node, char* addr, size_t* addrsize)
 {
     hdnode_fill_public_key(node);
     // FIXME check return value of skycoin_address_from_pubkey
@@ -889,7 +897,8 @@ int hdnode_get_shared_key(const HDNode* node, const uint8_t* peer_public_key, ui
     }
 }
 
-static void reverse_buffer(uint8_t *in, uint8_t *out, size_t len) {
+static void reverse_buffer(uint8_t* in, uint8_t* out, size_t len)
+{
     for (size_t i = 0; i < len; ++i) {
         memcpy(&out[i], &in[len - i - 1], 1);
     }
@@ -958,7 +967,7 @@ int hdnode_deserialize(const char* str, uint32_t version_public, uint32_t versio
         memzero(node->private_key, sizeof(node->private_key));
         memcpy(node->public_key, node_data + 45, 33);
     } else if (rversion == version_private) { // private node
-        if (node_data[45]) {                 // invalid data
+        if (node_data[45]) {                  // invalid data
             return -2;
         }
         memcpy(node->private_key, node_data + 46, 32);

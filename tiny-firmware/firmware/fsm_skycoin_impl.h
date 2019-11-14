@@ -25,13 +25,12 @@
 #include "tiny-firmware/firmware/error.h"
 
 ErrCode_t
-msgSkycoinCheckMessageSignatureImpl(SkycoinCheckMessageSignature *msg, Success *successResp, Failure *failureResp);
+msgSkycoinCheckMessageSignatureImpl(SkycoinCheckMessageSignature* msg, Success* successResp, Failure* failureResp);
 
-ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage *msg, ResponseSkycoinSignMessage *msg_resp);
+ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage* msg, ResponseSkycoinSignMessage* msg_resp);
 
-ErrCode_t msgSkycoinAddressImpl(SkycoinAddress *msg, ResponseSkycoinAddress *resp);
+ErrCode_t msgSkycoinAddressImpl(SkycoinAddress* msg, ResponseSkycoinAddress* resp);
 
-ErrCode_t msgTransactionSignImpl(TransactionSign* msg, ErrCode_t (*)(char *, char *, TransactionSign *, uint32_t),
-                                 ResponseTransactionSign*);
+ErrCode_t msgTransactionSignImpl(TransactionSign* msg, ErrCode_t (*)(char*, char*, TransactionSign*, uint32_t), ResponseTransactionSign*);
 
 #endif

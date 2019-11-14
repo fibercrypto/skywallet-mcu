@@ -19,4 +19,3 @@ const char* pin_reader_ok(PinMatrixRequestType pinReqType, const char* text);
 const char* pin_reader_alt(PinMatrixRequestType pinReqType, const char* text);
 
 const char* pin_reader_wrong(PinMatrixRequestType pinReqType, const char* text);
-

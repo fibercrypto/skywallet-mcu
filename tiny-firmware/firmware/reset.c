@@ -19,18 +19,18 @@
  */
 
 #include "tiny-firmware/firmware/reset.h"
-#include "tiny-firmware/firmware/storage.h"
-#include "tiny-firmware/rng.h"
-#include "skycoin-crypto/tools/sha2.h"
-#include "tiny-firmware/firmware/fsm.h"
-#include "types.pb.h"
-#include "tiny-firmware/firmware/protect.h"
 #include "skycoin-crypto/tools/bip39.h"
-#include "tiny-firmware/util.h"
-#include "tiny-firmware/firmware/gettext.h"
+#include "skycoin-crypto/tools/sha2.h"
 #include "tiny-firmware/firmware/entropy.h"
+#include "tiny-firmware/firmware/fsm.h"
+#include "tiny-firmware/firmware/gettext.h"
 #include "tiny-firmware/firmware/layout2.h"
 #include "tiny-firmware/firmware/messages.h"
+#include "tiny-firmware/firmware/protect.h"
+#include "tiny-firmware/firmware/storage.h"
+#include "tiny-firmware/rng.h"
+#include "tiny-firmware/util.h"
+#include "types.pb.h"
 
 uint32_t strength;
 uint8_t int_entropy[32] = {0};
