@@ -141,13 +141,13 @@ release-combined: release-bootloader release-firmware ## Build bootloader and fi
 	cp releases/skywallet-bootloader-no-memory-protect-v$(VERSION_BOOTLOADER).bin tiny-firmware/bootloader/combine/bl.bin
 	cp releases/skywallet-firmware-v$(VERSION_FIRMWARE).bin tiny-firmware/bootloader/combine/fw.bin
 	cd tiny-firmware/bootloader/combine/ ; $(PYTHON) prepare.py && \
-	mv tiny-firmware/bootloader/combine/combined.bin releases/skywallet-full-no-mem-protect-$(COMBINED_VERSION).bin
+	cp combined.bin ../../../releases/skywallet-full-mem-protect-$(COMBINED_VERSION).bin
 
 release-combined-mem-protect: release-bootloader-mem-protect release-firmware ## Build bootloader(with memory protect enbled, make sure you know what you are doing) and firmware together in a combined file in released mode.
 	cp releases/skywallet-bootloader-mem-protect-v$(VERSION_BOOTLOADER).bin tiny-firmware/bootloader/combine/bl.bin
 	cp releases/skywallet-firmware-v$(VERSION_FIRMWARE).bin tiny-firmware/bootloader/combine/fw.bin
 	cd tiny-firmware/bootloader/combine/ ; $(PYTHON) prepare.py && \
-	mv tiny-firmware/bootloader/combine/combined.bin releases/skywallet-full-mem-protect-$(COMBINED_VERSION).bin
+	cp combined.bin ../../../releases/skywallet-full-mem-protect-$(COMBINED_VERSION).bin
 
 release: release-combined release-combined-mem-protect release-emulator ## Create a release for production
 	@cp tiny-firmware/VERSION releases/version.txt
@@ -173,14 +173,14 @@ sign: tiny-firmware/bootloader/libskycoin-crypto.so tiny-firmware/skyfirmware.bi
 full-firmware-mem-protect: bootloader-mem-protect firmware ## Build full firmware (RDP level 2)
 	cp bootloader-memory-protected.bin tiny-firmware/bootloader/combine/bl.bin
 	cp tiny-firmware/skyfirmware.bin tiny-firmware/bootloader/combine/fw.bin
-	cd tiny-firmware/bootloader/combine/ ; $(PYTHON) prepare.py
-	mv tiny-firmware/bootloader/combine/combined.bin releases/full-firmware-memory-protected.bin
+	cd tiny-firmware/bootloader/combine/ ; $(PYTHON) prepare.py && \
+	cp combined.bin ../../../releases/full-firmware-memory-protected.bin
 
 full-firmware: bootloader firmware ## Build full firmware (RDP level 0)
 	cp skybootloader-no-memory-protect.bin tiny-firmware/bootloader/combine/bl.bin
 	cp tiny-firmware/skyfirmware.bin tiny-firmware/bootloader/combine/fw.bin
-	cd tiny-firmware/bootloader/combine/ ; $(PYTHON) prepare.py
-	mv tiny-firmware/bootloader/combine/combined.bin releases/full-firmware-no-mem-protect.bin
+	cd tiny-firmware/bootloader/combine/ ; $(PYTHON) prepare.py && \
+	cp combined.bin ../../../releases/full-firmware-no-mem-protect.bin
 
 emulator: skycoin-crypto-lib build-deps ## Build emulator
 	$(MAKE) EMULATOR=1 VERSION_MAJOR=$(VERSION_FIRMWARE_MAJOR) VERSION_MINOR=$(VERSION_FIRMWARE_MINOR) VERSION_PATCH=$(VERSION_FIRMWARE_PATCH) GLOBAL_PATH=$(MKFILE_DIR) -C tiny-firmware/
