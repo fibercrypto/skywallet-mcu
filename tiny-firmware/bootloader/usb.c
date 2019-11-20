@@ -26,17 +26,17 @@
 
 #include "tiny-firmware/bootloader/usb.h"
 
+#include "skycoin-crypto/tools/ecdsa.h"
+#include "skycoin-crypto/tools/memzero.h"
+#include "skycoin-crypto/tools/secp256k1.h"
+#include "skycoin-crypto/tools/sha2.h"
 #include "tiny-firmware/bootloader/bootloader.h"
 #include "tiny-firmware/bootloader/signatures.h"
-#include "skycoin-crypto/tools/sha2.h"
-#include "skycoin-crypto/tools/ecdsa.h"
-#include "skycoin-crypto/tools/secp256k1.h"
-#include "skycoin-crypto/tools/memzero.h"
 #include "tiny-firmware/buttons.h"
+#include "tiny-firmware/layout.h"
 #include "tiny-firmware/oled.h"
 #include "tiny-firmware/rng.h"
 #include "tiny-firmware/serialno.h"
-#include "tiny-firmware/layout.h"
 #include "tiny-firmware/util.h"
 
 
@@ -204,7 +204,8 @@ static void send_msg_success(usbd_device* dev)
                "\x00\x00\x00\x00"
                // padding
                "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-               64) != 64) {}
+               64) != 64) {
+    }
 }
 
 static void send_msg_failure(usbd_device* dev)
@@ -223,7 +224,8 @@ static void send_msg_failure(usbd_device* dev)
                "\x63"
                // padding
                "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-               64) != 64) {}
+               64) != 64) {
+    }
 }
 
 static void send_msg_features(usbd_device* dev)
@@ -274,7 +276,8 @@ static void send_msg_features(usbd_device* dev)
         uint8_t firmwarePresent = 1;
         memcpy(&msg[32], &firmwarePresent, sizeof(firmwarePresent));
     }
-    while (usbd_ep_write_packet(dev, ENDPOINT_ADDRESS_IN, msg, 64) != 64) {}
+    while (usbd_ep_write_packet(dev, ENDPOINT_ADDRESS_IN, msg, 64) != 64) {
+    }
 }
 
 static void send_msg_buttonrequest_firmwarecheck(usbd_device* dev)
@@ -293,7 +296,8 @@ static void send_msg_buttonrequest_firmwarecheck(usbd_device* dev)
                "\x09"
                // padding
                "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-               64) != 64) {}
+               64) != 64) {
+    }
 }
 
 static void erase_metadata_sectors(void)

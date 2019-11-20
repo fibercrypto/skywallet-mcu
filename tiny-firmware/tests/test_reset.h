@@ -11,5 +11,4 @@
 
 #include <check.h>
 
-TCase *add_reset_tests(TCase *tc);
-
+TCase* add_reset_tests(TCase* tc);

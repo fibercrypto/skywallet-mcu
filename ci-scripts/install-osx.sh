@@ -2,7 +2,7 @@
 
 set -x
 
-brew tap skycoin/homebrew-skycoin
+brew tap fibercrypto/homebrew-skycoin
 
 # Install libcheck check C testing framework
 brew install check

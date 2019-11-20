@@ -5,4 +5,4 @@
 
 void load_bip44_testcase(Suite* s);
 
-#endif  // SKYCOIN_CRYPTO_TEST_BIP44_H
+#endif // SKYCOIN_CRYPTO_TEST_BIP44_H

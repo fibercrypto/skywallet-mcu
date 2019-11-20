@@ -29,13 +29,13 @@
 #include <string.h>
 
 #include "../address.h"
+#include "../rfc6979.h"
 #include "base58.h"
 #include "bignum.h"
 #include "ecdsa.h"
 #include "hmac.h"
 #include "memzero.h"
 #include "rand.h"
-#include "../rfc6979.h"
 #include "secp256k1.h"
 
 // Set cp2 = cp1

@@ -36,8 +36,8 @@
 #ifndef GROESTL_H__
 #define GROESTL_H__
 
-#include <stddef.h>
 #include <inttypes.h>
+#include <stddef.h>
 
 /**
  * This structure is a context for Groestl-384 and Groestl-512 computations:

@@ -5,4 +5,4 @@
 
 void load_bip32_testcase(Suite* s);
 
-#endif  // HARDWARE_WALLET_SKYCOINAPI_TOOLS_BIP32
+#endif // HARDWARE_WALLET_SKYCOINAPI_TOOLS_BIP32

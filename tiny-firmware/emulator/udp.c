@@ -19,15 +19,15 @@
 
 #include <arpa/inet.h>
 #include <errno.h>
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 
-#include "tiny-firmware/usb.h"
 #include "tiny-firmware/firmware/messages.h"
 #include "tiny-firmware/timer.h"
+#include "tiny-firmware/usb.h"
 
 #define SKYWALLET_UDP_PORT 21324
 
@@ -40,7 +40,8 @@ struct usb_socket {
 static struct usb_socket usb_main;
 static struct usb_socket usb_debug;
 
-static int socket_setup(int port) {
+static int socket_setup(int port)
+{
     int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (fd < 0) {
         perror("Failed to create socket");
@@ -52,7 +53,7 @@ static int socket_setup(int port) {
     addr.sin_port = htons(port);
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-    if (bind(fd, (struct sockaddr *) &addr, sizeof(addr)) != 0) {
+    if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) != 0) {
         perror("Failed to bind socket");
         exit(1);
     }
@@ -60,10 +61,11 @@ static int socket_setup(int port) {
     return fd;
 }
 
-static size_t socket_write(struct usb_socket *sock, const void *buffer, size_t size) {
+static size_t socket_write(struct usb_socket* sock, const void* buffer, size_t size)
+{
     if (sock->fromlen > 0) {
-        ssize_t n = sendto(sock->fd, buffer, size, MSG_DONTWAIT, (const struct sockaddr *) &sock->from, sock->fromlen);
-        if (n < 0 || ((size_t) n) != size) {
+        ssize_t n = sendto(sock->fd, buffer, size, MSG_DONTWAIT, (const struct sockaddr*)&sock->from, sock->fromlen);
+        if (n < 0 || ((size_t)n) != size) {
             perror("Failed to write socket");
             return 0;
         }
@@ -72,9 +74,10 @@ static size_t socket_write(struct usb_socket *sock, const void *buffer, size_t s
     return size;
 }
 
-static size_t socket_read(struct usb_socket *sock, void *buffer, size_t size) {
+static size_t socket_read(struct usb_socket* sock, void* buffer, size_t size)
+{
     sock->fromlen = sizeof(sock->from);
-    ssize_t n = recvfrom(sock->fd, buffer, size, MSG_DONTWAIT, (struct sockaddr *) &sock->from, &sock->fromlen);
+    ssize_t n = recvfrom(sock->fd, buffer, size, MSG_DONTWAIT, (struct sockaddr*)&sock->from, &sock->fromlen);
 
     if (n < 0) {
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
@@ -94,14 +97,16 @@ static size_t socket_read(struct usb_socket *sock, void *buffer, size_t size) {
     return n;
 }
 
-void emulatorSocketInit(void) {
+void emulatorSocketInit(void)
+{
     usb_main.fd = socket_setup(SKYWALLET_UDP_PORT);
     usb_main.fromlen = 0;
     usb_debug.fd = socket_setup(SKYWALLET_UDP_PORT + 1);
     usb_debug.fromlen = 0;
 }
 
-size_t emulatorSocketRead(int *iface, void *buffer, size_t size) {
+size_t emulatorSocketRead(int* iface, void* buffer, size_t size)
+{
     size_t n = socket_read(&usb_main, buffer, size);
     if (n > 0) {
         *iface = 0;
@@ -117,7 +122,8 @@ size_t emulatorSocketRead(int *iface, void *buffer, size_t size) {
     return 0;
 }
 
-size_t emulatorSocketWrite(int iface, const void *buffer, size_t size) {
+size_t emulatorSocketWrite(int iface, const void* buffer, size_t size)
+{
     if (iface == 0) {
         return socket_write(&usb_main, buffer, size);
     }
@@ -129,7 +135,8 @@ size_t emulatorSocketWrite(int iface, const void *buffer, size_t size) {
 
 static volatile char tiny = 0;
 
-void usbInit(void) {
+void usbInit(void)
+{
     emulatorSocketInit();
 }
 
@@ -142,7 +149,8 @@ void usbInit(void) {
 extern bool simulateButtonPress;
 extern int buttonPressType;
 
-void usbPoll(void) {
+void usbPoll(void)
+{
     emulatorPoll();
 
     static uint8_t buffer[64];
@@ -171,19 +179,21 @@ void usbPoll(void) {
         }
     }
 
-    const uint8_t *data = msg_out_data();
+    const uint8_t* data = msg_out_data();
     if (data != NULL) {
         emulatorSocketWrite(0, data, 64);
     }
 }
 
-char usbTiny(char set) {
+char usbTiny(char set)
+{
     char old = tiny;
     tiny = set;
     return old;
 }
 
-void usbSleep(uint32_t millis) {
+void usbSleep(uint32_t millis)
+{
     uint32_t start = timer_ms();
 
     while ((timer_ms() - start) < millis) {

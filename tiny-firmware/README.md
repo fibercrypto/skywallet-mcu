@@ -66,7 +66,7 @@ sudo apt-get install gcc-arm-none-eabi
 On Mac OS, after [installing homebrew](https://docs.brew.sh/Installation) it is recommended to install the toolchain like this
 
 ```sh
-brew tap skycoin/homebrew-skycoin
+brew tap fibercrypto/homebrew-skycoin
 brew update
 brew install gcc-arm-none-eabi-63
 ```

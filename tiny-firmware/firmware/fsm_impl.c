@@ -11,14 +11,18 @@
 
 #include "tiny-firmware/firmware/fsm_impl.h"
 
+#include <inttypes.h>
 #include <libopencm3/stm32/flash.h>
 #include <stdio.h>
-#include <inttypes.h>
 
+#include "skycoin-api/tools/bip44.h"
+#include "skycoin-crypto/check_digest.h"
+#include "skycoin-crypto/skycoin_constants.h"
+#include "skycoin-crypto/skycoin_crypto.h"
+#include "skycoin-crypto/skycoin_signature.h"
 #include "skycoin-crypto/tools/base58.h"
 #include "skycoin-crypto/tools/bip32.h"
 #include "skycoin-crypto/tools/bip39.h"
-#include "skycoin-crypto/check_digest.h"
 #include "tiny-firmware/firmware/droplet.h"
 #include "tiny-firmware/firmware/entropy.h"
 #include "tiny-firmware/firmware/fsm.h"
@@ -26,20 +30,16 @@
 #include "tiny-firmware/firmware/gettext.h"
 #include "tiny-firmware/firmware/layout2.h"
 #include "tiny-firmware/firmware/messages.h"
-#include "tiny-firmware/firmware/storage.h"
-#include "tiny-firmware/rng.h"
-#include "tiny-firmware/oled.h"
 #include "tiny-firmware/firmware/protect.h"
 #include "tiny-firmware/firmware/recovery.h"
 #include "tiny-firmware/firmware/reset.h"
+#include "tiny-firmware/firmware/skyparams.h"
+#include "tiny-firmware/firmware/storage.h"
 #include "tiny-firmware/memory.h"
+#include "tiny-firmware/oled.h"
+#include "tiny-firmware/rng.h"
 #include "tiny-firmware/usb.h"
 #include "tiny-firmware/util.h"
-#include "skycoin-api/tools/bip44.h"
-#include "skycoin-crypto/skycoin_constants.h"
-#include "skycoin-crypto/skycoin_crypto.h"
-#include "skycoin-crypto/skycoin_signature.h"
-#include "tiny-firmware/firmware/skyparams.h"
 
 #define MNEMONIC_STRENGTH_12 128
 #define MNEMONIC_STRENGTH_24 256
@@ -57,7 +57,8 @@ extern uint32_t strength;
 extern bool skip_backup;
 extern uint8_t int_entropy[INTERNAL_ENTROPY_SIZE];
 
-bool checkInitialized(void) {
+bool checkInitialized(void)
+{
     if (!storage_isInitialized()) {
         fsm_sendFailure(FailureType_Failure_NotInitialized, NULL, 0);
         return 1;
@@ -65,7 +66,8 @@ bool checkInitialized(void) {
     return 0;
 }
 
-bool checkNotInitialized(void) {
+bool checkNotInitialized(void)
+{
     if (storage_isInitialized()) {
         fsm_sendFailure(FailureType_Failure_UnexpectedMessage, _("Device is already initialized. Use Wipe first."), 0);
         return 1;
@@ -73,7 +75,8 @@ bool checkNotInitialized(void) {
     return 0;
 }
 
-bool checkPin(void) {
+bool checkPin(void)
+{
     if (!protectPin(true)) {
         layoutHome();
         return 1;
@@ -81,7 +84,8 @@ bool checkPin(void) {
     return 0;
 }
 
-bool checkPinUncached(void) {
+bool checkPinUncached(void)
+{
     if (!protectPin(false)) {
         layoutHome();
         return 1;
@@ -89,7 +93,8 @@ bool checkPinUncached(void) {
     return 0;
 }
 
-bool checkInputs(TransactionSign *msg) {
+bool checkInputs(TransactionSign* msg)
+{
     if ((msg)->nbIn > 8) {
         fsm_sendFailure(FailureType_Failure_InvalidSignature, _("Cannot have more than 8 inputs"), 0);
         layoutHome();
@@ -98,7 +103,8 @@ bool checkInputs(TransactionSign *msg) {
     return 0;
 }
 
-bool checkOutputs(TransactionSign *msg) {
+bool checkOutputs(TransactionSign* msg)
+{
     if ((msg)->nbOut > 8) {
         fsm_sendFailure(FailureType_Failure_InvalidSignature, _("Cannot have more than 8 outputs"), 0);
         layoutHome();
@@ -108,7 +114,8 @@ bool checkOutputs(TransactionSign *msg) {
 }
 
 
-bool checkParam(bool cond, const char *errormsg) {
+bool checkParam(bool cond, const char* errormsg)
+{
     if (!(cond)) {
         fsm_sendFailure(FailureType_Failure_DataError, errormsg, 0);
         layoutHome();
@@ -117,7 +124,8 @@ bool checkParam(bool cond, const char *errormsg) {
     return 0;
 }
 
-bool checkPrecondition(bool cond, const char *errormsg) {
+bool checkPrecondition(bool cond, const char* errormsg)
+{
     if (!(cond)) {
         fsm_sendFailure(FailureType_Failure_DataError, (errormsg), 0);
         layoutHome();
@@ -126,7 +134,8 @@ bool checkPrecondition(bool cond, const char *errormsg) {
     return 0;
 }
 
-bool checkButtonProtect(void) {
+bool checkButtonProtect(void)
+{
     if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
         fsm_sendFailure(FailureType_Failure_ActionCancelled, NULL, 0);
         layoutHome();
@@ -135,7 +144,8 @@ bool checkButtonProtect(void) {
     return 0;
 }
 
-ErrCode_t checkButtonProtectRetErrCode(void) {
+ErrCode_t checkButtonProtectRetErrCode(void)
+{
     if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
         layoutHome();
         return ErrActionCancelled;
@@ -143,7 +153,8 @@ ErrCode_t checkButtonProtectRetErrCode(void) {
     return ErrOk;
 }
 
-bool checkMnemonic(void) {
+bool checkMnemonic(void)
+{
     if (storage_hasMnemonic() == false) {
         fsm_sendFailure(FailureType_Failure_AddressGeneration, "Mnemonic not set", 0);
         layoutHome();
@@ -152,7 +163,8 @@ bool checkMnemonic(void) {
     return 0;
 }
 
-bool checkMnemonicChecksum(SetMnemonic *msg) {
+bool checkMnemonicChecksum(SetMnemonic* msg)
+{
     if (!mnemonic_check(msg->mnemonic)) {
         fsm_sendFailure(FailureType_Failure_DataError, _("Mnemonic with wrong checksum provided"), 0);
         layoutHome();
@@ -161,9 +173,10 @@ bool checkMnemonicChecksum(SetMnemonic *msg) {
     return 0;
 }
 
-ErrCode_t msgEntropyAckImpl(EntropyAck *msg) {
+ErrCode_t msgEntropyAckImpl(EntropyAck* msg)
+{
     _Static_assert(EXTERNAL_ENTROPY_MAX_SIZE == sizeof(msg->entropy.bytes),
-                   "External entropy size does not match.");
+        "External entropy size does not match.");
     if (msg->entropy.size > sizeof(msg->entropy.bytes)) {
         return ErrInvalidArg;
     }
@@ -174,21 +187,22 @@ ErrCode_t msgEntropyAckImpl(EntropyAck *msg) {
     return ErrOk;
 }
 
-ErrCode_t msgGenerateMnemonicImpl(GenerateMnemonic *msg, void (*random_buffer_func)(uint8_t *buf, size_t len)) {
+ErrCode_t msgGenerateMnemonicImpl(GenerateMnemonic* msg, void (*random_buffer_func)(uint8_t* buf, size_t len))
+{
     if (storage_isInitialized()) {
         return ErrNotInitialized;
     }
     strength = MNEMONIC_STRENGTH_12;
     if (msg->has_word_count) {
         switch (msg->word_count) {
-            case MNEMONIC_WORD_COUNT_12:
-                strength = MNEMONIC_STRENGTH_12;
-                break;
-            case MNEMONIC_WORD_COUNT_24:
-                strength = MNEMONIC_STRENGTH_24;
-                break;
-            default:
-                return ErrInvalidArg;
+        case MNEMONIC_WORD_COUNT_12:
+            strength = MNEMONIC_STRENGTH_12;
+            break;
+        case MNEMONIC_WORD_COUNT_24:
+            strength = MNEMONIC_STRENGTH_24;
+            break;
+        default:
+            return ErrInvalidArg;
         }
     }
     // random buffer + entropy pool => mix256 => internal entropy
@@ -196,7 +210,7 @@ ErrCode_t msgGenerateMnemonicImpl(GenerateMnemonic *msg, void (*random_buffer_fu
     random_buffer_func(data, sizeof(data));
     entropy_salt_mix_256(data, sizeof(data), int_entropy);
     memset(data, 0, sizeof(data));
-    const char *mnemonic = mnemonic_from_data(int_entropy, strength / 8);
+    const char* mnemonic = mnemonic_from_data(int_entropy, strength / 8);
     memset(int_entropy, 0, sizeof(int_entropy));
     if (!mnemonic) {
         return ErrInvalidValue;
@@ -205,13 +219,13 @@ ErrCode_t msgGenerateMnemonicImpl(GenerateMnemonic *msg, void (*random_buffer_fu
         return ErrInvalidChecksum;
     }
     storage_setMnemonic(mnemonic);
-    TxSignContext *ctx = TxSignCtx_Get();
+    TxSignContext* ctx = TxSignCtx_Get();
     if (ctx != NULL) {
         ctx->mnemonic_change = true;
     }
     storage_setNeedsBackup(true);
     storage_setPassphraseProtection(
-            msg->has_passphrase_protection && msg->passphrase_protection);
+        msg->has_passphrase_protection && msg->passphrase_protection);
     storage_update();
     return ErrOk;
 }
@@ -241,7 +255,8 @@ ErrCode_t msgSignTransactionMessageImpl(uint8_t* message_digest, uint32_t index,
     return ErrOk;
 }
 
-ErrCode_t addressFromHdw(SkycoinAddress *msg, ResponseSkycoinAddress *resp) {
+ErrCode_t addressFromHdw(SkycoinAddress* msg, ResponseSkycoinAddress* resp)
+{
     if (msg->has_bip44_addr) {
         const char* mnemo = storage_getFullSeed();
         uint8_t seed[512 / 8] = {0};
@@ -272,17 +287,18 @@ ErrCode_t addressFromHdw(SkycoinAddress *msg, ResponseSkycoinAddress *resp) {
     return ErrInvalidArg;
 }
 
-ErrCode_t keyPairFromHdw(SkycoinSignMessage *msg,
-                         uint8_t *seckey,
-                         uint8_t *pubkey) {
+ErrCode_t keyPairFromHdw(SkycoinSignMessage* msg,
+    uint8_t* seckey,
+    uint8_t* pubkey)
+{
     if (msg->has_bip44_addr) {
         const char* mnemo = storage_getFullSeed();
         uint8_t seed[512 / 8] = {0};
         mnemonic_to_seed(mnemo, "", seed, NULL);
         int ret = hdnode_keypair_for_branch(
-                    seed, sizeof(seed), bip44_purpose, msg->bip44_addr.coin_type,
-                    msg->bip44_addr.account, msg->bip44_addr.change,
-                    msg->bip44_addr.address_start_index, seckey, pubkey);
+            seed, sizeof(seed), bip44_purpose, msg->bip44_addr.coin_type,
+            msg->bip44_addr.account, msg->bip44_addr.change,
+            msg->bip44_addr.address_start_index, seckey, pubkey);
         if (ret != 1) {
             return ErrAddressGeneration;
         }
@@ -291,21 +307,22 @@ ErrCode_t keyPairFromHdw(SkycoinSignMessage *msg,
     return ErrInvalidArg;
 }
 
-ErrCode_t addressFromHdwWithTransactionOutput(SkycoinTransactionOutput output, char *addr, size_t *addr_size) {
+ErrCode_t addressFromHdwWithTransactionOutput(SkycoinTransactionOutput output, char* addr, size_t* addr_size)
+{
     if (output.has_bip44_addr) {
         const char* mnemo = storage_getFullSeed();
         uint8_t seed[512 / 8] = {0};
         mnemonic_to_seed(mnemo, "", seed, NULL);
         int ret = hdnode_address_for_branch(
-                    seed,
-                    sizeof(seed),
-                    bip44_purpose,
-                    output.bip44_addr.coin_type,
-                    output.bip44_addr.account,
-                    output.bip44_addr.change,
-                    output.bip44_addr.address_start_index,
-                    addr,
-                    addr_size);
+            seed,
+            sizeof(seed),
+            bip44_purpose,
+            output.bip44_addr.coin_type,
+            output.bip44_addr.account,
+            output.bip44_addr.change,
+            output.bip44_addr.address_start_index,
+            addr,
+            addr_size);
         if (ret != 1) {
             return ErrAddressGeneration;
         }
@@ -313,7 +330,8 @@ ErrCode_t addressFromHdwWithTransactionOutput(SkycoinTransactionOutput output, c
     return ErrInvalidArg;
 }
 
-ErrCode_t signTransactionMessageFromHDW(uint8_t *message_digest, Bip44AddrIndex bip44, char *signed_message) {
+ErrCode_t signTransactionMessageFromHDW(uint8_t* message_digest, Bip44AddrIndex bip44, char* signed_message)
+{
     uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};
     uint8_t seckey[SKYCOIN_SECKEY_LEN] = {0};
     uint8_t signature[SKYCOIN_SIG_LEN] = {0};
@@ -343,19 +361,19 @@ ErrCode_t signTransactionMessageFromHDW(uint8_t *message_digest, Bip44AddrIndex 
 }
 
 ErrCode_t
-fsm_getKeyPairAtIndex(uint32_t nbAddress, uint8_t *pubkey, uint8_t *seckey, ResponseSkycoinAddress *respSkycoinAddress,
-                      uint32_t start_index) {
-    const char *mnemo = storage_getFullSeed();
+fsm_getKeyPairAtIndex(uint32_t nbAddress, uint8_t* pubkey, uint8_t* seckey, ResponseSkycoinAddress* respSkycoinAddress, uint32_t start_index)
+{
+    const char* mnemo = storage_getFullSeed();
     uint8_t seed[33] = {0};
     uint8_t nextSeed[SHA256_DIGEST_LENGTH] = {0};
     size_t size_address = 36;
     _Static_assert(
-            sizeof(respSkycoinAddress->addresses[0]) == 36,
-            "invalid address bffer size");
+        sizeof(respSkycoinAddress->addresses[0]) == 36,
+        "invalid address bffer size");
     if (mnemo == NULL || nbAddress == 0) {
         return ErrInvalidArg;
     }
-    if (0 != deterministic_key_pair_iterator((const uint8_t *) mnemo, strlen(mnemo), nextSeed, seckey, pubkey)) {
+    if (0 != deterministic_key_pair_iterator((const uint8_t*)mnemo, strlen(mnemo), nextSeed, seckey, pubkey)) {
         return ErrFailed;
     }
     if (respSkycoinAddress != NULL && start_index == 0) {
@@ -366,8 +384,7 @@ fsm_getKeyPairAtIndex(uint32_t nbAddress, uint8_t *pubkey, uint8_t *seckey, Resp
     }
     memcpy(seed, nextSeed, 32);
     size_t max_addresses =
-            sizeof(respSkycoinAddress->addresses)
-            / sizeof(respSkycoinAddress->addresses[0]);
+        sizeof(respSkycoinAddress->addresses) / sizeof(respSkycoinAddress->addresses[0]);
     if (nbAddress + start_index - 1 > max_addresses) {
         return ErrInvalidArg;
     }
@@ -380,7 +397,7 @@ fsm_getKeyPairAtIndex(uint32_t nbAddress, uint8_t *pubkey, uint8_t *seckey, Resp
         if (respSkycoinAddress != NULL && ((i + 1) >= start_index)) {
             size_address = 36;
             if (!skycoin_address_from_pubkey(pubkey, respSkycoinAddress->addresses[respSkycoinAddress->addresses_count],
-                                             &size_address)) {
+                    &size_address)) {
                 return ErrFailed;
             }
             respSkycoinAddress->addresses_count++;
@@ -389,15 +406,17 @@ fsm_getKeyPairAtIndex(uint32_t nbAddress, uint8_t *pubkey, uint8_t *seckey, Resp
     return ErrOk;
 }
 
-ErrCode_t verifyLanguage(char *lang) {
+ErrCode_t verifyLanguage(char* lang)
+{
     // FIXME: Check for supported language name. Only english atm.
     return (!strcmp(lang, "english")) ? ErrOk : ErrInvalidValue;
 }
 
-ErrCode_t msgApplySettingsImpl(ApplySettings *msg) {
+ErrCode_t msgApplySettingsImpl(ApplySettings* msg)
+{
     _Static_assert(
-            sizeof(msg->label) == DEVICE_LABEL_SIZE,
-            "device label size inconsitent betwen protocol and final storage");
+        sizeof(msg->label) == DEVICE_LABEL_SIZE,
+        "device label size inconsitent betwen protocol and final storage");
     if (!(msg->has_label || msg->has_language || msg->has_use_passphrase || msg->has_homescreen)) {
         return ErrPreconditionFailed;
     }
@@ -426,7 +445,8 @@ ErrCode_t msgApplySettingsImpl(ApplySettings *msg) {
 
 #endif
 
-ErrCode_t msgGetFeaturesImpl(Features *resp) {
+ErrCode_t msgGetFeaturesImpl(Features* resp)
+{
     resp->has_vendor = true;
     strlcpy(resp->vendor, "Skycoin Foundation", sizeof(resp->vendor));
 #if VERSION_IS_SEMANTIC_COMPLIANT == 1
@@ -491,7 +511,8 @@ ErrCode_t msgGetFeaturesImpl(Features *resp) {
     return ErrOk;
 }
 
-ErrCode_t msgPingImpl(Ping *msg) {
+ErrCode_t msgPingImpl(Ping* msg)
+{
     RESP_INIT(Success);
 
     if (msg->has_pin_protection && msg->pin_protection) {
@@ -514,7 +535,8 @@ ErrCode_t msgPingImpl(Ping *msg) {
     return ErrOk;
 }
 
-ErrCode_t msgChangePinImpl(ChangePin *msg, const char *(*funcRequestPin)(PinMatrixRequestType, const char *)) {
+ErrCode_t msgChangePinImpl(ChangePin* msg, const char* (*funcRequestPin)(PinMatrixRequestType, const char*))
+{
     bool removal = msg->has_remove && msg->remove;
     if (removal) {
         storage_setPin("");
@@ -527,8 +549,9 @@ ErrCode_t msgChangePinImpl(ChangePin *msg, const char *(*funcRequestPin)(PinMatr
     return ErrOk;
 }
 
-ErrCode_t msgWipeDeviceImpl(WipeDevice *msg) {
-    (void) msg;
+ErrCode_t msgWipeDeviceImpl(WipeDevice* msg)
+{
+    (void)msg;
     storage_wipe();
     // the following does not work on Mac anyway :-/ Linux/Windows are fine, so it is not needed
     // usbReconnect(); // force re-enumeration because of the serial number change
@@ -536,12 +559,13 @@ ErrCode_t msgWipeDeviceImpl(WipeDevice *msg) {
     return ErrOk;
 }
 
-ErrCode_t msgSetMnemonicImpl(SetMnemonic *msg) {
+ErrCode_t msgSetMnemonicImpl(SetMnemonic* msg)
+{
     if (!mnemonic_check(msg->mnemonic)) {
         return ErrInvalidValue;
     }
     storage_setMnemonic(msg->mnemonic);
-    TxSignContext *ctx = TxSignCtx_Get();
+    TxSignContext* ctx = TxSignCtx_Get();
     if (ctx != NULL) {
         ctx->mnemonic_change = true;
     }
@@ -551,10 +575,11 @@ ErrCode_t msgSetMnemonicImpl(SetMnemonic *msg) {
     return ErrOk;
 }
 
-ErrCode_t msgGetEntropyImpl(GetRawEntropy *msg, Entropy *resp, void (*random_buffer_func)(uint8_t *buf, size_t len)) {
-    (void) msg;
-    (void) resp;
-    (void) random_buffer_func;
+ErrCode_t msgGetEntropyImpl(GetRawEntropy* msg, Entropy* resp, void (*random_buffer_func)(uint8_t* buf, size_t len))
+{
+    (void)msg;
+    (void)resp;
+    (void)random_buffer_func;
 #if defined(EMULATOR) && EMULATOR
     return ErrNotImplemented;
 #else
@@ -568,7 +593,8 @@ ErrCode_t msgGetEntropyImpl(GetRawEntropy *msg, Entropy *resp, void (*random_buf
 #endif // EMULATOR
 }
 
-ErrCode_t msgLoadDeviceImpl(LoadDevice *msg) {
+ErrCode_t msgLoadDeviceImpl(LoadDevice* msg)
+{
     if (msg->has_mnemonic && !(msg->has_skip_checksum && msg->skip_checksum)) {
         if (!mnemonic_check(msg->mnemonic)) {
             return ErrInvalidValue;
@@ -580,8 +606,9 @@ ErrCode_t msgLoadDeviceImpl(LoadDevice *msg) {
     return ErrOk;
 }
 
-ErrCode_t msgBackupDeviceImpl(BackupDevice *msg, ErrCode_t (*funcConfirmBackup)(void)) {
-    (void) msg;
+ErrCode_t msgBackupDeviceImpl(BackupDevice* msg, ErrCode_t (*funcConfirmBackup)(void))
+{
+    (void)msg;
     if (!storage_needsBackup()) {
         //fsm_sendFailure(FailureType_Failure_UnexpectedMessage, _("Seed already backed up"));
         return ErrUnexpectedMessage;
@@ -606,7 +633,8 @@ ErrCode_t msgBackupDeviceImpl(BackupDevice *msg, ErrCode_t (*funcConfirmBackup)(
     return ErrOk;
 }
 
-ErrCode_t msgRecoveryDeviceImpl(RecoveryDevice *msg, ErrCode_t (*funcConfirmRecovery)(void)) {
+ErrCode_t msgRecoveryDeviceImpl(RecoveryDevice* msg, ErrCode_t (*funcConfirmRecovery)(void))
+{
     const bool dry_run = msg->has_dry_run ? msg->dry_run : false;
     if (dry_run) {
         if (!protectPin(true)) {
@@ -634,22 +662,23 @@ ErrCode_t msgRecoveryDeviceImpl(RecoveryDevice *msg, ErrCode_t (*funcConfirmReco
     strncpy(current_label, storage_getLabel(), sizeof(current_label));
 
     recovery_init(
-            msg->has_word_count ? msg->word_count : 12,
-            msg->has_passphrase_protection && msg->passphrase_protection,
-            msg->has_pin_protection && msg->pin_protection,
-            msg->has_language ? msg->language : 0,
-            (msg->has_label && strlen(msg->label) > 0) ? msg->label : current_label,
-            dry_run);
+        msg->has_word_count ? msg->word_count : 12,
+        msg->has_passphrase_protection && msg->passphrase_protection,
+        msg->has_pin_protection && msg->pin_protection,
+        msg->has_language ? msg->language : 0,
+        (msg->has_label && strlen(msg->label) > 0) ? msg->label : current_label,
+        dry_run);
     return ErrOk;
 }
 
-ErrCode_t msgSignTxImpl(SignTx *msg, TxRequest *resp) {
+ErrCode_t msgSignTxImpl(SignTx* msg, TxRequest* resp)
+{
 #if EMULATOR
     printf("%s: %d. nbOut: %d\n",
         _("Transaction signed nbIn"),
         msg->inputs_count, msg->outputs_count);
 #endif
-    TxSignContext *context = TxSignCtx_Get();
+    TxSignContext* context = TxSignCtx_Get();
     if (context->state != Destroyed) {
         TxSignCtx_Destroy(context);
         return ErrFailed;
@@ -685,19 +714,18 @@ ErrCode_t msgSignTxImpl(SignTx *msg, TxRequest *resp) {
     return ErrOk;
 }
 
-ErrCode_t reqConfirmTransaction(uint64_t coins, uint64_t hours, char *address) {
+ErrCode_t reqConfirmTransaction(uint64_t coins, uint64_t hours, char* address)
+{
     char strCoins[32];
     char strHours[32];
     char strValue[20];
-    char *coinString = coins == 1000000 ? _("coin") : _("coins");
-    char *hourString = (hours == 1 || hours == 0) ? _("hour") : _("hours");
-    char *strValueMsg = sprint_coins(coins, SKYPARAM_DROPLET_PRECISION_EXP, sizeof(strValue), strValue);
+    char* coinString = coins == 1000000 ? _("coin") : _("coins");
+    char* hourString = (hours == 1 || hours == 0) ? _("hour") : _("hours");
+    char* strValueMsg = sprint_coins(coins, SKYPARAM_DROPLET_PRECISION_EXP, sizeof(strValue), strValue);
     sprintf(strCoins, "%s %s %s", _("send"), strValueMsg, coinString);
-    sprintf(strHours, "%"
-    PRIu64
-    "%s", hours, hourString);
+    sprintf(strHours, "%" PRIu64 "%s", hours, hourString);
     layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Next"), NULL, _("Do you really want to"), strCoins, strHours,
-                      _("to address"), _("..."), NULL);
+        _("to address"), _("..."), NULL);
     ErrCode_t err = checkButtonProtectRetErrCode();
     if (err != ErrOk) {
         return err;
@@ -707,8 +735,9 @@ ErrCode_t reqConfirmTransaction(uint64_t coins, uint64_t hours, char *address) {
     return err;
 }
 
-ErrCode_t msgTxAckImpl(TxAck *msg, TxRequest *resp) {
-    TxSignContext *ctx = TxSignCtx_Get();
+ErrCode_t msgTxAckImpl(TxAck* msg, TxRequest* resp)
+{
+    TxSignContext* ctx = TxSignCtx_Get();
     if (ctx->state != Start && ctx->state != InnerHashInputs && ctx->state != InnerHashOutputs &&
         ctx->state != Signature_) {
         TxSignCtx_Destroy(ctx);
@@ -716,30 +745,30 @@ ErrCode_t msgTxAckImpl(TxAck *msg, TxRequest *resp) {
     }
 #if EMULATOR
     switch (ctx->state) {
-        case InnerHashInputs:
-            printf("-> Inner Hash inputs\n");
-            break;
-        case InnerHashOutputs:
-            printf("-> Inner Hash outputs\n");
-            break;
-        case Signature_:
-            printf("-> Signatures\n");
-            break;
-        default:
-            printf("-> Unexpected\n");
-            break;
+    case InnerHashInputs:
+        printf("-> Inner Hash inputs\n");
+        break;
+    case InnerHashOutputs:
+        printf("-> Inner Hash outputs\n");
+        break;
+    case Signature_:
+        printf("-> Signatures\n");
+        break;
+    default:
+        printf("-> Unexpected\n");
+        break;
     }
-    for(uint32_t i = 0; i < msg->tx.inputs_count; ++i) {
+    for (uint32_t i = 0; i < msg->tx.inputs_count; ++i) {
         printf("   %d - Input: addressIn: %s, address_n: ", i + 1,
             msg->tx.inputs[i].hashIn);
         if (msg->tx.inputs[i].address_n_count != 0)
-            printf("%d",msg->tx.inputs[i].address_n[0]);
+            printf("%d", msg->tx.inputs[i].address_n[0]);
         printf("\n");
     }
     for (uint32_t i = 0; i < msg->tx.outputs_count; ++i) {
         printf("   %d - Output: coins: %" PRIu64 ", hours: %" PRIu64 " address: %s address_n: ", i + 1, msg->tx.outputs[i].coins, msg->tx.outputs[i].hours, msg->tx.outputs[i].address);
         if (msg->tx.outputs[i].address_n_count != 0) {
-            printf("%d",msg->tx.outputs[i].address_n[0]);
+            printf("%d", msg->tx.outputs[i].address_n[0]);
         }
         printf("\n");
     }
@@ -753,90 +782,90 @@ ErrCode_t msgTxAckImpl(TxAck *msg, TxRequest *resp) {
         writebuf_fromhexstr(msg->tx.inputs[i].hashIn, inputs[i]);
     }
     switch (ctx->state) {
-        case InnerHashInputs:
-            if (!msg->tx.inputs_count || msg->tx.outputs_count) {
-                TxSignCtx_Destroy(ctx);
-                return ErrInvalidArg;
-            }
-            TxSignCtx_UpdateInputs(ctx, inputs, msg->tx.inputs_count);
-            if (ctx->current_nbIn != ctx->nbIn)
-                resp->request_type = TxRequest_RequestType_TXINPUT;
-            else {
-                TxSignCtx_AddSizePrefix(ctx, ctx->nbOut);
-                resp->request_type = TxRequest_RequestType_TXOUTPUT;
-                ctx->state = InnerHashOutputs;
-            }
-            break;
-        case InnerHashOutputs:
-            if (!msg->tx.outputs_count || msg->tx.inputs_count) {
-                TxSignCtx_Destroy(ctx);
-                return ErrInvalidArg;
-            }
-            TransactionOutput outputs[7];
-            for (uint8_t i = 0; i < msg->tx.outputs_count; ++i) {
+    case InnerHashInputs:
+        if (!msg->tx.inputs_count || msg->tx.outputs_count) {
+            TxSignCtx_Destroy(ctx);
+            return ErrInvalidArg;
+        }
+        TxSignCtx_UpdateInputs(ctx, inputs, msg->tx.inputs_count);
+        if (ctx->current_nbIn != ctx->nbIn)
+            resp->request_type = TxRequest_RequestType_TXINPUT;
+        else {
+            TxSignCtx_AddSizePrefix(ctx, ctx->nbOut);
+            resp->request_type = TxRequest_RequestType_TXOUTPUT;
+            ctx->state = InnerHashOutputs;
+        }
+        break;
+    case InnerHashOutputs:
+        if (!msg->tx.outputs_count || msg->tx.inputs_count) {
+            TxSignCtx_Destroy(ctx);
+            return ErrInvalidArg;
+        }
+        TransactionOutput outputs[7];
+        for (uint8_t i = 0; i < msg->tx.outputs_count; ++i) {
 #if !EMULATOR
-                if (!msg->tx.outputs[i].address_n_count) {
-                    ErrCode_t err = reqConfirmTransaction(msg->tx.outputs[i].coins, msg->tx.outputs[i].hours,
-                                                          msg->tx.outputs[i].address);
-                    if (err != ErrOk)
-                        return err;
-                }
+            if (!msg->tx.outputs[i].address_n_count) {
+                ErrCode_t err = reqConfirmTransaction(msg->tx.outputs[i].coins, msg->tx.outputs[i].hours,
+                    msg->tx.outputs[i].address);
+                if (err != ErrOk)
+                    return err;
+            }
 #endif
-                outputs[i].coin = msg->tx.outputs[i].coins;
-                outputs[i].hour = msg->tx.outputs[i].hours;
-                size_t len = 36;
-                uint8_t b58string[36];
-                b58tobin(b58string, &len, msg->tx.outputs[i].address);
-                memcpy(outputs[i].address, &b58string[36 - len], len);
+            outputs[i].coin = msg->tx.outputs[i].coins;
+            outputs[i].hour = msg->tx.outputs[i].hours;
+            size_t len = 36;
+            uint8_t b58string[36];
+            b58tobin(b58string, &len, msg->tx.outputs[i].address);
+            memcpy(outputs[i].address, &b58string[36 - len], len);
+        }
+        TxSignCtx_UpdateOutputs(ctx, outputs, msg->tx.outputs_count);
+        if (ctx->current_nbOut != ctx->nbOut) {
+            resp->request_type = TxRequest_RequestType_TXOUTPUT;
+        } else {
+            TxSignCtx_finishInnerHash(ctx);
+            ctx->state = Signature_;
+            ctx->current_nbIn = 0;
+            resp->request_type = TxRequest_RequestType_TXINPUT;
+        }
+        break;
+    case Signature_:
+        if (!msg->tx.inputs_count || msg->tx.outputs_count) {
+            TxSignCtx_Destroy(ctx);
+            return ErrInvalidArg;
+        }
+        if (!ctx->has_innerHash) {
+            TxSignCtx_Destroy(ctx);
+            return ErrFailed;
+        }
+        uint8_t signCount = 0;
+        for (uint8_t i = 0; i < msg->tx.inputs_count; ++i) {
+            if (msg->tx.inputs[i].address_n_count) {
+                uint8_t shaInput[64];
+                uint8_t msg_digest[32] = {0};
+                memcpy(shaInput, ctx->innerHash, 32);
+                memcpy(&shaInput[32], &inputs[i], 32);
+                SHA256_CTX sha256ctx;
+                sha256_Init(&sha256ctx);
+                sha256_Update(&sha256ctx, shaInput, 64);
+                sha256_Final(&sha256ctx, msg_digest);
+                resp->sign_result[signCount].has_signature = true;
+                msgSignTransactionMessageImpl(msg_digest, msg->tx.inputs[i].address_n[0],
+                    resp->sign_result[signCount].signature);
+                resp->sign_result[signCount].has_signature_index = true;
+                resp->sign_result[signCount].signature_index = i;
+                signCount++;
             }
-            TxSignCtx_UpdateOutputs(ctx, outputs, msg->tx.outputs_count);
-            if (ctx->current_nbOut != ctx->nbOut) {
-                resp->request_type = TxRequest_RequestType_TXOUTPUT;
-            } else {
-                TxSignCtx_finishInnerHash(ctx);
-                ctx->state = Signature_;
-                ctx->current_nbIn = 0;
-                resp->request_type = TxRequest_RequestType_TXINPUT;
-            }
-            break;
-        case Signature_:
-            if (!msg->tx.inputs_count || msg->tx.outputs_count) {
-                TxSignCtx_Destroy(ctx);
-                return ErrInvalidArg;
-            }
-            if (!ctx->has_innerHash) {
-                TxSignCtx_Destroy(ctx);
-                return ErrFailed;
-            }
-            uint8_t signCount = 0;
-            for (uint8_t i = 0; i < msg->tx.inputs_count; ++i) {
-                if (msg->tx.inputs[i].address_n_count) {
-                    uint8_t shaInput[64];
-                    uint8_t msg_digest[32] = {0};
-                    memcpy(shaInput, ctx->innerHash, 32);
-                    memcpy(&shaInput[32], &inputs[i], 32);
-                    SHA256_CTX sha256ctx;
-                    sha256_Init(&sha256ctx);
-                    sha256_Update(&sha256ctx, shaInput, 64);
-                    sha256_Final(&sha256ctx, msg_digest);
-                    resp->sign_result[signCount].has_signature = true;
-                    msgSignTransactionMessageImpl(msg_digest, msg->tx.inputs[i].address_n[0],
-                                                  resp->sign_result[signCount].signature);
-                    resp->sign_result[signCount].has_signature_index = true;
-                    resp->sign_result[signCount].signature_index = i;
-                    signCount++;
-                }
-                ctx->current_nbIn++;
-            }
-            resp->sign_result_count = signCount;
-            if (ctx->current_nbIn != ctx->nbIn)
-                resp->request_type = TxRequest_RequestType_TXINPUT;
-            else {
-                resp->request_type = TxRequest_RequestType_TXFINISHED;
-            }
-            break;
-        default:
-            break;
+            ctx->current_nbIn++;
+        }
+        resp->sign_result_count = signCount;
+        if (ctx->current_nbIn != ctx->nbIn)
+            resp->request_type = TxRequest_RequestType_TXINPUT;
+        else {
+            resp->request_type = TxRequest_RequestType_TXFINISHED;
+        }
+        break;
+    default:
+        break;
     }
     resp->has_details = true;
     resp->details.has_request_index = true;

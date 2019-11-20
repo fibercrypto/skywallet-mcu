@@ -11,5 +11,4 @@
 
 #include <check.h>
 
-TCase *add_bip32_tests(TCase *tc);
-
+TCase* add_bip32_tests(TCase* tc);

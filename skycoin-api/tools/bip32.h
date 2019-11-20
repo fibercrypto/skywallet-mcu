@@ -24,8 +24,8 @@
 #ifndef __BIP32_H__
 #define __BIP32_H__
 
-#include "ecdsa.h"
 #include "../ed25519-donna/ed25519.h"
+#include "ecdsa.h"
 #include "options.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -60,9 +60,9 @@ int hdnode_from_xprv(uint32_t depth, uint32_t child_num, const uint8_t* chain_co
 
 int hdnode_from_seed(const uint8_t* seed, size_t seed_len, const char* curve, HDNode* out);
 
-int hdnode_private_ckd_from_path(const char *path, HDNode* out);
-int hdnode_private_ckd_from_path_with_seed(const char *path, const uint8_t* seed, int seed_len, const char* curve, HDNode* out);
-int hdnode_public_ckd_from_path(const char *path, HDNode* node);
+int hdnode_private_ckd_from_path(const char* path, HDNode* out);
+int hdnode_private_ckd_from_path_with_seed(const char* path, const uint8_t* seed, int seed_len, const char* curve, HDNode* out);
+int hdnode_public_ckd_from_path(const char* path, HDNode* node);
 
 #define hdnode_private_ckd_prime(X, I) hdnode_private_ckd((X), ((I) | 0x80000000))
 
@@ -109,8 +109,8 @@ int hdnode_serialize_private(const HDNode* node, uint32_t fingerprint, uint32_t 
 
 int hdnode_deserialize(const char* str, uint32_t version_public, uint32_t version_private, const char* curve, HDNode* node, uint32_t* fingerprint);
 
-void hdnode_get_address_raw(HDNode* node, uint8_t* addr_raw, size_t *addr_raw_size);
-void hdnode_get_address(HDNode* node, char* addr, size_t *addrsize);
+void hdnode_get_address_raw(HDNode* node, uint8_t* addr_raw, size_t* addr_raw_size);
+void hdnode_get_address(HDNode* node, char* addr, size_t* addrsize);
 
 //const curve_info *get_curve_by_name(const char *curve_name);
 

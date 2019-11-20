@@ -19,8 +19,8 @@
 #include "tiny-firmware/timer.h"
 #endif
 #include "tiny-firmware/buttons.h"
-#include "tiny-firmware/layout.h"
 #include "tiny-firmware/firmware/layout2.h"
+#include "tiny-firmware/layout.h"
 #include "tiny-firmware/util.h"
 
 #if !EMULATOR

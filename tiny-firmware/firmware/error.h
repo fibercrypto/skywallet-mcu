@@ -88,7 +88,7 @@ enum ErrCode {
     ErrUnexpectedMessage = ERROR_CODE(PkgServer, ReasonInvalidState),    /*!< Server state loses path */
     ErrSignPreconditionFailed = ERROR_CODE(PkgSign, ReasonInvalidState), /*!< Signing precondition failed */
     ErrInvalidSignature = ERROR_CODE(PkgSign, ReasonValueError),         /*!< Invalid Message Signature */
-    ErrInvalidPubKey =    ERROR_CODE(PkgSign, ReasonArgumentError)       /*!< Invalid Public Key */
+    ErrInvalidPubKey = ERROR_CODE(PkgSign, ReasonArgumentError)          /*!< Invalid Public Key */
 };
 typedef enum ErrCode ErrCode_t;
 _Static_assert(sizeof(ErrCode_t) == 4, "One byte as max for package");

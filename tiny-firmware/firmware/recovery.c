@@ -20,18 +20,18 @@
 
 #include "tiny-firmware/firmware/recovery.h"
 #include "skycoin-crypto/tools/bip39.h"
+#include "skycoin-crypto/tools/memzero.h"
 #include "tiny-firmware/firmware/fsm.h"
 #include "tiny-firmware/firmware/gettext.h"
 #include "tiny-firmware/firmware/layout2.h"
-#include "skycoin-crypto/tools/memzero.h"
 #include "tiny-firmware/firmware/messages.h"
 #include "tiny-firmware/firmware/protect.h"
 #include "tiny-firmware/firmware/recovery-table.h"
 #include "tiny-firmware/firmware/storage.h"
-#include "types.pb.h"
-#include "tiny-firmware/rng.h"
 #include "tiny-firmware/oled.h"
+#include "tiny-firmware/rng.h"
 #include "tiny-firmware/usb.h"
+#include "types.pb.h"
 #include <ctype.h>
 
 /* number of words expected in the new seed */

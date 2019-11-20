@@ -18,19 +18,19 @@
 #include "gpio_noise.h"
 
 #endif // EMULATOR
-#include "tiny-firmware/rng.h"
-#include "tiny-firmware/firmware/swtimer.h"
-#include "tiny-firmware/timer.h"
-#include "tiny-firmware/firmware/messages.h"
-#include "tiny-firmware/oled.h"
-#include "tiny-firmware/firmware/storage.h"
 #include "messages.pb.h"
-#include "skycoin-crypto/tools/sha2.h"
 #include "skycoin-crypto/skycoin_crypto.h"
-
+#include "skycoin-crypto/tools/sha2.h"
+#include "tiny-firmware/firmware/messages.h"
+#include "tiny-firmware/firmware/storage.h"
+#include "tiny-firmware/firmware/swtimer.h"
+#include "tiny-firmware/oled.h"
+#include "tiny-firmware/rng.h"
 #include "tiny-firmware/timer.h"
+
 #include "skycoin-crypto/tools/entropypool.h"
 #include "skycoin-crypto/tools/sha2.h"
+#include "tiny-firmware/timer.h"
 
 
 #define EXTERNAL_ENTROPY_TIMEOUT 60000

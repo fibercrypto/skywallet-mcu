@@ -13,9 +13,9 @@
 #define SKYCOIN_CRYPTO_H
 
 #include "tools/sha2.h"
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 typedef struct TransactionOutput {
     uint64_t coin;
@@ -102,7 +102,7 @@ void TxSignCtx_AddSizePrefix(TxSignContext* ctx, uint8_t nbIn);
  *  @param inputs Inputs for add
  *  @param count Number of inputs on inputs param
  */
-void TxSignCtx_UpdateInputs(TxSignContext* ctx, uint8_t inputs [7][32], uint8_t count);
+void TxSignCtx_UpdateInputs(TxSignContext* ctx, uint8_t inputs[7][32], uint8_t count);
 /*  @brief Update SHA256 context with new outputs
  *  @param ctx Context with SHA256 context to be updated
  *  @param outputs Outputs for add
@@ -125,7 +125,7 @@ void TxSignCtx_printInnerHash(TxSignContext* ctx);
  *  @param ctx Context with SHA256 context buffer to be printed
  */
 void TxSignCtx_printSHA256(TxSignContext* ctx);
- /* @brief verify_pub_key ec secp256k1
+/* @brief verify_pub_key ec secp256k1
  * @param pub_key pub key to b verified
  * @return true if the verification success
  */

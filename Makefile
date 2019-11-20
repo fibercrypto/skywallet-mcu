@@ -23,6 +23,7 @@ MAKE     ?= make
 PYTHON   ?= /usr/bin/python
 PIP      ?= pip
 PIPARGS  ?=
+CLANG_FORMAT ?= clang-format
 COVERAGE ?= 0
 
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
@@ -79,14 +80,25 @@ check-version: ## Check that the tiny-firmware/VERSION match the current tag
 
 install-linters-Darwin:
 	brew install yamllint
+	brew tap fibercrypto/homebrew-skycoin
+	brew update
+	brew install clang-llvm-700
 
 install-linters-Linux:
 	$(PIP) install $(PIPARGS) yamllint
+	sudo apt-get install -y --allow-unauthenticated clang-format-7
 
 install-linters: install-linters-$(UNAME_S) ## Install code quality checking tools
 
-lint: ## Check code quality
+lint: check-format ## Check code quality
 	yamllint -d relaxed .travis.yml
+
+format: # Format C code in the project
+	$(eval SRC := $(shell find . -type f -name *.c -o -name *.h | egrep -v "^(./tiny-firmware/protob/|./tiny-firmware/vendor/|./check-0.12.0)"))
+	$(CLANG_FORMAT) -assume-filename=.clang-format -i $(SRC)
+
+check-format: format # Check the source code format
+	git diff --exit-code
 
 build-deps: ## Build common dependencies (protob)
 	$(MAKE) -C tiny-firmware/protob/ build-c
