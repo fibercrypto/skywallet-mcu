@@ -79,15 +79,29 @@ before_deploy:
     fi
 
 deploy:
-  - provider: s3
-    access_key_id: $AWS_ACCESS_KEY_ID
-    secret_access_key: $AWS_SECRET_ACCESS_KEY
-    bucket: $AWS_BUCKET
-    skip_cleanup: true
-    local_dir: releases
-    upload-dir: skywallet
-    acl: private
-    region: $AWS_REGION
-    on:
-      repo: fibercrypto/skywallet-mcu
-      tags: true
+- provider: releases
+  api_key:
+    secure: TODO generate it using travis CLI
+  file:
+  - releases/skywallet-firmware-${TRAVIS_TAG}.bin
+  - releases/skywallet-bootloader-no-memory-protect-${VERSION_BOOTLOADER}.bin
+  - releases/skywallet-full-mem-protect-${COMBINED_VERSION}.bin
+  - releases/skywallet-bootloader-mem-protect-${VERSION_BOOTLOADER}.bin
+  - releases/emulator-$(uname -s)-${TRAVIS_TAG}
+  - releases/version.txt
+  skip_cleanup: true
+  draft: true
+  on:
+    repo: fibercrypto/skywallet-mcu
+    tags: true
+- provider: releases
+  api_key:
+    secure: TODO generate it using travis CLI
+  file:
+   - releases/emulator-$(uname -s)-${TRAVIS_TAG}
+  skip_cleanup: true
+  draft: true
+  on:
+    repo: fibercrypto/skywallet-mcu
+    tags: true
+    condition: $TRAVIS_OS_NAME = "osx"
