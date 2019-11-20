@@ -80,7 +80,7 @@ check-version: ## Check that the tiny-firmware/VERSION match the current tag
 
 install-linters-Darwin:
 	brew install yamllint
-	brew tap skycoin/homebrew-skycoin
+	brew tap fibercrypto/homebrew-skycoin
 	brew update
 	brew install clang-llvm-700
 
