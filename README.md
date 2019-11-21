@@ -4,8 +4,6 @@
 
 [![Build Status](https://travis-ci.com/fibercrypto/skywallet-mcu.svg?branch=develop)](https://travis-ci.com/fibercrypto/skywallet-mcu)
 
-**Note**: This repo is no longer maintained. Please refer to the new [Skywallet](https://github.com/SkycoinProject/hardware-wallet) repo. 
-
 ## Table of contents
 
 <!-- MarkdownTOC levels="1,2,3,4,5" autolink="true" bracket="round" -->
