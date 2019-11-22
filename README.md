@@ -2,9 +2,7 @@
 
 # Skycoin hardware wallet
 
-[![Build Status](https://travis-ci.com/skycoin/hardware-wallet.svg?branch=develop)](https://travis-ci.com/skycoin/hardware-wallet)
-
-**Note**: This repo is no longer maintained. Please refer to the new [Skywallet](https://github.com/SkycoinProject/hardware-wallet) repo. 
+[![Build Status](https://travis-ci.com/fibercrypto/skywallet-mcu.svg?branch=develop)](https://travis-ci.com/fibercrypto/skywallet-mcu)
 
 ## Table of contents
 
@@ -44,16 +42,16 @@
 
 This folder provides a firmware implementing skycoin features, and tools to test it.
 
-The firmware itself is under [tiny-firmware](https://github.com/skycoin/hardware-wallet/tree/master/tiny-firmware) folder.
+The firmware itself is under [tiny-firmware](https://github.com/fibercrypto/skywallet-mcu/tree/master/tiny-firmware) folder.
 The firmware had been copied and modified from [this repository](https://github.com/trezor/trezor-mcu).
 
-The [skycoin-api](https://github.com/skycoin/hardware-wallet/tree/master/skycoin-api) folder contains the definition of the functions implementing the skycoin features.
+The [skycoin-api](https://github.com/fibercrypto/skywallet-mcu/tree/master/skycoin-api) folder contains the definition of the functions implementing the skycoin features.
 
-The [skycoin-hw-cli](https://github.com/skycoin/hardware-wallet-go/releases) defines golang functions that communicate with the firmware.
+The [skycoin-hw-cli](https://github.com/fibercrypto/skywallet-go/releases) defines golang functions that communicate with the firmware.
 
 There is also a [javascript API](https://github.com/skycoin/hardware-wallet-js/).
 
-Follow up [the wiki](https://github.com/skycoin/hardware-wallet/wiki/Hardware-wallet-project-advancement) to keep track of project advancement.
+Follow up [the wiki](https://github.com/fibercrypto/skywallet-mcu/wiki/Hardware-wallet-project-advancement) to keep track of project advancement.
 
 ## FAQ
 
@@ -61,7 +59,7 @@ Follow up [the wiki](https://github.com/skycoin/hardware-wallet/wiki/Hardware-wa
 
 ## Install tools
 
-Follow the instructions written on [tiny-firware/README.md](https://github.com/skycoin/hardware-wallet/blob/master/tiny-firmware/README.md)
+Follow the instructions written on [tiny-firware/README.md](https://github.com/fibercrypto/skywallet-mcu/blob/master/tiny-firmware/README.md)
 
 ## Build instructions:
 
@@ -71,7 +69,7 @@ Immediately after cloning this repository make sure submoudules are up-to-date b
 git submodule update --init --recursive
 ```
 
-Should you find any issues while running any of the commands that follow please consult [FAQ](FAQ.md) before [reporting a bug](ihttps://github.com/skycoin/hardware-wallet/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
+Should you find any issues while running any of the commands that follow please consult [FAQ](FAQ.md) before [reporting a bug](ihttps://github.com/fibercrypto/skywallet-mcu/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
 
 ### Build and run emulator
 
@@ -257,7 +255,7 @@ But in general a bit of research should be done looking at the files content. Th
 
 #### Skycoin firmware releases
 
-The skycoin firmware is composed of two parts: the [bootloader](https://github.com/skycoin/hardware-wallet/tree/master/tiny-firmware/bootloader) and the [firmware](https://github.com/skycoin/hardware-wallet/tree/master/tiny-firmware/firmware).
+The skycoin firmware is composed of two parts: the [bootloader](https://github.com/fibercrypto/skywallet-mcu/tree/master/tiny-firmware/bootloader) and the [firmware](https://github.com/fibercrypto/skywallet-mcu/tree/master/tiny-firmware/firmware).
 
 When plugging the device in, the bootloader runs first. Its only purpose it to check firmware's validity using Skycoin signature.
 
@@ -271,7 +269,7 @@ Skycoin firmware is open source and it is easy to fork or copy official reposito
 
 The Skycoin hardware will be shipped with an immutable bootloader written in a protected memory that is impossible to re-write.
 
-The firmware however can evolve over time and some solutions were developed to update an existing firmware (see [skycoin-hw-cli](https://github.com/skycoin/hardware-wallet-go/releases)).
+The firmware however can evolve over time and some solutions were developed to update an existing firmware (see [skycoin-hw-cli](https://github.com/fibercrypto/skywallet-go/releases)).
 
 ##### Supported languages
 
@@ -281,22 +279,22 @@ The supported languages are encoded in a masked `32 bits` number:
 
 ##### Full-Firmware and bootloader folder
 
-The [firmware](https://github.com/skycoin/hardware-wallet/tree/master/tiny-firmware/firmware) and [bootloader](https://github.com/skycoin/hardware-wallet/tree/master/tiny-firmware/bootloader) folders are here for development purpose. They are meant to be [flashed with st-link](https://github.com/skycoin/hardware-wallet/blob/master/tiny-firmware/README.md#3-how-to-burn-the-firmware-in-the-device) on a STM32 device in which the memory protection was not enabled yet.
+The [firmware](https://github.com/fibercrypto/skywallet-mcu/tree/master/tiny-firmware/firmware) and [bootloader](https://github.com/fibercrypto/skywallet-mcu/tree/master/tiny-firmware/bootloader) folders are here for development purpose. They are meant to be [flashed with st-link](https://github.com/fibercrypto/skywallet-mcu/blob/master/tiny-firmware/README.md#3-how-to-burn-the-firmware-in-the-device) on a STM32 device in which the memory protection was not enabled yet.
 
-You can check [here](https://github.com/skycoin/hardware-wallet/blob/master/tiny-firmware/README.md#3-how-to-burn-the-firmware-in-the-device) for instructions about how to burn a full firmware on a device.
+You can check [here](https://github.com/fibercrypto/skywallet-mcu/blob/master/tiny-firmware/README.md#3-how-to-burn-the-firmware-in-the-device) for instructions about how to burn a full firmware on a device.
 
 ##### Firmware folder
 
-If you are a user of the skycoin electronic wallet and want to update your firmware. You can pick-up [official and tested releases](https://github.com/skycoin/hardware-wallet/releases).
+If you are a user of the skycoin electronic wallet and want to update your firmware. You can pick-up [official and tested releases](https://github.com/fibercrypto/skywallet-mcu/releases).
 
-To update firmware the device must be in "bootloader mode". Press both buttons, unplug your device and plug it back in. Then you can use [skycoin-cli](https://github.com/skycoin/hardware-wallet/releases) `firmwareUpdate` message to update the firmware.
+To update firmware the device must be in "bootloader mode". Press both buttons, unplug your device and plug it back in. Then you can use [skycoin-cli](https://github.com/fibercrypto/skywallet-mcu/releases) `firmwareUpdate` message to update the firmware.
 
 #### Update the version
 
 0. If the `master` branch has commits that are not in `develop` (e.g. due to a hotfix applied to `master`), merge `master` into `develop` (and fix any build or test failures)
 0. Switch to a new release branch named `release-X.Y.Z` for preparing the release.
 0. Update `tiny-firmware/VERSION` and `tiny-firmware/bootloader/VERSION` with corresponding version numbers
-0. Run `make build` to make sure that the code base is up to date
+0. Run `make firmware` to make sure that the code base is up to date
 0. Update `CHANGELOG.md`: move the "unreleased" changes to the version and add the date.
 0. Follow the steps in [pre-release testing](#pre-release-testing)
 0. Make a PR merging the release branch into `master`
