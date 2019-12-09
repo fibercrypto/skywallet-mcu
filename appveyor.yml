@@ -16,7 +16,7 @@ install:
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-clang"
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-protobuf-c"
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-go"
-  
+
   # ARM toolchain
   - if not exist "gcc-arm-none-eabi.zip" curl -L -o gcc-arm-none-eabi.zip https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/gcc-arm-none-eabi-5_4-2016q3-20160926-win32.zip
   - unzip -o -q gcc-arm-none-eabi.zip -d c:\gcc\
