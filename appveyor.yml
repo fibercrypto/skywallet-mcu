@@ -5,19 +5,15 @@ platform: x64
 install:
   - ps: |
       $env:MSYSTEM="MINGW64"
-      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm make"
-      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm gcc"
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm unzip"
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm protobuf"
-      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-python3"
-      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-SDL2"
+      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm python3"
+      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm python-pip"
+      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-SDL2"
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-check"
-      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-SDL2"
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-clang"
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-protobuf-c"
-      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-check"
-      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-go"
-      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm git"    
+      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-go"
 
 build_script:
   - ps: |
