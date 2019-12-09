@@ -28,8 +28,10 @@ install:
   # python stuff
   - pip install yamllint
 
-  # sudo override
-  - C:\msys64\usr\bin\bash --login -c "echo alias sudo=/bin/bash >> .bashrc "
+  # sudo stuff
+  - ps: |
+      $env:MSYSTEM="MINGW64"
+      C:\msys64\usr\bin\bash --login -c "curl -s https://raw.githubusercontent.com/imachug/win-sudo/master/install.sh | sh"
 
 cache:
   - gcc-arm-none-eabi.zip
@@ -39,7 +41,7 @@ build_script:
       $env:MSYSTEM="MINGW64"
       C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make check-protob"
       C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make lint"
-      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; alias sudo=/bin/bash; make -C tiny-firmware/protob build-c"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make -C tiny-firmware/protob build-c"
       #C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; FIRMWARE_SIGNATURE_PUB_KEY1=0241d51e593f681006f9f3c4a0ec744d459c960601b4ed770d979c32ace63b0a7a make test"
       #C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make clean"
       #C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make emulator"
