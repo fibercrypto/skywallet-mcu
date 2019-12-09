@@ -93,6 +93,7 @@ install-linters: install-linters-$(UNAME_S) ## Install code quality checking too
 
 lint: check-format ## Check code quality
 	yamllint -d relaxed .travis.yml
+	yamllint -d relaxed appveyor.yml
 
 format: # Format C code in the project
 	$(eval SRC := $(shell find . -type f -name *.c -o -name *.h | egrep -v "^(./tiny-firmware/protob/|./tiny-firmware/vendor/|./check-0.12.0)"))
