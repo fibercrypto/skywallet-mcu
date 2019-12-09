@@ -18,24 +18,24 @@ install:
 build_script:
   - ps: |
       $env:MSYSTEM="MINGW64"
-      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu && make check-protob"
-      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu && CLANG_FORMAT=clang-format-7 make lint"
-      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu && make -C tiny-firmware/protob build-c"
-      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu && FIRMWARE_SIGNATURE_PUB_KEY1=0241d51e593f681006f9f3c4a0ec744d459c960601b4ed770d979c32ace63b0a7a make test"
-      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu && make clean"
-      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu && make emulator"
-      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu && make clean"
-      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu && make bootloader-mem-protect"
-      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu && make bootloader-clean"
-      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu && make full-firmware
-      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu && make clean"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make check-protob"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; CLANG_FORMAT=clang-format-7 make lint"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make -C tiny-firmware/protob build-c"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; FIRMWARE_SIGNATURE_PUB_KEY1=0241d51e593f681006f9f3c4a0ec744d459c960601b4ed770d979c32ace63b0a7a make test"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make clean"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make emulator"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make clean"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make bootloader-mem-protect"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make bootloader-clean"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make full-firmware
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make clean"
 
 test_script:
   - ps: |
       $env:MSYSTEM="MINGW64"
-      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu && make check"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make check"
 
 on_finish:
   - ps: |
       $env:MSYSTEM="MINGW64"
-      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu && cat ./test.log"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; cat ./test.log"
