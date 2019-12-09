@@ -11,7 +11,7 @@ if ! echo "$SUBMODULE_ORIGIN_URL" | grep -q "https://github.com/fibercrypto/skyw
 fi
 
 # if PR then determine base branch and do checks below
-if [ "$TRAVIS_PULL_REQUEST" != "false" ] ; then
+if [ "$APPVEYOR" == "false" -a "$TRAVIS_PULL_REQUEST" != "false" ] ; then
     echo "Merging changes into $TRAVIS_PULL_REQUEST_BRANCH"
     # fetch recent 50 commits
     # hardware wallet should not get too behind protob repository
