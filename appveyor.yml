@@ -25,6 +25,9 @@ install:
   # git recursive
   - git submodule update --init --recursive
 
+  # python stuff
+  - pip install yamllint
+
 cache:
   - gcc-arm-none-eabi.zip
 
