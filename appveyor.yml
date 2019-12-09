@@ -1,8 +1,12 @@
 os: Windows Server 2012 R2
-
 platform: x64
 
+environment:
+  global:
+    ARM: https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/gcc-arm-none-eabi-5_4-2016q3-20160926-win32.zip
+
 install:
+  # deps via pacman
   - ps: |
       $env:MSYSTEM="MINGW64"
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm unzip"
@@ -14,6 +18,14 @@ install:
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-clang"
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-protobuf-c"
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-go"
+  
+  # ARM toolchain
+  - if not exist "gcc-arm-none-eabi.zip" curl -L -o gcc-arm-none-eabi.zip https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/gcc-arm-none-eabi-5_4-2016q3-20160926-win32.zip
+  - unzip -o -q gcc-arm-none-eabi.zip -d c:\gcc\
+  - set PATH=%PATH%;c:\gcc\bin
+
+cache:
+  - gcc-arm-none-eabi.zip
 
 build_script:
   - ps: |
@@ -30,12 +42,13 @@ build_script:
       C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make full-firmware
       C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make clean"
 
+
 test_script:
   - ps: |
       $env:MSYSTEM="MINGW64"
-      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make check"
+      #C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make check"
 
 on_finish:
   - ps: |
       $env:MSYSTEM="MINGW64"
-      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; cat ./test.log"
+      #C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; cat ./test.log"
