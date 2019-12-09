@@ -28,6 +28,9 @@ install:
   # python stuff
   - pip install yamllint
 
+  # sudo overide
+  - C:\msys64\usr\bin\bash --login -c "echo alias sudo=/bin/bash >> .bashrc "
+
 cache:
   - gcc-arm-none-eabi.zip
 
