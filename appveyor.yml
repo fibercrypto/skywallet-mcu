@@ -33,8 +33,8 @@ install:
   - ps: |
       $env:MSYSTEM="MINGW64"
       C:\msys64\usr\bin\bash --login -c "curl -s https://raw.githubusercontent.com/imachug/win-sudo/master/install.sh | sh"
-      C:\msys64\usr\bin\bash --login -c "echo PATH=~/bin/win-sudo/s:$PATH >> ~/.bashrc"
-      C:\msys64\usr\bin\bash --login -c "sudo mkdir 12345 ; tree -dL 2 ~/"
+      C:\msys64\usr\bin\bash --login -c "mkdir -p /usr/local/bin && cp ~/bin/win-sudo/s/* /usr/local/bin/"
+      C:\msys64\usr\bin\bash --login -c "sudo mkdir testing_sudo_power"
 
 cache:
   - gcc-arm-none-eabi.zip
