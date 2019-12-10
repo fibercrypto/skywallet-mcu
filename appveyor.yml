@@ -16,6 +16,7 @@ install:
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-clang"
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-protobuf-c"
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-go"
+      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm tree"
 
   # ARM toolchain
   - if not exist "gcc-arm-none-eabi.zip" curl -L -o gcc-arm-none-eabi.zip https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/gcc-arm-none-eabi-5_4-2016q3-20160926-win32.zip
@@ -33,7 +34,7 @@ install:
       $env:MSYSTEM="MINGW64"
       C:\msys64\usr\bin\bash --login -c "curl -s https://raw.githubusercontent.com/imachug/win-sudo/master/install.sh | sh"
       C:\msys64\usr\bin\bash --login -c "echo PATH=~/bin/win-sudo/s:$PATH >> ~/.bashrc"
-      C:\msys64\usr\bin\bash --login -c "echo $PATH"
+      C:\msys64\usr\bin\bash --login -c "sudo mkdir 12345 ; tree -dL 2 ~/"
 
 cache:
   - gcc-arm-none-eabi.zip
