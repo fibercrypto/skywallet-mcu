@@ -5,6 +5,7 @@ environment:
   global:
     APPVEYOR: true
     GOPATH: C:\Users\appveyor\go
+    PYTHON: python3
 
 install:
   # deps via pacman
