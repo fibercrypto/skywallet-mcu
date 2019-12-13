@@ -4,6 +4,7 @@ platform: x64
 environment:
   global:
     APPVEYOR: true
+    GOPATH: C:\Users\appveyor\go
 
 install:
   # deps via pacman
