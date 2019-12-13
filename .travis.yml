@@ -4,6 +4,7 @@ matrix:
     - os: linux
       env:
         - PIP='sudo pip'
+        - PYTHON=python3
       addons:
         apt:
           sources:
