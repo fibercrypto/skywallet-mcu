@@ -28,7 +28,7 @@ install:
   - git submodule update --init --recursive
 
   # python stuff
-  - pip install yamllint
+  - pip3 install yamllint
 
   # sudo stuff
   - ps: |
