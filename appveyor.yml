@@ -11,6 +11,7 @@ install:
   # deps via pacman
   - ps: |
       $env:MSYSTEM="MINGW64"
+      C:\msys64\usr\bin\bash --login -c "mkdir -p /var/cache/pacman/pkg"
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm unzip"
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm protobuf"
       C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-SDL2"
