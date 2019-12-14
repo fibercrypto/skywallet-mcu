@@ -2,6 +2,7 @@ language: c
 matrix:
   include:
     - name: "Linux Ubuntu"
+      # In linux you must keep the use of python2 ot it will fail
       os: linux
       env:
         - PIP='sudo pip'
@@ -11,12 +12,13 @@ matrix:
             - ubuntu-toolchain-r-test
     - name: "MacOS / OSX"
       os: osx
+      env:
+        - PYTHON=python3
 
 env:
   global:
     - GOPATH: "$HOME/go"
     - APPVEYOR: false
-    - PYTHON: python3
 
 before_script:
   - mkdir -p ~/bin
