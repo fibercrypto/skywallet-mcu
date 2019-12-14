@@ -1,21 +1,22 @@
 language: c
 matrix:
   include:
-    - os: linux
+    - name: "Linux Ubuntu"
+      os: linux
       env:
         - PIP='sudo pip'
-        - PYTHON=python3
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-    - os: osx
-      env:
-        - PYTHON=python3
+    - name: "MacOS / OSX"
+      os: osx
+
 env:
   global:
     - GOPATH: "$HOME/go"
     - APPVEYOR: false
+    - PYTHON: python3
 
 before_script:
   - mkdir -p ~/bin
