@@ -32,6 +32,9 @@ install:
 
   # python stuff
   - pip --version
+  - which pip
+  - which pip3
+  - /mingw64/bin/pip3 --version
   - pip install yamllint
 
   # sudo stuff
