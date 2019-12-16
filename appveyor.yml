@@ -1,6 +1,72 @@
+os: Windows Server 2012 R2
+platform: x64
 
-build: off
+environment:
+  global:
+    APPVEYOR: true
+    GOPATH: C:\Users\appveyor\go
+    PYTHON: python3
+
+install:
+  # deps via pacman
+  - ps: |
+      $env:MSYSTEM="MINGW64"
+      C:\msys64\usr\bin\bash --login -c "mkdir -p /var/cache/pacman/pkg"
+      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm unzip"
+      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm protobuf"
+      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-SDL2"
+      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-check"
+      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-clang"
+      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-protobuf-c"
+      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm mingw-w64-x86_64-go"
+      C:\msys64\usr\bin\bash --login -c "pacman -S --noconfirm tree"
+      choco install python3 --params "/InstallDir:C:\python3.8"
+
+  # ARM toolchain
+  - if not exist "gcc-arm-none-eabi.zip" curl -L -o gcc-arm-none-eabi.zip https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/gcc-arm-none-eabi-5_4-2016q3-20160926-win32.zip
+  - unzip -o -q gcc-arm-none-eabi.zip -d c:\gcc\
+  - set PATH=%PATH%;c:\gcc\bin
+
+  # git recursive
+  - git submodule update --init --recursive
+
+  # python stuff
+  - pip --version
+  - which pip
+  - pip install yamllint
+
+  # sudo stuff
+  - ps: |
+      $env:MSYSTEM="MINGW64"
+      C:\msys64\usr\bin\bash --login -c "curl -s https://raw.githubusercontent.com/imachug/win-sudo/master/install.sh | sh"
+      C:\msys64\usr\bin\bash --login -c "mkdir -p /usr/local/bin && cp ~/bin/win-sudo/s/* /usr/local/bin/"
+      C:\msys64\usr\bin\bash --login -c "sudo mkdir testing_sudo_power"
+
+cache:
+  - gcc-arm-none-eabi.zip
+
+build_script:
+  - ps: |
+      $env:MSYSTEM="MINGW64"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make check-protob"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make lint"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make -C tiny-firmware/protob build-c"
+      C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; FIRMWARE_SIGNATURE_PUB_KEY1=0241d51e593f681006f9f3c4a0ec744d459c960601b4ed770d979c32ace63b0a7a make test"
+      #C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make clean"
+      #C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make emulator"
+      #C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make clean"
+      #C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make bootloader-mem-protect"
+      #C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make bootloader-clean"
+      #C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make full-firmware
+      #C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make clean"
+
 
 test_script:
-  - echo "No tests here yet"
+  - ps: |
+      $env:MSYSTEM="MINGW64"
+      #C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; make check"
 
+on_finish:
+  - ps: |
+      $env:MSYSTEM="MINGW64"
+      #C:\msys64\usr\bin\bash -l -c "cd /c/projects/skywallet-mcu ; cat ./test.log"
