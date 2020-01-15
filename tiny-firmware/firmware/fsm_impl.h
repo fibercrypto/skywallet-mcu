@@ -192,7 +192,7 @@ ErrCode_t msgGetFeaturesImpl(Features* resp);
 
 ErrCode_t msgPingImpl(Ping* msg);
 
-ErrCode_t msgChangePinImpl(ChangePin* msg, const char* (*)(PinMatrixRequestType, const char*));
+ErrCode_t msgChangePinImpl(ChangePin* msg, ErrCode_t(*)(PinMatrixRequestType, const char *, char *));
 
 ErrCode_t msgWipeDeviceImpl(WipeDevice* msg);
 

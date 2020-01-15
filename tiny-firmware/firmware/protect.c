@@ -112,7 +112,7 @@ bool protectButton(ButtonRequestType type, bool confirm_only)
     return result;
 }
 
-const char* requestPin(PinMatrixRequestType type, const char* text)
+ErrCode_t requestPin(PinMatrixRequestType type, const char* text, char *out_pin)
 {
     PinMatrixRequest resp;
     memset(&resp, 0, sizeof(PinMatrixRequest));
@@ -128,16 +128,23 @@ const char* requestPin(PinMatrixRequestType type, const char* text)
             PinMatrixAck* pma = (PinMatrixAck*)msg_tiny;
             pinmatrix_done(pma->pin); // convert via pinmatrix
             usbTiny(0);
-            return pma->pin;
+            memcpy(out_pin, pma->pin, sizeof(pma->pin));
+            return ErrOk;
         }
         if (msg_tiny_id == MessageType_MessageType_Cancel || msg_tiny_id == MessageType_MessageType_Initialize) {
             pinmatrix_done(0);
             if (msg_tiny_id == MessageType_MessageType_Initialize) {
                 protectAbortedByInitialize = true;
+                msg_tiny_id = 0xFFFF;
+                usbTiny(0);
+                // TODO what does means Initialize here?
+                return ErrOk;
             }
-            msg_tiny_id = 0xFFFF;
-            usbTiny(0);
-            return 0;
+            if (msg_tiny_id == MessageType_MessageType_Cancel) {
+                msg_tiny_id = 0xFFFF;
+                usbTiny(0);
+                return ErrPinCancelled;
+            }
         }
 #if DEBUG_LINK
         if (msg_tiny_id == MessageType_MessageType_DebugLinkGetState) {
@@ -195,11 +202,20 @@ bool protectPin(bool use_cached)
         wait--;
     }
     usbTiny(0);
-    const char* pin;
-    pin = requestPin(PinMatrixRequestType_PinMatrixRequestType_Current, _("Please enter current PIN:"));
-    if (!pin) {
-        fsm_sendFailure(FailureType_Failure_PinCancelled, NULL, 0);
-        return false;
+    char pin[10] = {0};
+    {
+        PinMatrixAck pm = {0};
+        _Static_assert(sizeof(pin) == sizeof(pm.pin), "invalid pin buffer size");
+    }
+    switch (requestPin(PinMatrixRequestType_PinMatrixRequestType_Current, _("Please enter current PIN:"), pin)) {
+        case ErrOk:
+            break;
+        case ErrPinCancelled:
+            fsm_sendFailure(FailureType_Failure_PinCancelled, NULL, 0);
+            return false;
+        default:
+            fsm_sendFailure(FailureType_Failure_UnexpectedMessage, NULL, 0);
+            return false;
     }
     if (!storage_increasePinFails(fails)) {
         fsm_sendFailure(FailureType_Failure_PinInvalid, NULL, 0);
@@ -221,33 +237,55 @@ bool protectChangePin()
     return protectChangePinEx(NULL);
 }
 
-bool protectChangePinEx(const char* (*funcRequestPin)(PinMatrixRequestType, const char*))
+ErrCode_t protectChangePinEx(ErrCode_t (*funcRequestPin)(PinMatrixRequestType, const char*, char*))
 {
     static CONFIDENTIAL char pin_compare[17];
+    memset(pin_compare, 0, sizeof(pin_compare));
     if (funcRequestPin == NULL) {
         funcRequestPin = requestPin;
     }
-
-    const char* pin = funcRequestPin(PinMatrixRequestType_PinMatrixRequestType_NewFirst, _("Please enter new PIN:"));
-
-    if (!pin) {
-        return false;
+    static CONFIDENTIAL char pin[10] = {0};
+    memset(pin, 0, sizeof(pin));
+    {
+        PinMatrixAck pm = {0};
+        _Static_assert(sizeof(pin) == sizeof(pm.pin), "invalid pin buffer size");
     }
-
+    ErrCode_t err = funcRequestPin(PinMatrixRequestType_PinMatrixRequestType_NewFirst, _("Please enter new PIN:"), pin);
+    if (err != ErrOk) {
+        memset(pin_compare, 0, sizeof(pin_compare));
+        memset(pin, 0, sizeof(pin));
+        return err;
+    }
+    {
+        char empty_pin[sizeof(pin)] = {0};
+        if (!memcmp(pin, empty_pin, sizeof(pin))) {
+            memset(pin_compare, 0, sizeof(pin_compare));
+            memset(pin, 0, sizeof(pin));
+            return ErrPinRequired;
+        }
+    }
     strlcpy(pin_compare, pin, sizeof(pin_compare));
-
-    pin = funcRequestPin(PinMatrixRequestType_PinMatrixRequestType_NewSecond, _("Please re-enter new PIN:"));
-
-    const bool result = pin && *pin && (strncmp(pin_compare, pin, sizeof(pin_compare)) == 0);
-
-    if (result) {
+    memset(pin, 0, sizeof(pin));
+    err = funcRequestPin(PinMatrixRequestType_PinMatrixRequestType_NewSecond, _("Please re-enter new PIN:"), pin);
+    {
+        char empty_pin[sizeof(pin)] = {0};
+        if (!memcmp(pin, empty_pin, sizeof(pin))) {
+            memset(pin_compare, 0, sizeof(pin_compare));
+            memset(pin, 0, sizeof(pin));
+            return ErrPinRequired;
+        }
+    }
+    if (strncmp(pin_compare, pin, sizeof(pin_compare)) == 0) {
         storage_setPin(pin_compare);
         storage_update();
+    } else {
+        memset(pin_compare, 0, sizeof(pin_compare));
+        memset(pin, 0, sizeof(pin));
+        return ErrPinMismatch;
     }
-
-    memzero(pin_compare, sizeof(pin_compare));
-
-    return result;
+    memset(pin_compare, 0, sizeof(pin_compare));
+    memset(pin, 0, sizeof(pin));
+    return ErrOk;
 }
 
 bool protectPassphrase(void)

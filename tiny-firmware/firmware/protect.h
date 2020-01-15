@@ -18,10 +18,11 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __PROTECT_H__
-#define __PROTECT_H__
+#ifndef __PROTECT_HANDLER_H__
+#define __PROTECT_HANDLER_H__
 
 #include "types.pb.h"
+#include "tiny-firmware/firmware/error.h"
 #include <stdbool.h>
 
 bool protectButton(ButtonRequestType type, bool confirm_only);
@@ -32,7 +33,7 @@ bool protectPassphrase(void);
 extern bool protectAbortedByInitialize;
 
 // Symbols exported for testing
-bool protectChangePinEx(const char* (*)(PinMatrixRequestType, const char*));
-const char* requestPin(PinMatrixRequestType type, const char* text);
+ErrCode_t protectChangePinEx(ErrCode_t (*)(PinMatrixRequestType, const char*, char*));
+ErrCode_t requestPin(PinMatrixRequestType type, const char* text, char *out_pin);
 
-#endif
+#endif  // __PROTECT_HANDLER_H__

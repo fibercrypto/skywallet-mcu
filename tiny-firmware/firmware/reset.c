@@ -41,7 +41,7 @@ void reset_init(bool display_random, uint32_t _strength, bool passphrase_protect
     reset_init_ex(display_random, _strength, passphrase_protection, pin_protection, language, label, _skip_backup, NULL);
 }
 
-void reset_init_ex(bool display_random, uint32_t _strength, bool passphrase_protection, bool pin_protection, const char* language, const char* label, bool _skip_backup, const char* (*funcRequestPin)(PinMatrixRequestType, const char*))
+void reset_init_ex(bool display_random, uint32_t _strength, bool passphrase_protection, bool pin_protection, const char* language, const char* label, bool _skip_backup, ErrCode_t (*funcRequestPin)(PinMatrixRequestType, const char*, char*))
 {
     if (funcRequestPin == NULL) {
         funcRequestPin = requestPin;
@@ -70,13 +70,20 @@ void reset_init_ex(bool display_random, uint32_t _strength, bool passphrase_prot
             return;
         }
     }
-
-    if (pin_protection && !protectChangePinEx(funcRequestPin)) {
-        fsm_sendFailure(FailureType_Failure_PinMismatch, NULL, 0);
-        layoutHome();
-        return;
+    if (pin_protection) {
+        ErrCode_t err = protectChangePinEx(funcRequestPin);
+        switch (err) {
+            case ErrOk:
+                break;
+            case ErrPinMismatch:
+                fsm_sendFailure(FailureType_Failure_PinMismatch, NULL, 0);
+                layoutHome();
+                return;
+            default:
+                fsm_sendFailure(FailureType_Failure_UnexpectedMessage, NULL, 0);
+                return;
+        }
     }
-
     storage_setPassphraseProtection(passphrase_protection);
     storage_setLanguage(language);
     if (label != NULL && strcmp("", label) != 0) {

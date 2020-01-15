@@ -535,18 +535,23 @@ ErrCode_t msgPingImpl(Ping* msg)
     return ErrOk;
 }
 
-ErrCode_t msgChangePinImpl(ChangePin* msg, const char* (*funcRequestPin)(PinMatrixRequestType, const char*))
+ErrCode_t msgChangePinImpl(ChangePin* msg, ErrCode_t (*funcRequestPin)(PinMatrixRequestType, const char*, char*))
 {
     bool removal = msg->has_remove && msg->remove;
     if (removal) {
         storage_setPin("");
         storage_update();
-    } else {
-        if (!protectChangePinEx(funcRequestPin)) {
-            return ErrPinMismatch;
-        }
     }
-    return ErrOk;
+    ErrCode_t err = protectChangePinEx(funcRequestPin);
+    switch (err) {
+        case ErrPinRequired:
+        case ErrPinCancelled:
+        case ErrPinMismatch:
+        case ErrOk:
+            return err;
+        default:
+            return ErrUnexpectedMessage;
+    }
 }
 
 ErrCode_t msgWipeDeviceImpl(WipeDevice* msg)
