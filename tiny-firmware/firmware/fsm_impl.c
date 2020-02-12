@@ -541,6 +541,7 @@ ErrCode_t msgChangePinImpl(ChangePin* msg, ErrCode_t (*funcRequestPin)(PinMatrix
     if (removal) {
         storage_setPin("");
         storage_update();
+        return ErrOk;
     }
     ErrCode_t err = protectChangePinEx(funcRequestPin);
     switch (err) {

@@ -14,30 +14,35 @@
 char* TEST_PIN1 = "123";
 char* TEST_PIN2 = "246";
 
-const char* pin_reader_ok(PinMatrixRequestType pinReqType, const char* text)
+ErrCode_t pin_reader_ok(PinMatrixRequestType pinReqType, const char* text, char *out_pin)
 {
     (void)text;
     (void)pinReqType;
-    return TEST_PIN1;
+    strcpy(out_pin, TEST_PIN1);
+    return ErrOk;
 }
 
-const char* pin_reader_alt(PinMatrixRequestType pinReqType, const char* text)
+ErrCode_t pin_reader_alt(PinMatrixRequestType pinReqType, const char* text, char *pin_out)
 {
     (void)text;
     (void)pinReqType;
-    return TEST_PIN2;
+    strcpy(pin_out, TEST_PIN2);
+    return ErrOk;
 }
 
-const char* pin_reader_wrong(PinMatrixRequestType pinReqType, const char* text)
+ErrCode_t pin_reader_wrong(PinMatrixRequestType pinReqType, const char* text, char *pin_out)
 {
     (void)text;
     switch (pinReqType) {
     case PinMatrixRequestType_PinMatrixRequestType_NewFirst:
-        return TEST_PIN1;
+        strcpy(pin_out, TEST_PIN1);
+        break;
     case PinMatrixRequestType_PinMatrixRequestType_NewSecond:
-        return "456";
+        strcpy(pin_out, "456");
+        break;
     default:
         break;
     }
-    return "789";
+    strcpy(pin_out, "789");
+    return ErrPinMismatch;
 }
