@@ -139,7 +139,8 @@ ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage* msg, ResponseSkycoinSign
     return ErrOk;
 }
 
-static bool the_first_address_only(SkycoinAddress* msg) {
+static bool the_first_address_only(SkycoinAddress* msg)
+{
     if (msg->has_bip44_addr) {
         return msg->bip44_addr.address_start_index == 0 && msg->bip44_addr.address_n == 1;
     } else {
