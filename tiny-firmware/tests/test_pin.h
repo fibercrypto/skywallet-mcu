@@ -14,8 +14,8 @@
 extern char* TEST_PIN1;
 extern char* TEST_PIN2;
 
-ErrCode_t pin_reader_ok(PinMatrixRequestType pinReqType, const char* text, char *out_pin);
+ErrCode_t pin_reader_ok(PinMatrixRequestType pinReqType, const char* text, char* out_pin);
 
-ErrCode_t pin_reader_alt(PinMatrixRequestType pinReqType, const char* text, char *pin_out);
+ErrCode_t pin_reader_alt(PinMatrixRequestType pinReqType, const char* text, char* pin_out);
 
-ErrCode_t pin_reader_wrong(PinMatrixRequestType pinReqType, const char* text, char *pin_out);
+ErrCode_t pin_reader_wrong(PinMatrixRequestType pinReqType, const char* text, char* pin_out);

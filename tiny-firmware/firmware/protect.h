@@ -21,8 +21,8 @@
 #ifndef __PROTECT_HANDLER_H__
 #define __PROTECT_HANDLER_H__
 
-#include "types.pb.h"
 #include "tiny-firmware/firmware/error.h"
+#include "types.pb.h"
 #include <stdbool.h>
 
 bool protectButton(ButtonRequestType type, bool confirm_only);
@@ -34,6 +34,6 @@ extern bool protectAbortedByInitialize;
 
 // Symbols exported for testing
 ErrCode_t protectChangePinEx(ErrCode_t (*)(PinMatrixRequestType, const char*, char*));
-ErrCode_t requestPin(PinMatrixRequestType type, const char* text, char *out_pin);
+ErrCode_t requestPin(PinMatrixRequestType type, const char* text, char* out_pin);
 
-#endif  // __PROTECT_HANDLER_H__
+#endif // __PROTECT_HANDLER_H__

@@ -545,13 +545,13 @@ ErrCode_t msgChangePinImpl(ChangePin* msg, ErrCode_t (*funcRequestPin)(PinMatrix
     }
     ErrCode_t err = protectChangePinEx(funcRequestPin);
     switch (err) {
-        case ErrPinRequired:
-        case ErrPinCancelled:
-        case ErrPinMismatch:
-        case ErrOk:
-            return err;
-        default:
-            return ErrUnexpectedMessage;
+    case ErrPinRequired:
+    case ErrPinCancelled:
+    case ErrPinMismatch:
+    case ErrOk:
+        return err;
+    default:
+        return ErrUnexpectedMessage;
     }
 }
 

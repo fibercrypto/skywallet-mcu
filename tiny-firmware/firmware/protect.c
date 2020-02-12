@@ -112,7 +112,7 @@ bool protectButton(ButtonRequestType type, bool confirm_only)
     return result;
 }
 
-ErrCode_t requestPin(PinMatrixRequestType type, const char* text, char *out_pin)
+ErrCode_t requestPin(PinMatrixRequestType type, const char* text, char* out_pin)
 {
     PinMatrixRequest resp;
     memset(&resp, 0, sizeof(PinMatrixRequest));
@@ -208,14 +208,14 @@ bool protectPin(bool use_cached)
         _Static_assert(sizeof(pin) == sizeof(pm.pin), "invalid pin buffer size");
     }
     switch (requestPin(PinMatrixRequestType_PinMatrixRequestType_Current, _("Please enter current PIN:"), pin)) {
-        case ErrOk:
-            break;
-        case ErrPinCancelled:
-            fsm_sendFailure(FailureType_Failure_PinCancelled, NULL, 0);
-            return false;
-        default:
-            fsm_sendFailure(FailureType_Failure_UnexpectedMessage, NULL, 0);
-            return false;
+    case ErrOk:
+        break;
+    case ErrPinCancelled:
+        fsm_sendFailure(FailureType_Failure_PinCancelled, NULL, 0);
+        return false;
+    default:
+        fsm_sendFailure(FailureType_Failure_UnexpectedMessage, NULL, 0);
+        return false;
     }
     if (!storage_increasePinFails(fails)) {
         fsm_sendFailure(FailureType_Failure_PinInvalid, NULL, 0);

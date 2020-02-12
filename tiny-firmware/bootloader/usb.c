@@ -521,7 +521,7 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
             layoutProgress("INSTALLING ... Please wait", 0);
             flash_wait_for_last_operation();
             flash_lock();
-            
+
             // check that metadata was succesfully erased
             // flash status register should show now error and
             // the config block should contain only \xff.
@@ -533,7 +533,7 @@ static void hid_rx_callback(usbd_device* dev, uint8_t ep)
                 layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Error installing ", "firmware.", NULL, "Unplug your Skywallet", "and try again.", NULL);
                 return;
             }
-            
+
             send_msg_success(dev);
             flash_state = STATE_FLASHSTART;
             return;

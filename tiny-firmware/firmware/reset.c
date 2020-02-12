@@ -73,15 +73,15 @@ void reset_init_ex(bool display_random, uint32_t _strength, bool passphrase_prot
     if (pin_protection) {
         ErrCode_t err = protectChangePinEx(funcRequestPin);
         switch (err) {
-            case ErrOk:
-                break;
-            case ErrPinMismatch:
-                fsm_sendFailure(FailureType_Failure_PinMismatch, NULL, 0);
-                layoutHome();
-                return;
-            default:
-                fsm_sendFailure(FailureType_Failure_UnexpectedMessage, NULL, 0);
-                return;
+        case ErrOk:
+            break;
+        case ErrPinMismatch:
+            fsm_sendFailure(FailureType_Failure_PinMismatch, NULL, 0);
+            layoutHome();
+            return;
+        default:
+            fsm_sendFailure(FailureType_Failure_UnexpectedMessage, NULL, 0);
+            return;
         }
     }
     storage_setPassphraseProtection(passphrase_protection);
