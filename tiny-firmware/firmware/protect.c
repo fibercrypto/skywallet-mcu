@@ -204,7 +204,7 @@ bool protectPin(bool use_cached)
     usbTiny(0);
     char pin[10] = {0};
     {
-        PinMatrixAck pm = {0};
+        PinMatrixAck pm;
         _Static_assert(sizeof(pin) == sizeof(pm.pin), "invalid pin buffer size");
     }
     switch (requestPin(PinMatrixRequestType_PinMatrixRequestType_Current, _("Please enter current PIN:"), pin)) {
@@ -247,7 +247,7 @@ ErrCode_t protectChangePinEx(ErrCode_t (*funcRequestPin)(PinMatrixRequestType, c
     static CONFIDENTIAL char pin[10] = {0};
     memset(pin, 0, sizeof(pin));
     {
-        PinMatrixAck pm = {0};
+        PinMatrixAck pm;
         _Static_assert(sizeof(pin) == sizeof(pm.pin), "invalid pin buffer size");
     }
     ErrCode_t err = funcRequestPin(PinMatrixRequestType_PinMatrixRequestType_NewFirst, _("Please enter new PIN:"), pin);
