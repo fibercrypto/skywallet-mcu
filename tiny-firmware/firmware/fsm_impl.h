@@ -184,7 +184,7 @@ ErrCode_t msgGenerateMnemonicImpl(GenerateMnemonic* msg, void (*random_buffer_fu
 
 ErrCode_t msgEntropyAckImpl(EntropyAck* msg);
 
-ErrCode_t msgSignTransactionMessageImpl(uint8_t* message_digest, uint32_t index, char* signed_message);
+ErrCode_t msgSignTransactionMessageImpl(uint8_t* message_digest, uint32_t index, char* signed_message, bool with_passphrase);
 
 ErrCode_t msgApplySettingsImpl(ApplySettings* msg);
 

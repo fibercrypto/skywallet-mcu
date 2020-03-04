@@ -232,12 +232,22 @@ ErrCode_t msgGenerateMnemonicImpl(GenerateMnemonic* msg, void (*random_buffer_fu
 
 ErrCode_t msgSignTransactionMessageImpl(uint8_t* message_digest, uint32_t index, char* signed_message)
 {
+    // NOTE: twise the SKYCOIN_SIG_LEN because the hex format
+    _Static_assert(sizeof(resp->signed_message) >= 2 * SKYCOIN_SIG_LEN,
+                   "hex SKYCOIN_SIG_LEN do not fit in the response");
+    CHECK_MNEMONIC_RET_ERR_CODE
     uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};
     uint8_t seckey[SKYCOIN_SECKEY_LEN] = {0};
+    uint8_t digest[SHA256_DIGEST_LENGTH] = {0};
     uint8_t signature[SKYCOIN_SIG_LEN];
     ErrCode_t res = fsm_getKeyPairAtIndex(1, pubkey, seckey, NULL, index);
     if (res != ErrOk) {
         return res;
+    }
+    if (is_sha256_digest_hex(msg->message)) {
+        writebuf_fromhexstr(msg->message, digest);
+    } else {
+        sha256sum((const uint8_t *)msg->message, digest, strlen(msg->message));
     }
     int signres = skycoin_ecdsa_sign_digest(seckey, message_digest, signature);
     if (signres == -2) {
@@ -363,7 +373,7 @@ ErrCode_t signTransactionMessageFromHDW(uint8_t* message_digest, Bip44AddrIndex 
 ErrCode_t
 fsm_getKeyPairAtIndex(uint32_t nbAddress, uint8_t* pubkey, uint8_t* seckey, ResponseSkycoinAddress* respSkycoinAddress, uint32_t start_index)
 {
-    const char* mnemo = storage_getFullSeed();
+    const char* mnemo = with_passphrase ? storage_getFullSeed() : storage_getMnemonic();
     uint8_t seed[33] = {0};
     uint8_t nextSeed[SHA256_DIGEST_LENGTH] = {0};
     size_t size_address = 36;
@@ -406,6 +416,73 @@ fsm_getKeyPairAtIndex(uint32_t nbAddress, uint8_t* pubkey, uint8_t* seckey, Resp
     return ErrOk;
 }
 
+ErrCode_t msgSkycoinAddressImpl(SkycoinAddress* msg, ResponseSkycoinAddress* resp)
+{
+    uint8_t seckey[32] = {0};
+    uint8_t pubkey[33] = {0};
+    uint32_t start_index = !msg->has_start_index ? 0 : msg->start_index;
+    CHECK_PIN_RET_ERR_CODE
+    if (msg->address_n > 99) {
+        return ErrTooManyAddresses;
+    }
+
+    CHECK_MNEMONIC_RET_ERR_CODE
+
+    if (fsm_getKeyPairAtIndex(msg->address_n, pubkey, seckey, resp, start_index, true) != ErrOk) {
+        return ErrAddressGeneration;
+    }
+    if (msg->address_n == 1 && msg->has_confirm_address && msg->confirm_address) {
+        return ErrUserConfirmation;
+    }
+    return ErrOk;
+}
+
+ErrCode_t msgSkycoinCheckMessageSignatureImpl(SkycoinCheckMessageSignature* msg, Success* successResp, Failure* failureResp)
+{
+    // NOTE(): -1 because the end of string ('\0')
+    // /2 because the hex to buff conversion.
+    _Static_assert((sizeof(msg->message) - 1) / 2 == SHA256_DIGEST_LENGTH,
+                   "Invalid buffer size for message");
+    _Static_assert((sizeof(msg->signature) - 1) / 2 == SKYCOIN_SIG_LEN,
+                    "Invalid buffer size for signature");
+    uint8_t sig[SKYCOIN_SIG_LEN] = {0};
+    // NOTE(): -1 because the end of string ('\0')
+    char address[sizeof(msg->address) - 1];
+    uint8_t pubkey[SKYCOIN_PUBKEY_LEN] = {0};
+    uint8_t digest[SHA256_DIGEST_LENGTH] = {0};
+    if (is_sha256_digest_hex(msg->message)) {
+        tobuff(msg->message, digest, MIN(sizeof(digest), sizeof(msg->message)));
+    } else {
+        sha256sum((const uint8_t *)msg->message, digest, strlen(msg->message));
+    }
+    tobuff(msg->signature, sig, sizeof(sig));
+    ErrCode_t ret = (skycoin_ecdsa_verify_digest_recover(sig, digest, pubkey) == 0) ? ErrOk : ErrInvalidSignature;
+    if (ret != ErrOk) {
+        strncpy(failureResp->message, _("Address recovery failed"), sizeof(failureResp->message));
+        failureResp->has_message = true;
+        return ErrInvalidSignature;
+    }
+    if (!verify_pub_key(pubkey)) {
+        strncpy(failureResp->message, _("Can not verify pub key"), sizeof(failureResp->message));
+        failureResp->has_message = true;
+        return ErrAddressGeneration;
+    }
+    size_t address_size = sizeof(address);
+    if (!skycoin_address_from_pubkey(pubkey, address, &address_size)) {
+        strncpy(failureResp->message, _("Can not verify pub key"), sizeof(failureResp->message));
+        failureResp->has_message = true;
+        return ErrAddressGeneration;
+    }
+    if (memcmp(address, msg->address, address_size)) {
+        strncpy(failureResp->message, _("Address does not match"), sizeof(failureResp->message));
+        failureResp->has_message = true;
+        return ErrInvalidSignature;
+    }
+    memcpy(successResp->message, address, address_size);
+    successResp->has_message = true;
+    return ErrOk;
+}
+
 ErrCode_t verifyLanguage(char* lang)
 {
     // FIXME: Check for supported language name. Only english atm.
@@ -424,9 +501,7 @@ ErrCode_t msgApplySettingsImpl(ApplySettings* msg)
         storage_setLabel(msg->label);
     }
     if (msg->has_language) {
-        if (verifyLanguage(msg->language) != ErrOk) {
-            return ErrInvalidArg;
-        }
+        CHECK_PARAM_RET_ERR_CODE(verifyLanguage(msg->language) == ErrOk, NULL);
         storage_setLanguage(msg->language);
     }
     if (msg->has_use_passphrase) {
@@ -508,6 +583,122 @@ ErrCode_t msgGetFeaturesImpl(Features* resp)
     resp->firmware_features |= FirmwareFeatures_IsGetEntropyEnabled;
 #endif
 
+    return ErrOk;
+}
+
+ErrCode_t msgTransactionSignImpl(TransactionSign* msg, ErrCode_t (*funcConfirmTxn)(char*, char*, TransactionSign*, uint32_t), ResponseTransactionSign* resp)
+{
+    if (msg->nbIn > sizeof(msg->transactionIn)/sizeof(*msg->transactionIn)) {
+        return ErrInvalidArg;
+    }
+    if (msg->nbOut > sizeof(msg->transactionOut)/sizeof(*msg->transactionOut)) {
+        return ErrInvalidArg;
+    }
+#if EMULATOR
+    printf("%s: %d. nbOut: %d\n",
+        _("Transaction signed nbIn"),
+        msg->nbIn, msg->nbOut);
+
+    for (uint32_t i = 0; i < msg->nbIn; ++i) {
+        printf("Input: addressIn: %s, index: %d\n",
+            msg->transactionIn[i].hashIn, msg->transactionIn[i].index);
+    }
+    for (uint32_t i = 0; i < msg->nbOut; ++i) {
+        printf("Output: coin: %" PRIu64 ", hour: %" PRIu64 " address: %s address_index: %d\n",
+            msg->transactionOut[i].coin, msg->transactionOut[i].hour,
+            msg->transactionOut[i].address, msg->transactionOut[i].address_index);
+    }
+#endif
+    bool with_passphrase = msg->has_use_passphrase && msg->use_passphrase;
+    Transaction transaction;
+    transaction_initZeroTransaction(&transaction);
+    for (uint32_t i = 0; i < msg->nbIn; ++i) {
+        uint8_t hashIn[32];
+        writebuf_fromhexstr(msg->transactionIn[i].hashIn, hashIn);
+        transaction_addInput(&transaction, hashIn);
+    }
+    for (uint32_t i = 0; i < msg->nbOut; ++i) {
+        char strHour[30];
+        char strCoin[30];
+        char strValue[20];
+        char* coinString = msg->transactionOut[i].coin == 1000000 ? _("coin") : _("coins");
+        char* hourString = (msg->transactionOut[i].hour == 1 || msg->transactionOut[i].hour == 0) ? _("hour") : _("hours");
+        char* strValueMsg = sprint_coins(msg->transactionOut[i].coin, SKYPARAM_DROPLET_PRECISION_EXP, sizeof(strValue), strValue);
+        if (strValueMsg == NULL) {
+            // FIXME: For Skycoin coin supply and precision buffer size should be enough
+            strcpy(strCoin, "too many coins");
+        }
+        sprintf(strCoin, "%s %s %s", _("send"), strValueMsg, coinString);
+        sprintf(strHour, "%" PRIu64 " %s", msg->transactionOut[i].hour, hourString);
+
+        if (msg->transactionOut[i].has_address_index) {
+            uint8_t pubkey[33] = {0};
+            uint8_t seckey[32] = {0};
+            size_t size_address = 36;
+            char address[36] = {0};
+            ErrCode_t ret = fsm_getKeyPairAtIndex(1, pubkey, seckey, NULL, msg->transactionOut[i].address_index, with_passphrase);
+            if (ret != ErrOk) {
+                return ret;
+            }
+            if (!skycoin_address_from_pubkey(pubkey, address, &size_address)) {
+                return ErrAddressGeneration;
+            }
+            if (strcmp(msg->transactionOut[i].address, address) != 0) {
+// fsm_sendFailure(FailureType_Failure_AddressGeneration, _("Wrong return address"));
+#if EMULATOR
+                printf("Internal address: %s, message address: %s\n", address, msg->transactionOut[i].address);
+                printf("Comparaison size %ld\n", size_address);
+#endif
+                return ErrAddressGeneration;
+            }
+        } else {
+            // NOTICE: A single output per address is assumed
+            ErrCode_t err = funcConfirmTxn(strCoin, strHour, msg, i);
+            if (err != ErrOk)
+                return err;
+        }
+        transaction_addOutput(&transaction, msg->transactionOut[i].coin, msg->transactionOut[i].hour, msg->transactionOut[i].address);
+    }
+
+    CHECK_PIN_UNCACHED_RET_ERR_CODE
+
+    for (uint32_t i = 0; i < msg->nbIn; ++i) {
+        uint8_t digest[32] = {0};
+        transaction_msgToSign(&transaction, i, digest);
+        // Only sign inputs owned by Skywallet device
+        if (msg->transactionIn[i].has_index) {
+            if (msgSignTransactionMessageImpl(digest, msg->transactionIn[i].index, resp->signatures[resp->signatures_count], with_passphrase) != ErrOk) {
+                //fsm_sendFailure(FailureType_Failure_InvalidSignature, NULL);
+                //layoutHome();
+                return ErrInvalidSignature;
+            }
+        } else {
+            // Null sig
+            uint8_t signature[65];
+            memset(signature, 0, sizeof(signature));
+            tohex(resp->signatures[resp->signatures_count], signature, sizeof(signature));
+        }
+        resp->signatures_count++;
+#if EMULATOR
+        char str[64];
+        tohex(str, (uint8_t*)digest, 32);
+        printf("Signing message:  %s\n", str);
+        printf("Signed message:  %s\n", resp->signatures[i]);
+        printf("Nb signatures: %d\n", resp->signatures_count);
+#endif
+    }
+    if (resp->signatures_count != msg->nbIn) {
+        // Ensure number of sigs and inputs is the same. Mismatch should never happen.
+        return ErrFailed;
+    }
+#if EMULATOR
+    char str[64];
+    tohex(str, transaction.innerHash, 32);
+    printf("InnerHash %s\n", str);
+    printf("Signed message:  %s\n", resp->signatures[0]);
+    printf("Nb signatures: %d\n", resp->signatures_count);
+#endif
+    //layoutHome();
     return ErrOk;
 }
 

@@ -326,6 +326,7 @@ ErrCode_t requestConfirmTransaction(char* strCoin, char* strHour, TransactionSig
     layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Next"), NULL, _("Do you really want to"), strCoin, strHour,
         _("to address"), _("..."), NULL);
     ErrCode_t err = checkButtonProtectRetErrCode();
+    ErrCode_t err = fsm_getKeyPairAtIndex(1, pubkey, seckey, &respAddr, msg->address_n, true);
     if (err != ErrOk) {
         return err;
     }
