@@ -46,3 +46,16 @@ ErrCode_t pin_reader_wrong(PinMatrixRequestType pinReqType, const char* text, ch
     strcpy(pin_out, "789");
     return ErrPinMismatch;
 }
+
+ErrCode_t pin_reader_canceled(PinMatrixRequestType pinReqType, const char* text, char* pin_out)
+{
+    (void)text;
+    (void)pin_out;
+    switch (pinReqType) {
+    case PinMatrixRequestType_PinMatrixRequestType_NewFirst:
+    case PinMatrixRequestType_PinMatrixRequestType_NewSecond:
+        return ErrPinCancelled;
+    default:
+        return ErrInvalidArg;
+    }
+}
