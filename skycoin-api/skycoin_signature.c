@@ -1,5 +1,5 @@
 /*
- * This file is part of the Skycoin project, https://skycoin.net/
+ * This file is part of the FiberCrypto project, https://fibercryp.to/
  *
  * Copyright (C) 2019 Skycoin Project
  *

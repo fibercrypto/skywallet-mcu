@@ -1,6 +1,7 @@
 /*
- * This file is part of the Skycoin project, https://skycoin.net/ 
+ * This file is part of the FiberCrypto project, https://fibercryp.to/ 
  *
+ * Copyright (C) 2020 Simelo.Tech
  * Copyright (C) 2018-2019 Skycoin Project
  *
  * This library is distributed in the hope that it will be useful,
