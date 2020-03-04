@@ -1,6 +1,5 @@
-![hardware-wallet-logo](https://user-images.githubusercontent.com/8619106/56054900-b1f9b680-5d75-11e9-8deb-cf657cfd0c55.png)
 
-# Skycoin hardware wallet
+# FiberCrypto firmware for SkyWallet hardware wallet
 
 [![Build Status](https://travis-ci.com/fibercrypto/skywallet-mcu.svg?branch=develop)](https://travis-ci.com/fibercrypto/skywallet-mcu)
 
@@ -31,7 +30,7 @@
   - [Validate the TRNG](#validate-the-trng)
       - [Files description](#files-description)
   - [Releases](#releases)
-    - [Skycoin firmware releases](#skycoin-firmware-releases)
+    - [FiberCrypto firmware releases](#fibercrypto-firmware-releases)
     - [Update the version](#update-the-version)
     - [Pre-release testing](#pre-release-testing)
     - [Creating release builds](#creating-release-builds)
@@ -253,19 +252,19 @@ But in general a bit of research should be done looking at the files content. Th
 
 ### Releases
 
-#### Skycoin firmware releases
+#### FiberCrypto firmware releases
 
 The skycoin firmware is composed of two parts: the [bootloader](https://github.com/fibercrypto/skywallet-mcu/tree/master/tiny-firmware/bootloader) and the [firmware](https://github.com/fibercrypto/skywallet-mcu/tree/master/tiny-firmware/firmware).
 
-When plugging the device in, the bootloader runs first. Its only purpose it to check firmware's validity using Skycoin signature.
+When plugging the device in, the bootloader runs first. Its only purpose it to check firmware's validity using FiberCrypto signature.
 
 The firmware is expected to have a header with proper MAGIC number and three signature slots. 
 
 If the firmware does not have a valid signature in its header it is considered **"not official"**. A warning will be displayed but the user can still skip it and use it anyway.
 
-The "unofficial firmware warning", **means that the firmware was not signed by Skycoin Foundation**.
+The "unofficial firmware warning", **means that the firmware was not signed by the FiberCrypto team**. Official firmware releases are not signed by the Skycoin Foundation.
 
-Skycoin firmware is open source and it is easy to fork or copy official repository and create concurrent firmware for the device. Skycoin Foundation however will not put its signature on it.
+FiberCrypto firmware is open source and it is easy to fork or copy official repository and create concurrent firmware for the device. FiberCrypto project however will not put its signature on it.
 
 The Skycoin hardware will be shipped with an immutable bootloader written in a protected memory that is impossible to re-write.
 
@@ -311,9 +310,9 @@ To update firmware the device must be in "bootloader mode". Press both buttons, 
 Once the candidate release build artifacts have been downloaded it is necessary to check once again that they behave according to specifications. The followinfg steps are aimed at ensuring this is the case. Execute 
 
 0. Flash the device with latest versions of bootloader and firmware
-0. Ensure you have a recent version of Skycoin desktop software in one of the following ways
-  - build desktop wallet from source either following instructions [from master branch](https://github.com/skycoin/skycoin/blob/master/electron/README.md) or [from develop branch](https://github.com/skycoin/skycoin/blob/master/electron/README.md)
-  - download Skycoin wallet from [official downloads page](https://www.skycoin.net/downloads/)
+0. Ensure you have a recent version of FiberCrypto desktop software in one of the following ways
+  - build desktop wallet from source either following instructions [from master branch](https://github.com/fibercrypto/fibercryptowallet/blob/master/README.md) or [from develop branch](https://github.com/fibercrypto/fibercryptowallet/blob/master/README.md)
+  - download FiberCrypto wallet from [official downloads page](https://download.fibercryp.to)
 0. Open desktop wallet
 0. Recover a test wallet with nonzero balance from seed to confirm wallet loading works
 0. Send coins to another wallet to confirm spending works
