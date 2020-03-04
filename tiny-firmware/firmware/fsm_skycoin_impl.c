@@ -139,12 +139,28 @@ ErrCode_t msgSkycoinSignMessageImpl(SkycoinSignMessage* msg, ResponseSkycoinSign
     return ErrOk;
 }
 
+static bool the_first_address_only(SkycoinAddress* msg)
+{
+    if (msg->has_bip44_addr) {
+        return msg->bip44_addr.address_start_index == 0 && msg->bip44_addr.address_n == 1;
+    } else {
+        return msg->start_index == 0 && msg->address_n == 1;
+    }
+    return false;
+}
+
 ErrCode_t msgSkycoinAddressImpl(SkycoinAddress* msg, ResponseSkycoinAddress* resp)
 {
     uint8_t seckey[32] = {0};
     uint8_t pubkey[33] = {0};
     uint32_t start_index = !msg->has_start_index ? 0 : msg->start_index;
-    CHECK_PIN_RET_ERR_CODE
+
+    // NOTE: the first address is used from the desktop application to verify
+    // if the current seed match the desktop application one and then
+    // register this device as a signer in the desktop app wallet.
+    if (!the_first_address_only(msg)) {
+        CHECK_PIN_RET_ERR_CODE
+    }
     if (msg->address_n > 99) {
         return ErrTooManyAddresses;
     }

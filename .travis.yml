@@ -2,8 +2,9 @@ language: c
 matrix:
   include:
     - os: linux
+      python: 3.5
       env:
-        - PIP='sudo pip'
+        - PIP='sudo pip3'
       addons:
         apt:
           sources:
@@ -14,6 +15,7 @@ matrix:
 env:
   global:
     - GOPATH: "$HOME/go"
+    - PYTHON=python3
 
 before_script:
   - mkdir -p ~/bin
@@ -24,10 +26,9 @@ before_script:
   - sh "./tiny-firmware/protob/ci-scripts/install-${TRAVIS_OS_NAME}.sh" ;
   # Define env vars for Linux builds
   - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
-    ls -l /usr/local/bin/protoc ;
     export CHECK_PATH="$(pwd)/check-0.12.0" ;
     export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${CHECK_PATH}/src" ;
-    export PATH="/usr/local/bin:$(pwd)/protoc/bin:$PATH" ;
+    export PATH="/usr/local/bin:$PATH" ;
     echo "PATH=$PATH";
     echo "PIP=$PIP";
     fi
