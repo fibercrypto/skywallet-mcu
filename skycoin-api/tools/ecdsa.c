@@ -28,16 +28,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../address.h"
+#include "../rfc6979.h"
 #include "base58.h"
 #include "bignum.h"
 #include "ecdsa.h"
 #include "hmac.h"
-#include "rand.h"
-#include "ripemd160.h"
-#include "secp256k1.h"
-#include "sha2.h"
-// #include "rfc6979.h"
 #include "memzero.h"
+#include "rand.h"
+#include "secp256k1.h"
 
 // Set cp2 = cp1
 void point_copy(const curve_point* cp1, curve_point* cp2)
@@ -196,23 +195,14 @@ typedef struct jacobian_curve_point {
 // generate random K for signing/side-channel noise
 static void generate_k_random(bignum256* k, const bignum256* prime)
 {
-    uint8_t buf[9*sizeof(uint32_t)];
     do {
-        random_buffer(buf, sizeof(buf));
         int i;
         for (i = 0; i < 8; i++) {
-            k->val[i] = ((buf[i*4 + 0]) |
-                         (buf[i*4 + 1] << 8) |
-                         (buf[i*4 + 2] << 16) |
-                         (buf[i*4 + 3] << 24)) & 0x3FFFFFFF;
+            k->val[i] = random32() & 0x3FFFFFFF;
         }
-        k->val[8] = ((buf[8*4 + 0]) |
-                     (buf[8*4 + 1] << 8) |
-                     (buf[8*4 + 2] << 16) |
-                     (buf[8*4 + 3] << 24)) & 0xFFFF;
+        k->val[8] = random32() & 0xFFFF;
         // check that k is in range and not zero.
     } while (bn_is_zero(k) || !bn_is_less(k, prime));
-    memset(&buf, 0, sizeof(buf));
 }
 
 void curve_to_jacobian(const curve_point* p, jacobian_curve_point* jp, const bignum256* prime)
@@ -261,36 +251,36 @@ void point_jacobian_add(const curve_point* p1, jacobian_curve_point* p2, const e
     assert(-3 <= a && a <= 0);
 
     /* First we bring p1 to the same denominator:
-     * x1' := x1 * z2^2
-     * y1' := y1 * z2^3
-     */
+	 * x1' := x1 * z2^2
+	 * y1' := y1 * z2^3
+	 */
     /*
-     * lambda  = ((y1' - y2)/z2^3) / ((x1' - x2)/z2^2)
-     *         = (y1' - y2) / (x1' - x2) z2
-     * x3/z3^2 = lambda^2 - (x1' + x2)/z2^2
-     * y3/z3^3 = 1/2 lambda * (2x3/z3^2 - (x1' + x2)/z2^2) + (y1'+y2)/z2^3
-     *
-     * For the special case x1=x2, y1=y2 (doubling) we have
-     * lambda = 3/2 ((x2/z2^2)^2 + a) / (y2/z2^3)
-     *        = 3/2 (x2^2 + a*z2^4) / y2*z2)
-     *
-     * to get rid of fraction we write lambda as
-     * lambda = r / (h*z2)
-     * with  r = is_doubling ? 3/2 x2^2 + az2^4 : (y1 - y2)
-     *       h = is_doubling ?      y1+y2       : (x1 - x2)
-     *
-     * With z3 = h*z2  (the denominator of lambda)
-     * we get x3 = lambda^2*z3^2 - (x1' + x2)/z2^2*z3^2
-     *           = r^2 - h^2 * (x1' + x2)
-     *    and y3 = 1/2 r * (2x3 - h^2*(x1' + x2)) + h^3*(y1' + y2)
-     */
+	 * lambda  = ((y1' - y2)/z2^3) / ((x1' - x2)/z2^2)
+	 *         = (y1' - y2) / (x1' - x2) z2
+	 * x3/z3^2 = lambda^2 - (x1' + x2)/z2^2
+	 * y3/z3^3 = 1/2 lambda * (2x3/z3^2 - (x1' + x2)/z2^2) + (y1'+y2)/z2^3
+	 *
+	 * For the special case x1=x2, y1=y2 (doubling) we have
+	 * lambda = 3/2 ((x2/z2^2)^2 + a) / (y2/z2^3)
+	 *        = 3/2 (x2^2 + a*z2^4) / y2*z2)
+	 *
+	 * to get rid of fraction we write lambda as
+	 * lambda = r / (h*z2)
+	 * with  r = is_doubling ? 3/2 x2^2 + az2^4 : (y1 - y2)
+	 *       h = is_doubling ?      y1+y2       : (x1 - x2)
+	 *
+	 * With z3 = h*z2  (the denominator of lambda)
+	 * we get x3 = lambda^2*z3^2 - (x1' + x2)/z2^2*z3^2
+	 *           = r^2 - h^2 * (x1' + x2)
+	 *    and y3 = 1/2 r * (2x3 - h^2*(x1' + x2)) + h^3*(y1' + y2)
+	 */
 
     /* h = x1 - x2
-     * r = y1 - y2
-     * x3 = r^2 - h^3 - 2*h^2*x2
-     * y3 = r*(h^2*x2 - x3) - h^3*y2
-     * z3 = h*z2
-     */
+	 * r = y1 - y2
+	 * x3 = r^2 - h^3 - 2*h^2*x2
+	 * y3 = r*(h^2*x2 - x3) - h^3*y2
+	 * z3 = h*z2
+	 */
 
     xz = p2->z;
     bn_multiply(&xz, &xz, prime); // xz = z2^2
@@ -376,28 +366,28 @@ void point_jacobian_double(jacobian_curve_point* p, const ecdsa_curve* curve)
 
     assert(-3 <= curve->a && curve->a <= 0);
     /* usual algorithm:
-     *
-     * lambda  = (3((x/z^2)^2 + a) / 2y/z^3) = (3x^2 + az^4)/2yz
-     * x3/z3^2 = lambda^2 - 2x/z^2
-     * y3/z3^3 = lambda * (x/z^2 - x3/z3^2) - y/z^3
-     *
-     * to get rid of fraction we set
-     *  m = (3 x^2 + az^4) / 2
-     * Hence,
-     *  lambda = m / yz = m / z3
-     *
-     * With z3 = yz  (the denominator of lambda)
-     * we get x3 = lambda^2*z3^2 - 2*x/z^2*z3^2
-     *           = m^2 - 2*xy^2
-     *    and y3 = (lambda * (x/z^2 - x3/z3^2) - y/z^3) * z3^3
-     *           = m * (xy^2 - x3) - y^4
-     */
+	 *
+	 * lambda  = (3((x/z^2)^2 + a) / 2y/z^3) = (3x^2 + az^4)/2yz
+	 * x3/z3^2 = lambda^2 - 2x/z^2
+	 * y3/z3^3 = lambda * (x/z^2 - x3/z3^2) - y/z^3
+	 *
+	 * to get rid of fraction we set
+	 *  m = (3 x^2 + az^4) / 2
+	 * Hence,
+	 *  lambda = m / yz = m / z3
+	 *
+	 * With z3 = yz  (the denominator of lambda)
+	 * we get x3 = lambda^2*z3^2 - 2*x/z^2*z3^2
+	 *           = m^2 - 2*xy^2
+	 *    and y3 = (lambda * (x/z^2 - x3/z3^2) - y/z^3) * z3^3
+	 *           = m * (xy^2 - x3) - y^4
+	 */
 
     /* m = (3*x^2 + a z^4) / 2
-     * x3 = m^2 - 2*xy^2
-     * y3 = m*(xy^2 - x3) - 8y^4
-     * z3 = y*z
-     */
+	 * x3 = m^2 - 2*xy^2
+	 * y3 = m*(xy^2 - x3) - 8y^4
+	 * z3 = y*z
+	 */
 
     m = p->x;
     bn_multiply(&m, &m, prime);
@@ -677,24 +667,63 @@ int ecdh_multiply(const ecdsa_curve* curve, const uint8_t* priv_key, const uint8
     return 0;
 }
 
-// msg is a data to be signed
-// msg_len is the message length
-int ecdsa_sign(const ecdsa_curve* curve, HasherType hasher_type, const uint8_t* priv_key, const uint8_t* msg, uint32_t msg_len, uint8_t* sig, uint8_t* pby, int (*is_canonical)(uint8_t by, uint8_t sig[64]))
+void init_rfc6979(const uint8_t* priv_key, const uint8_t* hash, rfc6979_state* state)
 {
-    uint8_t hash[32];
-    hasher_Raw(hasher_type, msg, msg_len, hash);
-    int res = ecdsa_sign_digest(curve, priv_key, hash, sig, pby, is_canonical);
-    memzero(hash, sizeof(hash));
-    return res;
+    uint8_t bx[2 * 32];
+    uint8_t buf[32 + 1 + 2 * 32];
+
+    memcpy(bx, priv_key, 32);
+    memcpy(bx + 32, hash, 32);
+
+    memset(state->v, 1, sizeof(state->v));
+    memset(state->k, 0, sizeof(state->k));
+
+    memcpy(buf, state->v, sizeof(state->v));
+    buf[sizeof(state->v)] = 0x00;
+    memcpy(buf + sizeof(state->v) + 1, bx, 64);
+    hmac_sha256(state->k, sizeof(state->k), buf, sizeof(buf), state->k);
+    hmac_sha256(state->k, sizeof(state->k), state->v, sizeof(state->v), state->v);
+
+    memcpy(buf, state->v, sizeof(state->v));
+    buf[sizeof(state->v)] = 0x01;
+    memcpy(buf + sizeof(state->v) + 1, bx, 64);
+    hmac_sha256(state->k, sizeof(state->k), buf, sizeof(buf), state->k);
+    hmac_sha256(state->k, sizeof(state->k), state->v, sizeof(state->v), state->v);
+
+    memzero(bx, sizeof(bx));
+    memzero(buf, sizeof(buf));
+}
+
+// generate next number from deterministic random number generator
+void generate_rfc6979(uint8_t rnd[32], rfc6979_state* state)
+{
+    uint8_t buf[32 + 1];
+
+    hmac_sha256(state->k, sizeof(state->k), state->v, sizeof(state->v), state->v);
+    memcpy(buf, state->v, sizeof(state->v));
+    buf[sizeof(state->v)] = 0x00;
+    hmac_sha256(state->k, sizeof(state->k), buf, sizeof(state->v) + 1, state->k);
+    hmac_sha256(state->k, sizeof(state->k), state->v, sizeof(state->v), state->v);
+    memcpy(rnd, buf, 32);
+    memzero(buf, sizeof(buf));
+}
+
+// generate K in a deterministic way, according to RFC6979
+// http://tools.ietf.org/html/rfc6979
+void generate_k_rfc6979(bignum256* k, rfc6979_state* state)
+{
+    uint8_t buf[32];
+    generate_rfc6979(buf, state);
+    bn_read_be(buf, k);
+    memzero(buf, sizeof(buf));
 }
 
 // msg is a data to be signed
 // msg_len is the message length
-int ecdsa_sign_double(const ecdsa_curve* curve, HasherType hasher_type, const uint8_t* priv_key, const uint8_t* msg, uint32_t msg_len, uint8_t* sig, uint8_t* pby, int (*is_canonical)(uint8_t by, uint8_t sig[64]))
+int ecdsa_sign(const ecdsa_curve* curve, HasherType hasher_sign, const uint8_t* priv_key, const uint8_t* msg, uint32_t msg_len, uint8_t* sig, uint8_t* pby, int (*is_canonical)(uint8_t by, uint8_t sig[64]))
 {
     uint8_t hash[32];
-    hasher_Raw(hasher_type, msg, msg_len, hash);
-    hasher_Raw(hasher_type, hash, 32, hash);
+    hasher_Raw(hasher_sign, msg, msg_len, hash);
     int res = ecdsa_sign_digest(curve, priv_key, hash, sig, pby, is_canonical);
     memzero(hash, sizeof(hash));
     return res;
@@ -706,34 +735,95 @@ int ecdsa_sign_double(const ecdsa_curve* curve, HasherType hasher_type, const ui
 // digest is 32 bytes of digest
 // is_canonical is an optional function that checks if the signature
 // conforms to additional coin-specific rules.
-// See https://github.com/trezor/trezor-crypto/commit/133c068f374871dcb84715bdd4db3dd69a2a6382
-// for an explanation of when is_canonical is used
 int ecdsa_sign_digest(const ecdsa_curve* curve, const uint8_t* priv_key, const uint8_t* digest, uint8_t* sig, uint8_t* pby, int (*is_canonical)(uint8_t by, uint8_t sig[64]))
 {
     int i;
-    bignum256 k, z;
+    curve_point R;
+    bignum256 k, z, randk;
+    bignum256* s = &R.y;
+    uint8_t by; // signature recovery byte
+
+#if USE_RFC6979
+    rfc6979_state rng;
+    init_rfc6979(priv_key, digest, &rng);
+#endif
+
     bn_read_be(digest, &z);
 
-    // message digest to sign must not be 0
-    if (bn_is_zero(&z)) {
-        return -2;
-    }
-
     for (i = 0; i < 10000; i++) {
-        // generate random number k (nonce)
+#if USE_RFC6979
+        // generate K deterministically
+        generate_k_rfc6979(&k, &rng);
+        // if k is too big or too small, we don't like it
+        if (bn_is_zero(&k) || !bn_is_less(&k, &curve->order)) {
+            continue;
+        }
+#else
+        // generate random number k
         generate_k_random(&k, &curve->order);
+#endif
 
-        if (ecdsa_sign_digest_inner(curve, priv_key, &z, &k, sig, pby, is_canonical)) {
+        // compute k*G
+        scalar_multiply(curve, &k, &R);
+        by = R.y.val[0] & 1;
+        // r = (rx mod n)
+        if (!bn_is_less(&R.x, &curve->order)) {
+            bn_subtract(&R.x, &curve->order, &R.x);
+            by |= 2;
+        }
+        // if r is zero, we retry
+        if (bn_is_zero(&R.x)) {
             continue;
         }
 
+        // randomize operations to counter side-channel attacks
+        generate_k_random(&randk, &curve->order);
+        bn_multiply(&randk, &k, &curve->order); // k*rand
+        bn_inverse(&k, &curve->order);          // (k*rand)^-1
+        bn_read_be(priv_key, s);                // priv
+        bn_multiply(&R.x, s, &curve->order);    // R.x*priv
+        bn_add(s, &z);                          // R.x*priv + z
+        bn_multiply(&k, s, &curve->order);      // (k*rand)^-1 (R.x*priv + z)
+        bn_multiply(&randk, s, &curve->order);  // k^-1 (R.x*priv + z)
+        bn_mod(s, &curve->order);
+        // if s is zero, we retry
+        if (bn_is_zero(s)) {
+            continue;
+        }
+
+        // if S > order/2 => S = -S
+        if (bn_is_less(&curve->order_half, s)) {
+            bn_subtract(&curve->order, s, s);
+            by ^= 1;
+        }
+        // we are done, R.x and s is the result signature
+        bn_write_be(&R.x, sig);
+        bn_write_be(s, sig + 32);
+
+        // check if the signature is acceptable or retry
+        if (is_canonical && !is_canonical(by, sig)) {
+            continue;
+        }
+
+        if (pby) {
+            *pby = by;
+        }
+
         memzero(&k, sizeof(k));
+        memzero(&randk, sizeof(randk));
+#if USE_RFC6979
+        memzero(&rng, sizeof(rng));
+#endif
         return 0;
     }
 
     // Too many retries without a valid signature
     // -> fail with an error
     memzero(&k, sizeof(k));
+    memzero(&randk, sizeof(randk));
+#if USE_RFC6979
+    memzero(&rng, sizeof(rng));
+#endif
     return -1;
 }
 
@@ -882,7 +972,7 @@ int ecdsa_uncompress_pubkey(const ecdsa_curve* curve, const uint8_t* pub_key, ui
     return 1;
 }
 
-void ecdsa_get_pubkeyhash(const uint8_t* pub_key, HasherType hasher_type, uint8_t* pubkeyhash)
+void ecdsa_get_pubkeyhash(const uint8_t* pub_key, HasherType hasher_pubkey, uint8_t* pubkeyhash)
 {
     /*
     SKYCOIN CIPHER AUDIT
@@ -892,27 +982,74 @@ void ecdsa_get_pubkeyhash(const uint8_t* pub_key, HasherType hasher_type, uint8_
 
     uint8_t h[HASHER_DIGEST_LENGTH];
     if (pub_key[0] == 0x04) { // uncompressed format
-        hasher_Raw(hasher_type, pub_key, 65, h);
+        hasher_Raw(hasher_pubkey, pub_key, 65, h);
     } else if (pub_key[0] == 0x00) { // point at infinity
-        hasher_Raw(hasher_type, pub_key, 1, h);
+        hasher_Raw(hasher_pubkey, pub_key, 1, h);
     } else { // expecting compressed format
-        hasher_Raw(hasher_type, pub_key, 33, h);
+        hasher_Raw(hasher_pubkey, pub_key, 33, h);
     }
-    ripemd160(h, HASHER_DIGEST_LENGTH, pubkeyhash);
+    memcpy(pubkeyhash, h, 20);
     memzero(h, sizeof(h));
+}
+
+void ecdsa_get_address_raw(const uint8_t* pub_key, uint32_t version, HasherType hasher_pubkey, uint8_t* addr_raw)
+{
+    size_t prefix_len = address_prefix_bytes_len(version);
+    address_write_prefix_bytes(version, addr_raw);
+    ecdsa_get_pubkeyhash(pub_key, hasher_pubkey, addr_raw + prefix_len);
+}
+
+void ecdsa_get_address(const uint8_t* pub_key, uint32_t version, HasherType hasher_pubkey, HasherType hasher_base58, char* addr, int addrsize)
+{
+    uint8_t raw[MAX_ADDR_RAW_SIZE];
+    size_t prefix_len = address_prefix_bytes_len(version);
+    ecdsa_get_address_raw(pub_key, version, hasher_pubkey, raw);
+    base58_encode_check(raw, 20 + prefix_len, hasher_base58, addr, addrsize);
+    // not as important to clear this one, but we might as well
+    memzero(raw, sizeof(raw));
+}
+
+void ecdsa_get_address_segwit_p2sh_raw(const uint8_t* pub_key, uint32_t version, HasherType hasher_pubkey, uint8_t* addr_raw)
+{
+    uint8_t buf[32 + 2];
+    buf[0] = 0;  // version byte
+    buf[1] = 20; // push 20 bytes
+    ecdsa_get_pubkeyhash(pub_key, hasher_pubkey, buf + 2);
+    size_t prefix_len = address_prefix_bytes_len(version);
+    address_write_prefix_bytes(version, addr_raw);
+    hasher_Raw(hasher_pubkey, buf, 22, addr_raw + prefix_len);
+}
+
+void ecdsa_get_address_segwit_p2sh(const uint8_t* pub_key, uint32_t version, HasherType hasher_pubkey, HasherType hasher_base58, char* addr, int addrsize)
+{
+    uint8_t raw[MAX_ADDR_RAW_SIZE];
+    size_t prefix_len = address_prefix_bytes_len(version);
+    ecdsa_get_address_segwit_p2sh_raw(pub_key, version, hasher_pubkey, raw);
+    base58_encode_check(raw, prefix_len + 20, hasher_base58, addr, addrsize);
+    memzero(raw, sizeof(raw));
+}
+
+void ecdsa_get_wif(const uint8_t* priv_key, uint32_t version, HasherType hasher_base58, char* wif, int wifsize)
+{
+    uint8_t wif_raw[MAX_WIF_RAW_SIZE];
+    size_t prefix_len = address_prefix_bytes_len(version);
+    address_write_prefix_bytes(version, wif_raw);
+    memcpy(wif_raw + prefix_len, priv_key, 32);
+    wif_raw[prefix_len + 32] = 0x01;
+    base58_encode_check(wif_raw, prefix_len + 32 + 1, hasher_base58, wif, wifsize);
+    // private keys running around our stack can cause trouble
+    memzero(wif_raw, sizeof(wif_raw));
+}
+
+int ecdsa_address_decode(const char* addr, uint32_t version, HasherType hasher_base58, uint8_t* out)
+{
+    if (!addr) return 0;
+    int prefix_len = address_prefix_bytes_len(version);
+    return base58_decode_check(addr, hasher_base58, out, 20 + prefix_len) == 20 + prefix_len && address_check_prefix(out, version);
 }
 
 void uncompress_coords(const ecdsa_curve* curve, uint8_t odd, const bignum256* x, bignum256* y)
 {
-    /*
-    SKYCOIN CIPHER AUDIT
-    Compare to function: XY.SetXO
-    RESULT:
-    This looks very similar to XY.SetXO, with these differences:
-    - The first operation in XY.SetXO is a Sqr(), which is missing here
-    - The bn_subi() operation here, is not in XY.SetXO
-    */
-
     // y^2 = x^3 + a*x + b
     memcpy(y, x, sizeof(bignum256));      // y is x
     bn_multiply(x, y, &curve->prime);     // y is x^2
@@ -988,23 +1125,63 @@ int ecdsa_validate_pubkey(const ecdsa_curve* curve, const curve_point* pub)
 // msg is a data that was signed
 // msg_len is the message length
 
-int ecdsa_verify(const ecdsa_curve* curve, HasherType hasher_type, const uint8_t* pub_key, const uint8_t* sig, const uint8_t* msg, uint32_t msg_len)
+int ecdsa_verify(const ecdsa_curve* curve, HasherType hasher_sign, const uint8_t* pub_key, const uint8_t* sig, const uint8_t* msg, uint32_t msg_len)
 {
     uint8_t hash[32];
-    hasher_Raw(hasher_type, msg, msg_len, hash);
+    hasher_Raw(hasher_sign, msg, msg_len, hash);
     int res = ecdsa_verify_digest(curve, pub_key, sig, hash);
     memzero(hash, sizeof(hash));
     return res;
 }
 
-int ecdsa_verify_double(const ecdsa_curve* curve, HasherType hasher_type, const uint8_t* pub_key, const uint8_t* sig, const uint8_t* msg, uint32_t msg_len)
+// Compute public key from signature and recovery id.
+// returns 0 if the key is successfully recovered
+int ecdsa_recover_pub_from_sig(const ecdsa_curve* curve, uint8_t* pub_key, const uint8_t* sig, const uint8_t* digest, int recid)
 {
-    uint8_t hash[32];
-    hasher_Raw(hasher_type, msg, msg_len, hash);
-    hasher_Raw(hasher_type, hash, 32, hash);
-    int res = ecdsa_verify_digest(curve, pub_key, sig, hash);
-    memzero(hash, sizeof(hash));
-    return res;
+    bignum256 r, s, e;
+    curve_point cp, cp2;
+
+    // read r and s
+    bn_read_be(sig, &r);
+    bn_read_be(sig + 32, &s);
+    if (!bn_is_less(&r, &curve->order) || bn_is_zero(&r)) {
+        return 1;
+    }
+    if (!bn_is_less(&s, &curve->order) || bn_is_zero(&s)) {
+        return 1;
+    }
+    // cp = R = k * G (k is secret nonce when signing)
+    memcpy(&cp.x, &r, sizeof(bignum256));
+    if (recid & 2) {
+        bn_add(&cp.x, &curve->order);
+        if (!bn_is_less(&cp.x, &curve->prime)) {
+            return 1;
+        }
+    }
+    // compute y from x
+    uncompress_coords(curve, recid & 1, &cp.x, &cp.y);
+    if (!ecdsa_validate_pubkey(curve, &cp)) {
+        return 1;
+    }
+    // e = -digest
+    bn_read_be(digest, &e);
+    bn_subtractmod(&curve->order, &e, &e, &curve->order);
+    bn_fast_mod(&e, &curve->order);
+    bn_mod(&e, &curve->order);
+    // r := r^-1
+    bn_inverse(&r, &curve->order);
+    // cp := s * R = s * k *G
+    point_multiply(curve, &s, &cp, &cp);
+    // cp2 := -digest * G
+    scalar_multiply(curve, &e, &cp2);
+    // cp := (s * k - digest) * G = (r*priv) * G = r * Pub
+    point_add(curve, &cp2, &cp);
+    // cp := r^{-1} * r * Pub = Pub
+    point_multiply(curve, &r, &cp, &cp);
+    pub_key[0] = 0x04;
+    bn_write_be(&cp.x, pub_key + 1);
+    bn_write_be(&cp.y, pub_key + 33);
+    return 0;
 }
 
 // Compute public key from signature and recovery id.

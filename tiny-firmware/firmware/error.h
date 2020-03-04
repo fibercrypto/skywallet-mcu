@@ -78,6 +78,7 @@ enum ErrCode {
     ErrInitialized = ERROR_CODE(PkgStorage, ReasonUnknown),              /*!< Storage initialized */
     ErrMnemonicRequired = ERROR_CODE(PkgMnemonic, ReasonInvalidState),   /*!< Mnemonic required */
     ErrAddressGeneration = ERROR_CODE(PkgAddress, ErrInvalidValue),      /*!< Failed address generation */
+    ErrAddressProcurement = ERROR_CODE(PkgAddress, ErrInvalidArg),       /*!< ErrAddressProcurement address procurement */
     ErrTooManyAddresses = ERROR_CODE(PkgAddress, ReasonOutOfBounds),     /*!< Too many addresses to generate */
     ErrUnfinishedBackup = ERROR_CODE(PkgBackup, ReasonInvalidState),     /*!< Backup operation did not finish properly */
     ErrEntropyRequired = ERROR_CODE(PkgEntropy, ReasonExpired),          /*!< External entropy required */
@@ -87,6 +88,7 @@ enum ErrCode {
     ErrUnexpectedMessage = ERROR_CODE(PkgServer, ReasonInvalidState),    /*!< Server state loses path */
     ErrSignPreconditionFailed = ERROR_CODE(PkgSign, ReasonInvalidState), /*!< Signing precondition failed */
     ErrInvalidSignature = ERROR_CODE(PkgSign, ReasonValueError),         /*!< Invalid Message Signature */
+    ErrInvalidPubKey = ERROR_CODE(PkgSign, ReasonArgumentError)          /*!< Invalid Public Key */
 };
 typedef enum ErrCode ErrCode_t;
 _Static_assert(sizeof(ErrCode_t) == 4, "One byte as max for package");

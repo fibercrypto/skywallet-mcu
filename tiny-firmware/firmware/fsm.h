@@ -21,7 +21,8 @@
 #ifndef __FSM_H__
 #define __FSM_H__
 
-#include "messages.pb.h"
+#include "tiny-firmware/firmware/error.h"
+#include "tiny-firmware/protob/c/messages.pb.h"
 
 // message functions
 
@@ -29,12 +30,11 @@ void fsm_sendSuccess(const char* text, MessageType* msgtype);
 
 void fsm_sendFailure(FailureType code, const char* text, MessageType* msgtype);
 
+void fsm_sendResponseFromErrCode(ErrCode_t err, const char* successMsg, const char* failMsg, MessageType* msgtype);
+
 void fsm_msgInitialize(Initialize* msg);
 void fsm_msgGetFeatures(GetFeatures* msg);
 void fsm_msgApplySettings(ApplySettings* msg);
-void fsm_msgSkycoinCheckMessageSignature(SkycoinCheckMessageSignature* msg);
-void fsm_msgSkycoinSignMessage(SkycoinSignMessage* msg);
-void fsm_msgSkycoinAddress(SkycoinAddress* msg);
 void fsm_msgGenerateMnemonic(GenerateMnemonic* msg);
 void fsm_msgSetMnemonic(SetMnemonic* msg);
 void fsm_msgPing(Ping* msg);
@@ -50,6 +50,8 @@ void fsm_msgPinMatrixAck(PinMatrixAck* msg);
 void fsm_msgCancel(Cancel* msg);
 void fsm_msgRecoveryDevice(RecoveryDevice* msg);
 void fsm_msgWordAck(WordAck* msg);
-void fsm_msgTransactionSign(TransactionSign* msg);
+void fsm_msgSignTx(SignTx* msg);
+void fsm_msgTxAck(TxAck* msg);
+ErrCode_t requestConfirmTransaction(char* strCoin, char* strHour, TransactionSign* msg, uint32_t i);
 
 #endif

@@ -24,17 +24,17 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/rcc.h>
 
-#include "bootloader.h"
-#include "buttons.h"
-#include "layout.h"
-#include "oled.h"
-#include "rng.h"
-#include "serialno.h"
-#include "setup.h"
-#include "signatures.h"
-#include "usb.h"
-#include "util.h"
+#include "tiny-firmware/bootloader/bootloader.h"
+#include "tiny-firmware/bootloader/signatures.h"
+#include "tiny-firmware/bootloader/usb.h"
 
+#include "tiny-firmware/buttons.h"
+#include "tiny-firmware/layout.h"
+#include "tiny-firmware/oled.h"
+#include "tiny-firmware/rng.h"
+#include "tiny-firmware/serialno.h"
+#include "tiny-firmware/setup.h"
+#include "tiny-firmware/util.h"
 
 void layoutFirmwareHash(const uint8_t* hash)
 {
@@ -211,7 +211,7 @@ void bootloader_loop(void)
     } else {
         oledDrawString(52, 10, "Welcome!", FONT_STANDARD);
         oledDrawString(52, 30, "Please visit", FONT_STANDARD);
-        oledDrawString(52, 50, "skycoin.net", FONT_STANDARD);
+        oledDrawString(52, 50, "skycoin.com", FONT_STANDARD);
     }
     oledRefresh();
 

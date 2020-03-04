@@ -25,6 +25,6 @@
 void fill_serialno_fixed(char* s);
 
 // uuid has to be 12 bytes long and buffer has to be (at least) 25 chars long
-void serialno_from_uuid(uint32_t *uuid, char *s);
+void serialno_from_uuid(uint32_t* uuid, char* s);
 
 #endif

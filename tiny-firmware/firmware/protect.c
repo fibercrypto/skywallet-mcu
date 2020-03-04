@@ -18,19 +18,19 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "protect.h"
-#include "buttons.h"
-#include "fsm.h"
-#include "gettext.h"
-#include "layout2.h"
-#include "memory.h"
-#include "memzero.h"
-#include "messages.h"
-#include "oled.h"
-#include "pinmatrix.h"
-#include "storage.h"
-#include "usb.h"
-#include "util.h"
+#include "tiny-firmware/firmware/protect.h"
+#include "skycoin-crypto/tools/memzero.h"
+#include "tiny-firmware/buttons.h"
+#include "tiny-firmware/firmware/fsm.h"
+#include "tiny-firmware/firmware/gettext.h"
+#include "tiny-firmware/firmware/layout2.h"
+#include "tiny-firmware/firmware/messages.h"
+#include "tiny-firmware/firmware/pinmatrix.h"
+#include "tiny-firmware/firmware/storage.h"
+#include "tiny-firmware/memory.h"
+#include "tiny-firmware/oled.h"
+#include "tiny-firmware/usb.h"
+#include "tiny-firmware/util.h"
 
 #define MAX_WRONG_PINS 15
 
@@ -155,7 +155,8 @@ static void protectCheckMaxTry(uint32_t wait)
 
     storage_wipe();
     layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Too many wrong PIN"), _("attempts. Storage has"), _("been wiped."), NULL, _("Please unplug"), _("the device."));
-    for (;;) {} // loop forever
+    for (;;) {
+    } // loop forever
 }
 
 bool protectPin(bool use_cached)

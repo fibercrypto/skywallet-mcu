@@ -24,7 +24,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "firmware/error.h"
+#include "tiny-firmware/firmware/error.h"
 #include "types.pb.h"
 
 void reset_init(bool display_random, uint32_t _strength, bool passphrase_protection, bool pin_protection, const char* language, const char* label, bool skip_backup);
@@ -40,6 +40,6 @@ uint32_t reset_get_int_entropy(uint8_t* entropy);
 const char* reset_get_word(void);
 
 // Functions exported or testing purposes
-void reset_init_ex(bool display_random, uint32_t _strength, bool passphrase_protection, bool pin_protection, const char* language, const char* label, bool _skip_backup, const char* (*funcRequestPin)(PinMatrixRequestType mt, const char*msg));
+void reset_init_ex(bool display_random, uint32_t _strength, bool passphrase_protection, bool pin_protection, const char* language, const char* label, bool _skip_backup, const char* (*funcRequestPin)(PinMatrixRequestType mt, const char* msg));
 
 #endif

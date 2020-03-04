@@ -11,25 +11,34 @@
 
 #include <libopencm3/stm32/desig.h>
 
-#include "bitmaps.h"
-#include "buttons.h"
-#include "entropy.h"
-#include "factory_test.h"
-#include "fastflash.h"
-#include "gettext.h"
-#include "layout.h"
-#include "layout2.h"
-#include "memory.h"
-#include "oled.h"
-#include "rng.h"
-#include "setup.h"
-#include "skywallet.h"
-#include "storage.h"
-#include "timer.h"
-#include "usb.h"
-#include "util.h"
+#include "stdio.h"
+#include "tiny-firmware/buttons.h"
+#include "tiny-firmware/firmware/bootloader_integrity.h"
+#include "tiny-firmware/firmware/entropy.h"
+#include "tiny-firmware/firmware/factory_test.h"
+#include "tiny-firmware/firmware/fastflash.h"
+#include "tiny-firmware/firmware/gettext.h"
+#include "tiny-firmware/firmware/layout2.h"
+#include "tiny-firmware/firmware/skywallet.h"
+#include "tiny-firmware/firmware/storage.h"
+#include "tiny-firmware/gen/bitmaps.h"
+#include "tiny-firmware/layout.h"
+#include "tiny-firmware/memory.h"
+#include "tiny-firmware/oled.h"
+#include "tiny-firmware/rng.h"
+#include "tiny-firmware/setup.h"
+#include "tiny-firmware/timer.h"
+#include "tiny-firmware/usb.h"
+#include "tiny-firmware/util.h"
+
+#ifdef __CYGWIN__
+#ifdef main
+#undef main
+#endif
+#endif
 
 extern uint32_t storage_uuid[STM32_UUID_LEN / sizeof(uint32_t)];
+
 int main(void)
 {
 #if defined(EMULATOR) && EMULATOR == 1
@@ -37,6 +46,13 @@ int main(void)
     __stack_chk_guard = random32(); // this supports compiler provided unpredictable stack protection checks
     oledInit();
 #else  // defined(EMULATOR) && EMULATOR == 1
+    if (!check_bootloader()) {
+        layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Unknown bootloader", "detected.", NULL,
+            "Unplug your Skywallet",
+            "contact our support.", NULL);
+        for (;;)
+            ;
+    }
     setupApp();
     __stack_chk_guard = random32(); // this supports compiler provided unpredictable stack protection checks
 #endif // defined(EMULATOR) && EMULATOR == 1

@@ -19,11 +19,12 @@
 
 #include <string.h>
 
-#include "fsm.h"
-#include "gettext.h"
-#include "messages.h"
-#include "skywallet.h"
-#include "util.h"
+#include "tiny-firmware/firmware/fsm.h"
+#include "tiny-firmware/firmware/fsm_skycoin.h"
+#include "tiny-firmware/firmware/gettext.h"
+#include "tiny-firmware/firmware/messages.h"
+#include "tiny-firmware/firmware/skywallet.h"
+#include "tiny-firmware/util.h"
 
 #include "messages.pb.h"
 #include "pb_decode.h"

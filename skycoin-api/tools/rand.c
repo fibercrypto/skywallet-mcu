@@ -27,8 +27,8 @@
 
 #include <string.h>
 
-#include "rand.h"
 #include "entropypool.h"
+#include "rand.h"
 
 #ifndef RAND_PLATFORM_INDEPENDENT
 
@@ -67,9 +67,14 @@ uint32_t __attribute__((weak)) _random32(void)
 // The following code is platform independent
 //
 
+#ifdef __CYGWIN__
+#pragma weak _random_buffer
+void _random_buffer(uint8_t* buf, size_t len)
+#else
 void __attribute__((weak)) _random_buffer(uint8_t* buf, size_t len)
+#endif
 {
-    uint32_t *ptr = (uint32_t *) buf;
+    uint32_t* ptr = (uint32_t*)buf;
     size_t remaining = len;
 
     for (; remaining >= 4; ++ptr, remaining -= 4) {
@@ -77,7 +82,7 @@ void __attribute__((weak)) _random_buffer(uint8_t* buf, size_t len)
     }
     if (remaining > 0) {
         uint32_t r = _random32();
-        memcpy((void *) ptr, (void *) &r, remaining);
+        memcpy((void*)ptr, (void*)&r, remaining);
     }
 }
 
@@ -94,7 +99,8 @@ void random_buffer(uint8_t* buf, size_t len)
 uint32_t random_uniform(uint32_t n)
 {
     uint32_t x, max = 0xFFFFFFFF - (0xFFFFFFFF % n);
-    while ((x = random32()) >= max) {}
+    while ((x = random32()) >= max) {
+    }
     return x / (max / n);
 }
 
@@ -107,4 +113,3 @@ void random_permute(char* str, size_t len)
         str[i] = t;
     }
 }
-

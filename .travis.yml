@@ -2,8 +2,9 @@ language: c
 matrix:
   include:
     - os: linux
+      python: 3.5
       env:
-        - PIP='sudo pip'
+        - PIP='sudo pip3'
       addons:
         apt:
           sources:
@@ -11,15 +12,23 @@ matrix:
     - os: osx
       env:
         - PYTHON=python3
+env:
+  global:
+    - GOPATH: "$HOME/go"
+    - PYTHON=python3
 
 before_script:
+  - mkdir -p ~/bin
+  - curl -L -o ~/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
+  - chmod +x ~/bin/gimme
+  - gimme 1.12
+  - source ~/.gimme/envs/go1.12.env
   - sh "./tiny-firmware/protob/ci-scripts/install-${TRAVIS_OS_NAME}.sh" ;
   # Define env vars for Linux builds
   - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
-    ls -l /usr/local/bin/protoc ;
     export CHECK_PATH="$(pwd)/check-0.12.0" ;
     export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${CHECK_PATH}/src" ;
-    export PATH="/usr/local/bin:$(pwd)/protoc/bin:$PATH" ;
+    export PATH="/usr/local/bin:$PATH" ;
     echo "PATH=$PATH";
     echo "PIP=$PIP";
     fi
@@ -30,6 +39,7 @@ before_script:
     fi
   # Install OS-specific test and build dependencies
   - eval "./ci-scripts/install-${TRAVIS_OS_NAME}.sh"
+  - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export PATH="/opt/gcc-arm-none-eabi-6-2017-q2-update/bin:$PATH" ; fi
   # Install linters
   - make install-linters
   - git submodule update --remote
@@ -37,10 +47,18 @@ before_script:
   - git config submodule.tiny-firmware/protob.url http://github.com/simelo/skycoin-hardware-wallet-protob.git
   - git config submodule.tiny-firmware/protob.branch stdevAdrianPaez_t63_edit_tx_messages_for_passphrase_option
   - git submodule update --init --recursive
+  # Install gcc 6 version, required for libskycoin
+  #FIXME $TRAVIS_TAG != ''
+  - if [[ $TRAVIS_TAG == 'osx' ]]; then
+    make setup-libskycoin;
+    ./tiny-firmware/vendor/libskycoin/ci-scripts/install-travis-gcc.sh;
+    eval "CC=gcc-6 && CXX=g++-6";
+    fi
 
 script:
   - make check-protob
-  - make lint
+  - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then CLANG_FORMAT=clang-format-7 make lint; fi
+  - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then make lint; fi
   - make -C tiny-firmware/protob build-c
   - FIRMWARE_SIGNATURE_PUB_KEY1=0241d51e593f681006f9f3c4a0ec744d459c960601b4ed770d979c32ace63b0a7a make test
   - make clean
@@ -67,15 +85,29 @@ before_deploy:
     fi
 
 deploy:
-  - provider: s3
-    access_key_id: $AWS_ACCESS_KEY_ID
-    secret_access_key: $AWS_SECRET_ACCESS_KEY
-    bucket: $AWS_BUCKET
-    skip_cleanup: true
-    local_dir: releases
-    upload-dir: skywallet
-    acl: private
-    region: $AWS_REGION
-    on:
-      repo: skycoin/hardware-wallet
-      tags: true
+- provider: releases
+  api_key:
+    secure: TODO generate it using travis CLI
+  file:
+  - releases/skywallet-firmware-${TRAVIS_TAG}.bin
+  - releases/skywallet-bootloader-no-memory-protect-${VERSION_BOOTLOADER}.bin
+  - releases/skywallet-full-mem-protect-${COMBINED_VERSION}.bin
+  - releases/skywallet-bootloader-mem-protect-${VERSION_BOOTLOADER}.bin
+  - releases/emulator-$(uname -s)-${TRAVIS_TAG}
+  - releases/version.txt
+  skip_cleanup: true
+  draft: true
+  on:
+    repo: fibercrypto/skywallet-mcu
+    tags: true
+- provider: releases
+  api_key:
+    secure: TODO generate it using travis CLI
+  file:
+   - releases/emulator-$(uname -s)-${TRAVIS_TAG}
+  skip_cleanup: true
+  draft: true
+  on:
+    repo: fibercrypto/skywallet-mcu
+    tags: true
+    condition: $TRAVIS_OS_NAME = "osx"
