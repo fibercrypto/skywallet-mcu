@@ -267,6 +267,11 @@ ErrCode_t protectChangePinEx(ErrCode_t (*funcRequestPin)(PinMatrixRequestType, c
     strlcpy(pin_compare, pin, sizeof(pin_compare));
     memset(pin, 0, sizeof(pin));
     err = funcRequestPin(PinMatrixRequestType_PinMatrixRequestType_NewSecond, _("Please re-enter new PIN:"), pin);
+    if (err != ErrOk) {
+        memset(pin_compare, 0, sizeof(pin_compare));
+        memset(pin, 0, sizeof(pin));
+        return err;
+    }
     {
         char empty_pin[sizeof(pin)] = {0};
         if (!memcmp(pin, empty_pin, sizeof(pin))) {

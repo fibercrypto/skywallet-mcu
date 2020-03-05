@@ -416,14 +416,33 @@ START_TEST(test_msgChangePinSecondRejected)
 }
 END_TEST
 
-START_TEST(test_msgChangePinShouldReturnCanceledAccordingToPinReader)
+START_TEST(test_msgChangePinShouldReturnCanceledAccordingToPinReaderNewPin)
 {
     ChangePin msg = ChangePin_init_zero;
     storage_wipe();
-
-    // Pin mismatch
-    ck_assert_int_eq(msgChangePinImpl(&msg, &pin_reader_canceled), ErrPinCancelled);
     ck_assert_int_eq(storage_hasPin(), false);
+    ck_assert_int_eq(msgChangePinImpl(&msg, &pin_reader_new_canceled), ErrPinCancelled);
+    ck_assert_int_eq(storage_hasPin(), false);
+}
+END_TEST
+
+START_TEST(test_msgChangePinShouldReturnCanceledAccordingToPinReaderButPreserveAPreviuosOne)
+{
+    ErrCode_t (*pin_readers[2])(PinMatrixRequestType, const char*, char*) = {
+        &pin_reader_new_canceled, &pin_reader_confirm_canceled};
+    for (size_t i = 0; i < sizeof(pin_readers) / sizeof(*pin_readers); ++i) {
+        ChangePin msg = ChangePin_init_zero;
+        storage_wipe();
+        ck_assert_int_eq(storage_hasPin(), false);
+
+        ck_assert_int_eq(msgChangePinImpl(&msg, &pin_reader_ok), ErrOk);
+        ck_assert_int_eq(storage_hasPin(), true);
+        ck_assert_str_eq(storage_getPin(), TEST_PIN1);
+
+        ck_assert_int_eq(msgChangePinImpl(&msg, pin_readers[i]), ErrPinCancelled);
+        ck_assert_int_eq(storage_hasPin(), true);
+        ck_assert_str_eq(storage_getPin(), TEST_PIN1);
+    }
 }
 END_TEST
 
@@ -543,7 +562,8 @@ TCase* add_fsm_tests(TCase* tc)
     tcase_add_test(tc, test_msgEntropyAckChgMixerNotInternal);
     tcase_add_test(tc, test_msgChangePinSuccess);
     tcase_add_test(tc, test_msgChangePinSecondRejected);
-    tcase_add_test(tc, test_msgChangePinShouldReturnCanceledAccordingToPinReader);
+    tcase_add_test(tc, test_msgChangePinShouldReturnCanceledAccordingToPinReaderNewPin);
+    tcase_add_test(tc, test_msgChangePinShouldReturnCanceledAccordingToPinReaderButPreserveAPreviuosOne);
     tcase_add_test(tc, test_msgChangePinEditSuccess);
     tcase_add_test(tc, test_msgChangePinRemoveSuccess);
     tcase_add_test(tc, test_isSha256DigestHex);

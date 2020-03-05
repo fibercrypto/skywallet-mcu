@@ -20,4 +20,6 @@ ErrCode_t pin_reader_alt(PinMatrixRequestType pinReqType, const char* text, char
 
 ErrCode_t pin_reader_wrong(PinMatrixRequestType pinReqType, const char* text, char* pin_out);
 
-ErrCode_t pin_reader_canceled(PinMatrixRequestType pinReqType, const char* text, char* pin_out);
+ErrCode_t pin_reader_new_canceled(PinMatrixRequestType pinReqType, const char* text, char* pin_out);
+
+ErrCode_t pin_reader_confirm_canceled(PinMatrixRequestType pinReqType, const char* text, char* pin_out);

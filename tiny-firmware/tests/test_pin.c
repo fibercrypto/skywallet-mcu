@@ -47,14 +47,31 @@ ErrCode_t pin_reader_wrong(PinMatrixRequestType pinReqType, const char* text, ch
     return ErrPinMismatch;
 }
 
-ErrCode_t pin_reader_canceled(PinMatrixRequestType pinReqType, const char* text, char* pin_out)
+ErrCode_t pin_reader_new_canceled(PinMatrixRequestType pinReqType, const char* text, char* pin_out)
 {
     (void)text;
-    (void)pin_out;
     switch (pinReqType) {
     case PinMatrixRequestType_PinMatrixRequestType_NewFirst:
+        return ErrPinCancelled;
+    case PinMatrixRequestType_PinMatrixRequestType_Current:
+    case PinMatrixRequestType_PinMatrixRequestType_NewSecond:
+        strcpy(pin_out, TEST_PIN1);
+        return ErrOk;
+    default:
+        return ErrInvalidArg;
+    }
+}
+
+ErrCode_t pin_reader_confirm_canceled(PinMatrixRequestType pinReqType, const char* text, char* pin_out)
+{
+    (void)text;
+    switch (pinReqType) {
     case PinMatrixRequestType_PinMatrixRequestType_NewSecond:
         return ErrPinCancelled;
+    case PinMatrixRequestType_PinMatrixRequestType_Current:
+    case PinMatrixRequestType_PinMatrixRequestType_NewFirst:
+        strcpy(pin_out, TEST_PIN1);
+        return ErrOk;
     default:
         return ErrInvalidArg;
     }
